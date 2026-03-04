@@ -1,0 +1,19 @@
+<header>
+  @if (currentUser$ | async; as user) {
+    <div (click)="router.navigate(['/account'])">
+      {{ user.full_name }}
+      
+      @if (user.is_teacher) {
+        <div>Учитель</div>
+      }
+      
+      @if (user.is_student) {
+        <div>Ученик</div>
+      }
+      
+      @if (user.is_parent) {
+        <div>Родитель</div>
+      }
+    </div>
+  }
+</header>

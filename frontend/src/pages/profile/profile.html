@@ -1,0 +1,8 @@
+@if (user) {
+  <h2>{{ user.full_name }}</h2>
+  <span>{{ user.birth_date | date:'dd.MM.yyyy' }}</span>
+  
+  @if (user.gender === 'M') {Муж.}
+  @if (user.gender === 'F') {Жен.}
+  <button [routerLink]="'/chat/' + user.username">ЧАТ</button>
+}

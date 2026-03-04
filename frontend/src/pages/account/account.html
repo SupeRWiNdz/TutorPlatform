@@ -1,0 +1,39 @@
+<a (click)="logout()" class="log-btn">Выход</a>
+<a (click)="closeOtherSessions()" class="log-btn">Закрыть все сеансы</a>
+
+<h2>Сменить пароль</h2>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<table><tbody>
+    <tr>
+        <td>Старый пароль:</td>
+        <td><input id="old_password" type="password" formControlName="old_password" placeholder="••••••••••"></td>
+    </tr>
+    
+    <tr *ngIf="form.get('old_password')?.touched&&form.get('old_password')?.errors?.['required']">
+        <td colspan="2">Введите старый пароль</td>
+    </tr>
+    
+    <tr *ngIf="form.get('old_password')?.touched&&form.get('old_password')?.errors?.['old_pass']">
+        <td colspan="2">Введите корректный старый пароль</td>
+    </tr>
+    <tr>
+        <td>Новый пароль:</td>
+        <td><input id="new_password" type="password" formControlName="new_password" placeholder="••••••••••"></td>
+    </tr>
+    <tr *ngIf="form.get('new_password')?.touched&&form.get('new_password')?.errors?.['required']">
+        <td colspan="2">Введите новый пароль</td>
+    </tr>
+    <tr *ngIf="form.get('new_password')?.touched&&form.get('new_password')?.errors?.['new_password']">
+        <td colspan="2">Введите корректный новый пароль</td>
+    </tr>
+</tbody></table>
+    <button type="submit" >
+        Войти
+    </button>
+</form>
+<div *ngIf="errorMessage">
+    <strong>Ошибка</strong><br>
+    <p>
+        {{ errorMessage }}
+    </p>
+</div>   

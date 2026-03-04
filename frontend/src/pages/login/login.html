@@ -1,0 +1,40 @@
+<h2>Войти в систему</h2>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<table><tbody>
+    <tr>
+        <td>Электронная почта:</td>
+        <td><input formControlName="email" placeholder="example@mail.com" ></td>
+    </tr>
+    @if (form.get('email')?.touched&&form.get('email')?.errors?.['required']) {
+    <tr>
+        <td colspan="2">Введите электронную почту</td>
+    </tr>
+    }
+    @if (form.get('email')?.touched&&form.get('email')?.errors?.['email']) {
+    <tr>
+        <td colspan="2">Введите корректную электронную почту</td>
+    </tr>
+    }
+    <tr>
+        <td>Пароль:</td>
+        <td><input id="password" type="password" formControlName="password" placeholder="••••••••••"></td>
+    </tr>
+    @if (form.get('password')?.touched&&form.get('password')?.errors?.['required']) {
+    <tr>
+        <td colspan="2">Пароль не может быть пустым</td>
+    </tr>
+    }
+    @if (form.get('password')?.touched&&form.get('password')?.errors?.['password']) {
+    <tr>
+        <td colspan="2">Введите корректный пароль</td>
+    </tr>
+    }
+</tbody></table>
+    <button type="submit">Войти</button>
+</form>
+@if (errorMessage) {
+    <strong>Ошибка</strong>
+    <p>
+        {{ errorMessage }}
+    </p>
+}
