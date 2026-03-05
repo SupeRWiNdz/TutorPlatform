@@ -7,6 +7,8 @@ import { Chat } from '../pages/chat/chat';
 import { UserResolver } from '../services/user.resolver';
 import { AuthGuard } from '../services/auth.guard';
 import { ProfileResolver } from '../services/profile.resolver';
+import { Main } from '../pages/main/main';
+import { ChatList } from '../pages/chat-list/chat-list';
 
 export const routes: Routes = [
   { 
@@ -15,8 +17,14 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: '/login', 
-        pathMatch: 'full' 
+        component: Main,
+        title: 'Главная'
+      },
+      {
+        path: 'chat',
+        component: ChatList,
+        canActivate: [AuthGuard],
+        title: 'Список чатов'
       },
       {
         path: 'login', 

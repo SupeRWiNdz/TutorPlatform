@@ -1,5 +1,9 @@
 @if (user) {
   <h2>{{ user.full_name }}</h2>
+  @if (hasMore$ | async)
+  {
+    <button (click)="loadMoreMessages()">ЗАГРУЗИТЬ</button>
+  }
   @for (message of messages$ | async; track message.id || $index) {
     @if (message) {
       <div [style.color]="message.type === 'outgoing' ? 'red' : 'blue'">

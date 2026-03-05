@@ -13,12 +13,15 @@ import { Observable } from 'rxjs';
 })
 export class Chat {
   public user: User | null = null;  
-  public messages$: Observable<any | null>;
-  
-  constructor(private route: ActivatedRoute,
+  public messages$: Observable<any[] | null>;
+  public hasMore$: Observable<boolean>;
+
+  constructor(
+    private route: ActivatedRoute,
     private messagesService: MessagesService
   ) {
     this.messages$ = this.messagesService.messages$;
+    this.hasMore$ = this.messagesService.hasMore$;
   }
 
   ngOnInit(): void {
@@ -31,8 +34,12 @@ export class Chat {
   }
 
   sendMessage(text: string): void {
-  if (text?.trim() && this.user?.username) {
-    this.messagesService.sendMessageForUser(this.user.username, text);
+    if (text?.trim() && this.user?.username) {
+      this.messagesService.sendMessageForUser(this.user.username, text);
+    }
   }
-}
+  
+  public loadMoreMessages(): void {
+    this.messagesService.loadMoreMessages();
+  }
 }
