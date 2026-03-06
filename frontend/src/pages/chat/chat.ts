@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { User } from '../../models/auth.models';
 import { MessagesService } from '../../services/message.service';
@@ -18,7 +18,8 @@ export class Chat {
 
   constructor(
     private route: ActivatedRoute,
-    private messagesService: MessagesService
+    private messagesService: MessagesService,
+    public router: Router
   ) {
     this.messages$ = this.messagesService.messages$;
     this.hasMore$ = this.messagesService.hasMore$;

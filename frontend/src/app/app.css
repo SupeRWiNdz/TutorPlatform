@@ -1,0 +1,15 @@
+.mainblock {
+    aspect-ratio: 12/16;
+    height:860px;
+    background-color: gray;
+    position: relative; 
+    
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.innerblock {
+    background-color:darkgray;
+    text-align: center;
+}

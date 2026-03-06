@@ -40,15 +40,13 @@ export const routes: Routes = [
       {
         path: 'profile/:username',
         component: Profile,
-        resolve: { profile: ProfileResolver },
-        title: 'Профиль'
+        resolve: { profile: ProfileResolver }
       },
       {
         path: 'chat/:username',
         component: Chat,
         canActivate: [AuthGuard],
-        resolve: { profile: ProfileResolver },
-        title: 'Чат'
+        resolve: { profile: ProfileResolver }
       },
       {
         path: '**',

@@ -1,5 +1,5 @@
 import { Component, signal, ViewEncapsulation } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { Header } from '../pages/header/header';
 
 @Component({
@@ -8,9 +8,12 @@ import { Header } from '../pages/header/header';
     RouterOutlet,
     Header
   ],
-  template: '<app-header></app-header><router-outlet></router-outlet>',
+  templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
   protected readonly title = signal('frontend');
+  constructor(public router: Router) {
+
+  }
 }

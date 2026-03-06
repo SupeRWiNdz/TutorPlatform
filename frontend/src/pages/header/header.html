@@ -1,19 +1,16 @@
 <header>
-  @if (currentUser$ | async; as user) {
-    <div (click)="router.navigate(['/account'])">
-      {{ user.full_name }}
-      
-      @if (user.is_teacher) {
-        <div>Учитель</div>
+  <table>
+    <tbody>
+      @if (currentUser$ | async; as user) {
+      <td (click)="router.navigate(['/account'])">
+        {{ user.full_name }}
+      </td>
+      <td>
+        @if (user.is_teacher) {Учитель}
+        @if (user.is_student) {Ученик}
+        @if (user.is_parent) {Родитель}
+      </td>
       }
-      
-      @if (user.is_student) {
-        <div>Ученик</div>
-      }
-      
-      @if (user.is_parent) {
-        <div>Родитель</div>
-      }
-    </div>
-  }
+    </tbody>
+  </table>
 </header>
