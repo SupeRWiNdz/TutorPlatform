@@ -33,6 +33,9 @@ export class Chat {
       }
     });
   }
+  ngOnDestroy() {
+    this.messagesService.clearMessages();
+  }
 
   sendMessage(text: string): void {
     if (text?.trim() && this.user?.username) {
@@ -43,4 +46,9 @@ export class Chat {
   public loadMoreMessages(): void {
     this.messagesService.loadMoreMessages();
   }
+
+  public loadNewMessages(): void {
+    this.messagesService.loadNewMessages();
+  }
+  
 }

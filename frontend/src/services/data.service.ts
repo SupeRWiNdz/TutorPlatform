@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { LoginResponse, User } from '../models/auth.models';
 import { Observable } from 'rxjs/internal/Observable';
-import { MessagesResponse } from './message.service';
 
 @Injectable({
   providedIn: 'root'
@@ -44,21 +43,17 @@ export class DataService {
     return this.http.get<User>(`${this.apiUrl}/profile/${username}`);
   }
 
-  getMessages(session_id: string, receiver_username: string, message_count?: number, before_date?: string): Observable<any> {
+  getMessages(session_id: string, receiver_username: string, message_count?: number, before_number?: number): Observable<any> {
     const payload: any = { session_id, receiver_username, message_count };
-    if (before_date) {
-      payload.before_date = before_date;
+    if (before_number) {
+      payload.before_number = before_number;
     }
     return this.http.post<any>(`${this.apiUrl}/messages/get`, payload);
   }
 
-getMessagesAfter(session_id: string, receiver_username: string, after_date: string): Observable<MessagesResponse> {
-  return this.http.post<MessagesResponse>(`${this.apiUrl}/messages/get-after`, {
-    session_id,
-    receiver_username,
-    after_date
-  });
-}
+  getNewMessages(session_id: string, receiver_username: string, after_number: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/messages/get-new`, { session_id, receiver_username, after_number });
+  }
 
   sendMessage(session_id: string, receiver_username: string, text: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/messages/send`, { session_id, receiver_username, text });

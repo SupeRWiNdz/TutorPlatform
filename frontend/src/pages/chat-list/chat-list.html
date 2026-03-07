@@ -1,7 +1,7 @@
 <div class="chat-list-container">
   <h2>Список чатов</h2>
 
-  @for (chat of chats$ | async; track chat.id) {
+  @for (chat of chats$ | async; track $index) {
     <div class="chat-item" (click)="navigateToChat(chat.username)">
       {{ chat.full_name }}
     </div>

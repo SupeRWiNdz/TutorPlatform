@@ -1,5 +1,32 @@
 const pool = require('../config/database');
 
+const getChats = async (req, res) => {
+    const { session_id } = req.body;
+    
+    try {
+        const sessionResult = await pool.query(
+            'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
+            [session_id]
+        );
+        
+        if (sessionResult.rows.length === 0) {
+            return res.status(401).json({ error: 'Сеанс не найден' });
+        }
+
+        const user_id = sessionResult.rows[0].user_id;
+        
+        const result = await pool.query(
+            `SELECT username, full_name FROM users
+             WHERE id IN (SELECT user2_id FROM chat_list WHERE user1_id = $1)`,
+            [user_id]
+        );
+        
+        res.json(result.rows);
+        
+    } catch (err) {
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+};
 const sendMessage = async (req, res) => {
     const { session_id, receiver_username, text } = req.body;
 
@@ -83,12 +110,11 @@ const sendMessage = async (req, res) => {
         });
 
     } catch (err) {
-        console.error('Ошибка при отправке сообщения:', err);
         res.status(500).json({ message: 'Ошибка сервера' });
     }
 };
 const getMessages = async (req, res) => {
-    const { session_id, receiver_username, before_date, message_count } = req.body;
+    const { session_id, receiver_username, before_number, message_count } = req.body;
     
     try {
         const sessionResult = await pool.query(
@@ -116,26 +142,27 @@ const getMessages = async (req, res) => {
         let query;
         let queryParams;
         
-        if (before_date) {
+        if (before_number) {
+            // Исправлено: сравнение должно быть "<" для получения более старых сообщений
             query = `
-                SELECT text, sent_at, 
+                SELECT text, sent_at, message_number,
                        CASE WHEN sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages 
                 WHERE ((sender_uuid = $1 AND receiver_uuid = $2) 
                     OR (sender_uuid = $2 AND receiver_uuid = $1))
-                    AND sent_at < $3
-                ORDER BY sent_at DESC
+                    AND message_number < $3
+                ORDER BY message_number DESC
                 LIMIT $4
             `;
-            queryParams = [sender_uuid, receiver_uuid, before_date, message_count];
+            queryParams = [sender_uuid, receiver_uuid, before_number, message_count];
         } else {
             query = `
-                SELECT text, sent_at, 
+                SELECT text, sent_at, message_number,
                        CASE WHEN sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages 
                 WHERE (sender_uuid = $1 AND receiver_uuid = $2) 
                     OR (sender_uuid = $2 AND receiver_uuid = $1)
-                ORDER BY sent_at DESC
+                ORDER BY message_number DESC
                 LIMIT $3
             `;
             queryParams = [sender_uuid, receiver_uuid, message_count];
@@ -147,60 +174,33 @@ const getMessages = async (req, res) => {
         
         let hasMore = false;
         if (messages.length > 0) {
-            const oldestMessageDate = messages[0].sent_at;
+            const oldestMessageNumber = messages[0].message_number;
             const checkMoreQuery = `
                 SELECT EXISTS(
                     SELECT 1 FROM messages 
                     WHERE ((sender_uuid = $1 AND receiver_uuid = $2) 
                         OR (sender_uuid = $2 AND receiver_uuid = $1))
-                        AND sent_at < $3
+                        AND message_number < $3
                 ) as has_more
             `;
-            const checkResult = await pool.query(checkMoreQuery, [sender_uuid, receiver_uuid, oldestMessageDate]);
+            const checkResult = await pool.query(checkMoreQuery, [sender_uuid, receiver_uuid, oldestMessageNumber]);
             hasMore = checkResult.rows[0].has_more;
         }
         
         res.json({
             messages: messages,
             hasMore: hasMore,
-            oldestMessageDate: messages.length > 0 ? messages[0].sent_at : null
+            oldestMessageNumber: messages.length > 0 ? messages[0].message_number : null,
+            newestMessageNumber: messages.length > 0 ? messages[messages.length - 1].message_number : null
         });
         
     } catch (err) {
-        console.error('Error in getMessages:', err);
-        res.status(500).json({ error: 'Ошибка сервера' });
-    }
-};
-const getChats = async (req, res) => {
-    const { session_id } = req.body;
-    
-    try {
-        const sessionResult = await pool.query(
-            'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
-            [session_id]
-        );
-        
-        if (sessionResult.rows.length === 0) {
-            return res.status(401).json({ error: 'Сеанс не найден' });
-        }
-
-        const user_id = sessionResult.rows[0].user_id;
-        
-        const result = await pool.query(
-            `SELECT username, full_name FROM users
-             WHERE id IN (SELECT user2_id FROM chat_list WHERE user1_id = $1)`,
-            [user_id]
-        );
-        
-        res.json(result.rows);
-        
-    } catch (err) {
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 };
 
-const getMessagesAfter = async (req, res) => {
-    const { session_id, receiver_username, after_date } = req.body;
+const getNewMessages = async (req, res) => {
+    const { session_id, receiver_username, after_number } = req.body;
     
     try {
         const sessionResult = await pool.query(
@@ -225,31 +225,28 @@ const getMessagesAfter = async (req, res) => {
         
         const receiver_uuid = receiverResult.rows[0].id;
         
-        // Получаем сообщения после указанной даты
-        const query = `
-            SELECT text, sent_at, id,
+        // Исправлено: сравнение должно быть ">" для получения новых сообщений
+        const result = await pool.query(`
+            SELECT text, sent_at, message_number,
                    CASE WHEN sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
             FROM messages 
             WHERE ((sender_uuid = $1 AND receiver_uuid = $2) 
                 OR (sender_uuid = $2 AND receiver_uuid = $1))
-                AND sent_at > $3
-            ORDER BY sent_at DESC
-        `;
-        
-        const result = await pool.query(query, [sender_uuid, receiver_uuid, after_date]);
+                AND message_number > $3
+            ORDER BY message_number ASC
+        `, [sender_uuid, receiver_uuid, after_number]);
         
         res.json({
             messages: result.rows,
-            hasMore: false,
-            oldestMessageDate: null
+            oldestMessageNumber: result.rows.length > 0 ? result.rows[0].message_number : null,
+            newestMessageNumber: result.rows.length > 0 ? result.rows[result.rows.length - 1].message_number : null
         });
         
     } catch (err) {
-        console.error('Error in getMessagesAfter:', err);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 };
 
 module.exports = {
-    sendMessage, getMessages, getChats, getMessagesAfter
+    sendMessage, getMessages, getChats, getNewMessages
 };
