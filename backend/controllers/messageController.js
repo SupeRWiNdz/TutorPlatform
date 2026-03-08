@@ -143,7 +143,6 @@ const getMessages = async (req, res) => {
         let queryParams;
         
         if (before_number) {
-            // Исправлено: сравнение должно быть "<" для получения более старых сообщений
             query = `
                 SELECT text, sent_at, message_number,
                        CASE WHEN sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type

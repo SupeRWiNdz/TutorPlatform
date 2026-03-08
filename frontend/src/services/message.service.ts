@@ -25,7 +25,7 @@ export class MessagesService implements OnDestroy {
   
   private readonly POLLING_INTERVAL = 3000;
   private readonly MESSAGES_PER_LOAD = 8;
-  private readonly MESSAGES_PER_PAGE = 4;
+  private readonly MESSAGES_PER_PAGE = 8;
 
   constructor(
     private dataService: DataService,
@@ -81,21 +81,39 @@ export class MessagesService implements OnDestroy {
     }
   }
 
-  public loadNewMessages(): void {
-    if (this.currentReceiverUsername && !this.isLoadingSubject.value) {
-      this.isLoadingSubject.next(true);
-      
-      const session_id = this.authService.tokenValue;
-      if (!session_id) {
-        this.isLoadingSubject.next(false);
-        return;
-      }
+public loadNewMessages(): void {
+  if (this.currentReceiverUsername && !this.isLoadingSubject.value) {
+    this.isLoadingSubject.next(true);
+    
+    const session_id = this.authService.tokenValue;
+    if (!session_id) {
+      this.isLoadingSubject.next(false);
+      return;
+    }
 
-      if (!this.newestMessageNumber) {
-        this.isLoadingSubject.next(false);
-        return;
-      }
-
+    if (!this.newestMessageNumber) {
+      this.dataService.getMessages(session_id, this.currentReceiverUsername, this.MESSAGES_PER_PAGE).pipe(
+        tap((response: any) => {
+          if (response && response.messages && response.messages.length > 0) {
+            this.allMessages = response.messages;
+            this.messagesSubject.next(this.allMessages);
+            
+            this.oldestMessageNumber = response.oldestMessageNumber;
+            this.newestMessageNumber = response.newestMessageNumber;
+            this.hasMoreSubject.next(response.hasMore);
+            
+            if (this.newestMessageNumber) {
+              this.startPolling();
+            }
+          }
+          this.isLoadingSubject.next(false);
+        }),
+        catchError(error => {
+          this.isLoadingSubject.next(false);
+          return of(null);
+        })
+      ).subscribe();
+    } else {
       this.dataService.getNewMessages(session_id, this.currentReceiverUsername, this.newestMessageNumber).pipe(
         tap((response: any) => {
           if (response && response.messages && response.messages.length > 0) {
@@ -109,13 +127,13 @@ export class MessagesService implements OnDestroy {
           this.isLoadingSubject.next(false);
         }),
         catchError(error => {
-          console.error('Error loading new messages:', error);
           this.isLoadingSubject.next(false);
           return of(null);
         })
       ).subscribe();
     }
   }
+}
 
   private startPolling(): void {
     this.stopPolling();
@@ -187,9 +205,7 @@ export class MessagesService implements OnDestroy {
             this.newestMessageNumber = response.newestMessageNumber;
             this.hasMoreSubject.next(response.hasMore);
             
-            if (this.newestMessageNumber) {
-              this.startPolling();
-            }
+            this.startPolling();
           }
           this.isLoadingSubject.next(false);
         }),

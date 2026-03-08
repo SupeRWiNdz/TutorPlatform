@@ -10,7 +10,6 @@ export interface User {
   phone?: string;
   birth_date?: string;
   gender?: string;
-  online: boolean;
   created_at: string;
   updated_at: string;
   avatar_url?: string;

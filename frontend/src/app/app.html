@@ -1,19 +1,13 @@
 <app-header></app-header>
 <div class="mainblock">
-    <table>
-        <tbody>
-            @if (router.url !== '/') {
-                <tr>
-                    <td>
-                    <button (click)="router.navigate(['/'])">ГЛАВНАЯ</button>
-                    </td>
-                </tr>
-            }
-            <tr>
-                <td class="innerblock">
-                    <router-outlet></router-outlet>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="content-wrapper">
+        @if (router.url !== '/') {
+            <div class="nav-button">
+                <button (click)="router.navigate(['/'])">ГЛАВНАЯ</button>
+            </div>
+        }
+        <div class="innerblock">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
 </div>
