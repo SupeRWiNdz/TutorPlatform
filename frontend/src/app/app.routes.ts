@@ -9,6 +9,9 @@ import { AuthGuard } from '../services/auth.guard';
 import { ProfileResolver } from '../services/profile.resolver';
 import { Main } from '../pages/main/main';
 import { ChatList } from '../pages/chat-list/chat-list';
+import { ClassList } from '../pages/class-list/class-list';
+import { Class } from '../pages/class/class';
+import { CreateClass } from '../pages/create-class/create-class';
 
 export const routes: Routes = [
   { 
@@ -47,6 +50,23 @@ export const routes: Routes = [
         component: Chat,
         canActivate: [AuthGuard],
         resolve: { profile: ProfileResolver }
+      },
+      {
+        path: 'class',
+        component: ClassList,
+        canActivate: [AuthGuard],
+        title: 'Список классов'
+      },
+      {
+        path: 'new-class',
+        component: CreateClass,
+        canActivate: [AuthGuard],
+        title: 'Создать класс'
+      },
+      {
+        path: 'class/:link',
+        component: Class,
+        canActivate: [AuthGuard]
       },
       {
         path: '**',

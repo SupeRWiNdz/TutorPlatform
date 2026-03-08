@@ -2,16 +2,15 @@ import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { AuthService } from './auth.service';
-import { User } from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root'
 })
-export class UserResolver implements Resolve<User | null> {
+export class UserResolver implements Resolve<any | null> {
   
   constructor(private authService: AuthService) {}
 
-  resolve(): Observable<User | null> {
+  resolve(): Observable<any | null> {
     if (this.authService.currentUserValue) {
       return of(this.authService.currentUserValue);
     }

@@ -1,4 +1,5 @@
 @if (user) {
+  <button [routerLink]="'/profile/' + user.username">Профиль</button>
   <h2>{{ user.full_name }}</h2>
   @if (hasMore$ | async)
   {

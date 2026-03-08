@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { User } from '../../models/auth.models';
 
 @Component({
   selector: 'app-profile',
@@ -10,7 +9,7 @@ import { User } from '../../models/auth.models';
   styleUrl: './profile.css',
 })
 export class Profile implements OnInit{
-  user: User | null = null;  
+  user: any | null = null;  
   
   constructor(private route: ActivatedRoute) {}
 

@@ -2,7 +2,7 @@
   <table>
     <tbody>
       @if (currentUser$ | async; as user) {
-      <td (click)="router.navigate(['/account'])">
+      <td [routerLink]="'/profile/'+user.username">
         {{ user.full_name }}
       </td>
       <td>

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-main',
@@ -8,6 +8,9 @@ import { RouterModule } from '@angular/router';
   styleUrl: './main.css',
 })
 export class Main {
-  constructor() {}
 
+  constructor(
+    public router: Router
+  ) {
+  }
 }

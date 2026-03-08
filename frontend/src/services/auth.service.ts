@@ -2,7 +2,6 @@ import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { DataService } from './data.service';
-import { User } from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root'
@@ -11,8 +10,8 @@ export class AuthService {
   private tokenSubject: BehaviorSubject<string | null>;
   public token$: Observable<string | null>;
   
-  private currentUserSubject: BehaviorSubject<User | null>;
-  public currentUser$: Observable<User | null>;
+  private currentUserSubject: BehaviorSubject<any | null>;
+  public currentUser$: Observable<any | null>;
 
   constructor(
     private dataService: DataService,
@@ -21,7 +20,7 @@ export class AuthService {
     this.tokenSubject = new BehaviorSubject<string | null>(this.getTokenFromStorage());
     this.token$ = this.tokenSubject.asObservable();
     
-    this.currentUserSubject = new BehaviorSubject<User | null>(null);
+    this.currentUserSubject = new BehaviorSubject<any | null>(null);
     this.currentUser$ = this.currentUserSubject.asObservable();
     
     this.loadUser();
@@ -52,7 +51,7 @@ export class AuthService {
   }
   this.tokenSubject.next(token);
 }
-  public getUserBySessionId(sessionId: string): Observable<User | null> {
+  public getUserBySessionId(sessionId: string): Observable<any | null> {
     return this.dataService.getUserData(sessionId).pipe(
       tap(user => this.currentUserSubject.next(user)),
       catchError(() => {
@@ -111,7 +110,7 @@ export class AuthService {
     this.tokenSubject.next(null);
     this.currentUserSubject.next(null);
   }
-  public get currentUserValue(): User | null {
+  public get currentUserValue(): any | null {
     return this.currentUserSubject.value;
   }
   public get tokenValue(): string | null {

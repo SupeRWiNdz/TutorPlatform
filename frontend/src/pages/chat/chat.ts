@@ -1,18 +1,17 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { User } from '../../models/auth.models';
 import { MessagesService } from '../../services/message.service';
 import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
 })
 export class Chat {
-  public user: User | null = null;  
+  public user: any | null = null;  
   public messages$: Observable<any[] | null>;
   public hasMore$: Observable<boolean>;
 
