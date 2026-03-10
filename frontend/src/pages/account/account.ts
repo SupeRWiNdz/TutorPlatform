@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { catchError, of } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { DataService } from '../../services/data.service';
+import { DataService } from '../../services/data-service/data.service';
 
 @Component({
   selector: 'app-account',
@@ -44,7 +44,7 @@ export class Account {
   
   this.errorMessage = '';
   
-  this.dataService.changePassword(token, old_password, new_password).pipe(
+  this.dataService.userDS.changePassword(token, old_password, new_password).pipe(
     catchError(error => {
       this.errorMessage = error.error?.message || 'Ошибка смены пароля';
       return of(null);

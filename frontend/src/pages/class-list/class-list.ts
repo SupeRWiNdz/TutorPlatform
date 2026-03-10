@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DataService } from '../../services/data.service';
+import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
 
 import { CommonModule } from '@angular/common';
@@ -31,7 +31,7 @@ export class ClassList implements OnInit {
       return;
     }
 
-    this.classes$ = this.dataService.getClasses(sessionId);
+    this.classes$ = this.dataService.classDS.getClasses(sessionId);
   }
 
   navigateToClass(link: string) {

@@ -1,6 +1,6 @@
 import { Inject, Injectable, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, of, Subscription, tap, interval, switchMap, filter } from 'rxjs';
-import { DataService } from './data.service';
+import { DataService } from './data-service/data.service';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -62,7 +62,7 @@ export class MessagesService implements OnDestroy {
         return;
       }
       
-      this.dataService.getMessages(session_id, this.currentReceiverUsername, this.MESSAGES_PER_PAGE, this.oldestMessageNumber).pipe(
+      this.dataService.messageDS.getMessages(session_id, this.currentReceiverUsername, this.MESSAGES_PER_PAGE, this.oldestMessageNumber).pipe(
         tap((response: any) => {
           if (response && response.messages) {
             this.allMessages = [...response.messages, ...this.allMessages];
@@ -92,7 +92,7 @@ public loadNewMessages(): void {
     }
 
     if (!this.newestMessageNumber) {
-      this.dataService.getMessages(session_id, this.currentReceiverUsername, this.MESSAGES_PER_PAGE).pipe(
+      this.dataService.messageDS.getMessages(session_id, this.currentReceiverUsername, this.MESSAGES_PER_PAGE).pipe(
         tap((response: any) => {
           if (response && response.messages && response.messages.length > 0) {
             this.allMessages = response.messages;
@@ -114,7 +114,7 @@ public loadNewMessages(): void {
         })
       ).subscribe();
     } else {
-      this.dataService.getNewMessages(session_id, this.currentReceiverUsername, this.newestMessageNumber).pipe(
+      this.dataService.messageDS.getNewMessages(session_id, this.currentReceiverUsername, this.newestMessageNumber).pipe(
         tap((response: any) => {
           if (response && response.messages && response.messages.length > 0) {
             this.allMessages = [...this.allMessages, ...response.messages];
@@ -149,7 +149,7 @@ public loadNewMessages(): void {
           return of(null);
         }
         
-        return this.dataService.getNewMessages(
+        return this.dataService.messageDS.getNewMessages(
           this.authService.tokenValue, 
           this.currentReceiverUsername, 
           this.newestMessageNumber
@@ -195,7 +195,7 @@ public loadNewMessages(): void {
     
     if (session_id && receiver_username) {
       
-      this.dataService.getMessages(session_id, receiver_username, this.MESSAGES_PER_LOAD).pipe(
+      this.dataService.messageDS.getMessages(session_id, receiver_username, this.MESSAGES_PER_LOAD).pipe(
         tap((response: any) => {
           if (response) {
             this.allMessages = response.messages || [];
@@ -226,7 +226,7 @@ public loadNewMessages(): void {
     const session_id = this.authService.tokenValue;
 
     if (session_id && receiver_username && text?.trim()) {
-      this.dataService.sendMessage(session_id, receiver_username, text).pipe(
+      this.dataService.messageDS.sendMessage(session_id, receiver_username, text).pipe(
         tap(() => {
           this.loadNewMessages();
         })

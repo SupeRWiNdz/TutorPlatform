@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Resolve, ActivatedRouteSnapshot, Router } from '@angular/router';
-import { DataService } from './data.service';
 import { Title } from '@angular/platform-browser';
 import { Observable, catchError, map, tap, of, EMPTY } from 'rxjs';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth.service';
+import { DataService } from '../services/data-service/data.service';
 
 @Injectable({ providedIn: 'root' })
 export class ClassResolver implements Resolve<any | null> {
@@ -21,7 +21,7 @@ export class ClassResolver implements Resolve<any | null> {
       return of(null);
     }
     
-    return this.dataService.getClass(token, link).pipe(
+    return this.dataService.classDS.getClass(token, link).pipe(
       tap((selected_class: any) => {
         if (selected_class && selected_class.name) {
           const pageTitle = selected_class.name;

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { DataService } from '../../services/data.service';
+import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
 import { Observable } from 'rxjs';
 
@@ -33,7 +33,7 @@ export class ChatList implements OnInit {
       return;
     }
 
-    this.chats$ = this.dataService.getChats(sessionId);
+    this.chats$ = this.dataService.messageDS.getChats(sessionId);
   }
 
   navigateToChat(username: string) {

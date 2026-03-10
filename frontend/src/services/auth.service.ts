@@ -1,7 +1,7 @@
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
-import { DataService } from './data.service';
+import { DataService } from './data-service/data.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +29,7 @@ export class AuthService {
   private loadUser(): void {
       const token = this.getTokenFromStorage();
       if (token) {
-        this.dataService.getUserData(token).pipe(
+        this.dataService.userDS.getUserData(token).pipe(
         tap(user => this.currentUserSubject.next(user)),
         catchError(() => {
           this.logout();
@@ -52,7 +52,7 @@ export class AuthService {
   this.tokenSubject.next(token);
 }
   public getUserBySessionId(sessionId: string): Observable<any | null> {
-    return this.dataService.getUserData(sessionId).pipe(
+    return this.dataService.userDS.getUserData(sessionId).pipe(
       tap(user => this.currentUserSubject.next(user)),
       catchError(() => {
         this.logout();
@@ -63,7 +63,7 @@ export class AuthService {
   public logout() {
     const token = this.tokenValue;
     if (token) {
-      this.dataService.logout(token).subscribe({
+      this.dataService.sessionDS.logout(token).subscribe({
         next: (response) => {
           this.clearLocalData();
         },
@@ -78,7 +78,7 @@ export class AuthService {
   public closeAllSessions() {
     const token = this.tokenValue;
     if (token) {
-      this.dataService.closeAllSessions(token).subscribe({
+      this.dataService.sessionDS.closeAllSessions(token).subscribe({
         next: (response) => {
           this.clearLocalData();
         },
@@ -93,7 +93,7 @@ export class AuthService {
   public closeOtherSessions() {
   const token = this.tokenValue;
   if (token) {
-    this.dataService.closeOtherSessions(token).subscribe({
+    this.dataService.sessionDS.closeOtherSessions(token).subscribe({
       next: (response) => {
       },
       error: (error) => {
@@ -122,7 +122,7 @@ export class AuthService {
       return of(false);
     }
 
-    return this.dataService.checkActiveSession(token).pipe(
+    return this.dataService.sessionDS.checkActiveSession(token).pipe(
       map((isValid: boolean) => {
         if (!isValid)
           this.clearLocalData();
@@ -137,7 +137,7 @@ export class AuthService {
   public loadUserData(): void {
   const token = this.getTokenFromStorage();
   if (token) {
-    this.dataService.getUserData(token).pipe(
+    this.dataService.userDS.getUserData(token).pipe(
       tap(user => {
         this.currentUserSubject.next(user);
       }),

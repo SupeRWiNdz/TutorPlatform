@@ -1,6 +1,6 @@
 import { Inject, Injectable, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, of, Subscription, tap, interval, switchMap, filter } from 'rxjs';
-import { DataService } from './data.service';
+import { DataService } from './data-service/data.service';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -62,7 +62,7 @@ export class ClasschatService implements OnDestroy {
         return;
       }
       
-      this.dataService.getClassMessages(session_id, this.currentReceiverLink, this.MESSAGES_PER_PAGE, this.oldestMessageNumber).pipe(
+      this.dataService.classchatDS.getMessages(session_id, this.currentReceiverLink, this.MESSAGES_PER_PAGE, this.oldestMessageNumber).pipe(
         tap((response: any) => {
           if (response && response.messages) {
             this.allMessages = [...response.messages, ...this.allMessages];
@@ -92,7 +92,7 @@ public loadNewMessages(): void {
     }
 
     if (!this.newestMessageNumber) {
-      this.dataService.getClassMessages(session_id, this.currentReceiverLink, this.MESSAGES_PER_PAGE).pipe(
+      this.dataService.classchatDS.getMessages(session_id, this.currentReceiverLink, this.MESSAGES_PER_PAGE).pipe(
         tap((response: any) => {
           if (response && response.messages && response.messages.length > 0) {
             this.allMessages = response.messages;
@@ -114,7 +114,7 @@ public loadNewMessages(): void {
         })
       ).subscribe();
     } else {
-      this.dataService.getNewClassMessages(session_id, this.currentReceiverLink, this.newestMessageNumber).pipe(
+      this.dataService.classchatDS.getNewMessages(session_id, this.currentReceiverLink, this.newestMessageNumber).pipe(
         tap((response: any) => {
           if (response && response.messages && response.messages.length > 0) {
             this.allMessages = [...this.allMessages, ...response.messages];
@@ -149,7 +149,7 @@ public loadNewMessages(): void {
           return of(null);
         }
         
-        return this.dataService.getNewClassMessages(
+        return this.dataService.classchatDS.getNewMessages(
           this.authService.tokenValue, 
           this.currentReceiverLink, 
           this.newestMessageNumber
@@ -195,7 +195,7 @@ public loadNewMessages(): void {
     
     if (session_id && receiver_link) {
       
-      this.dataService.getClassMessages(session_id, receiver_link, this.MESSAGES_PER_LOAD).pipe(
+      this.dataService.classchatDS.getMessages(session_id, receiver_link, this.MESSAGES_PER_LOAD).pipe(
         tap((response: any) => {
           if (response) {
             this.allMessages = response.messages || [];
@@ -225,7 +225,7 @@ public loadNewMessages(): void {
     const session_id = this.authService.tokenValue;
 
     if (session_id && receiver_link && text?.trim()) {
-      this.dataService.sendClassMessage(session_id, receiver_link, text).pipe(
+      this.dataService.classchatDS.sendMessage(session_id, receiver_link, text).pipe(
         tap(() => {
           this.loadNewMessages();
         })

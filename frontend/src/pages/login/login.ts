@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { DataService } from '../../services/data.service';
+import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -37,7 +37,7 @@ export class LoginComponent {
     const { email, password } = this.form.value;
     this.errorMessage = '';
 
-    this.dataService.login(email, password).pipe(
+    this.dataService.sessionDS.login(email, password).pipe(
       catchError(error => {
         this.errorMessage = error.error?.message || 'Ошибка при входе';
         return of(null);

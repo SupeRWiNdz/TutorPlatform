@@ -4,15 +4,15 @@ import { Account } from '../pages/account/account';
 import { LoginComponent } from '../pages/login/login';
 import { Profile } from '../pages/profile/profile';
 import { Chat } from '../pages/chat/chat';
-import { UserResolver } from '../services/user.resolver';
 import { AuthGuard } from '../services/auth.guard';
-import { ProfileResolver } from '../services/profile.resolver';
 import { Main } from '../pages/main/main';
 import { ChatList } from '../pages/chat-list/chat-list';
 import { ClassList } from '../pages/class-list/class-list';
 import { Class } from '../pages/class/class';
 import { CreateClass } from '../pages/create-class/create-class';
-import { ClassResolver } from '../services/class.resolver';
+import { UserResolver } from '../resolvers/user.resolver';
+import { ProfileResolver } from '../resolvers/profile.resolver';
+import { ClassResolver } from '../resolvers/class.resolver';
 
 export const routes: Routes = [
   { 
