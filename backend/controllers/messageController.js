@@ -197,7 +197,6 @@ const getMessages = async (req, res) => {
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 };
-
 const getNewMessages = async (req, res) => {
     const { session_id, receiver_username, after_number } = req.body;
     

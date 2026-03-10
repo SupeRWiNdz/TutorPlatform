@@ -6,6 +6,24 @@
     @for (member of this.class.members; track member) {
         <div (click)="navigateToChat(member.username)">{{member.full_name}} {{member.member_role}}</div>
     }
+    <div>
+        <h3>Чат класса:</h3>
+        @if (hasMore$ | async)
+        {
+          <button (click)="loadMoreMessages()">ЗАГРУЗИТЬ</button>
+        }
+        @for (message of messages$ | async; track message.id || $index) {
+          @if (message) {
+            <div [style.color]="message.type === 'outgoing' ? 'red' : 'blue'">
+              {{message.sender_username}} {{ message.sent_at | date:'dd.MM HH:mm' }} {{ message.text }}
+            </div>
+          }
+        } @empty {
+          <div>Нет сообщений</div>
+        }
+        <input #messageInput>
+        <button (click)="sendMessage(messageInput.value); messageInput.value = ''">Отправить</button>
+          </div>
 } @else {
     Класса не существует или он недоступен
 }
