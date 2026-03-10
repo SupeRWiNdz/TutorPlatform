@@ -1,11 +1,11 @@
-<div class="chat-list-container">
+<div>
   <h2>Список чатов</h2>
 
   @for (chat of chats$ | async; track $index) {
-    <div class="chat-item" (click)="navigateToChat(chat.username)">
+    <div (click)="navigateToChat(chat.username)">
       {{ chat.full_name }}
     </div>
   } @empty {
-    <div class="no-chats">Нет доступных чатов</div>
+    <div>Нет доступных чатов</div>
   }
 </div>

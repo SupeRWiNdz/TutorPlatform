@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const userRoutes = require('./routes/userRoutes');
+const sessionRoutes = require('./routes/sessionRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const classRoutes = require('./routes/classRoutes');
 
@@ -11,8 +12,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-app.use('/', userRoutes);
-app.use('/', messageRoutes);
-app.use('/', classRoutes);
+app.use('/', [userRoutes, messageRoutes, classRoutes, sessionRoutes]);
 
 module.exports = { app };

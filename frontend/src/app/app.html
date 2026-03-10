@@ -4,6 +4,7 @@
         @if (router.url !== '/') {
             <div class="nav-button">
                 <button (click)="router.navigate(['/'])">ГЛАВНАЯ</button>
+                <button (click)="goBack()">ВЕРНУТЬСЯ</button>
             </div>
         }
         <div class="innerblock">

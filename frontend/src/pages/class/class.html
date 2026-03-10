@@ -1,1 +1,11 @@
-<p>class works!</p>
+@if (this.class) {
+    <h3>{{this.class.name}}</h3>
+    {{this.class.description}}
+    {{this.class.created_at}}
+    {{this.class.user_role}}
+    @for (member of this.class.members; track member) {
+        <div (click)="navigateToChat(member.username)">{{member.full_name}} {{member.member_role}}</div>
+    }
+} @else {
+    Класса не существует или он недоступен
+}

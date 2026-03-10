@@ -1,6 +1,7 @@
 import { Component, signal, ViewEncapsulation } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Header } from '../pages/header/header';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,11 @@ import { Header } from '../pages/header/header';
 })
 export class App {
   protected readonly title = signal('frontend');
-  constructor(public router: Router) {
-
+  constructor(
+    public router: Router,
+    private location: Location
+  ) {}
+  goBack(): void {
+    this.location.back();
   }
 }

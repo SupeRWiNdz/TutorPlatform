@@ -484,7 +484,8 @@ const myClasses = async (req, res) => {
 };
 
 const getClass = async (req, res) => {
-    const { session_id, link } = req.body;
+    const { session_id } = req.body;
+        const { link } = req.params;
     
     if (!session_id) {
         return res.status(400).json({ message: 'Не выполнен вход' });

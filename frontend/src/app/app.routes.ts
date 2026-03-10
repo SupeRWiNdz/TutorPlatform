@@ -12,6 +12,7 @@ import { ChatList } from '../pages/chat-list/chat-list';
 import { ClassList } from '../pages/class-list/class-list';
 import { Class } from '../pages/class/class';
 import { CreateClass } from '../pages/create-class/create-class';
+import { ClassResolver } from '../services/class.resolver';
 
 export const routes: Routes = [
   { 
@@ -66,6 +67,7 @@ export const routes: Routes = [
       {
         path: 'class/:link',
         component: Class,
+        resolve: { class: ClassResolver },
         canActivate: [AuthGuard]
       },
       {
