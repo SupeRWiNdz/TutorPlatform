@@ -135,44 +135,60 @@ public loadNewMessages(): void {
   }
 }
 
-  private startPolling(): void {
-    this.stopPolling();
-    
-    const session_id = this.authService.tokenValue;
-    if (!session_id || !this.currentReceiverUsername || !this.newestMessageNumber) {
-      return;
-    }
-    
-    this.pollingSubscription = interval(this.POLLING_INTERVAL).pipe(
-      switchMap(() => {
-        if (!this.currentReceiverUsername || !this.newestMessageNumber || !this.authService.tokenValue) {
-          return of(null);
-        }
-        
+private startPolling(): void {
+  this.stopPolling();
+  
+  const session_id = this.authService.tokenValue;
+  if (!session_id || !this.currentReceiverUsername) {
+    return;
+  }
+  
+  this.pollingSubscription = interval(this.POLLING_INTERVAL).pipe(
+    switchMap(() => {
+      if (!this.currentReceiverUsername || !this.authService.tokenValue) {
+        return of(null);
+      }
+      
+      if (!this.newestMessageNumber) {
+        return this.dataService.messageDS.getMessages(
+          this.authService.tokenValue, 
+          this.currentReceiverUsername, 
+          this.MESSAGES_PER_PAGE
+        ).pipe(
+          catchError(error => {
+            return of(null);
+          })
+        );
+      } else {
         return this.dataService.messageDS.getNewMessages(
           this.authService.tokenValue, 
           this.currentReceiverUsername, 
           this.newestMessageNumber
         ).pipe(
           catchError(error => {
-            console.error('Polling error:', error);
             return of(null);
           })
         );
-      }),
-      filter(response => response !== null),
-      tap((response: any) => {
-        if (response && response.messages && response.messages.length > 0) {
-          this.allMessages = [...this.allMessages, ...response.messages];
-          this.messagesSubject.next(this.allMessages);
-          
-          if (response.newestMessageNumber) {
-            this.newestMessageNumber = response.newestMessageNumber;
+      }
+    }),
+    filter(response => response !== null),
+    tap((response: any) => {
+      if (response && response.messages && response.messages.length > 0) {
+        this.allMessages = [...this.allMessages, ...response.messages];
+        this.messagesSubject.next(this.allMessages);
+        
+        if (response.newestMessageNumber) {
+          this.newestMessageNumber = response.newestMessageNumber;
+        } else if (response.messages && response.messages.length > 0) {
+          const lastMessage = response.messages[response.messages.length - 1];
+          if (lastMessage && lastMessage.message_number) {
+            this.newestMessageNumber = lastMessage.message_number;
           }
         }
-      })
-    ).subscribe();
-  }
+      }
+    })
+  ).subscribe();
+}
 
   private stopPolling(): void {
     if (this.pollingSubscription) {
@@ -210,10 +226,10 @@ public loadNewMessages(): void {
           this.isLoadingSubject.next(false);
         }),
         catchError(error => {
-          console.error('Ошибка загрузки начальных сообщений:', error);
           this.messagesSubject.next([]);
           this.hasMoreSubject.next(false);
           this.isLoadingSubject.next(false);
+          this.startPolling();
           return of(null);
         })
       ).subscribe();

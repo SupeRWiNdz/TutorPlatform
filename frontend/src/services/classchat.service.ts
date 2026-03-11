@@ -135,45 +135,60 @@ public loadNewMessages(): void {
   }
 }
 
-  private startPolling(): void {
-    this.stopPolling();
-    
-    const session_id = this.authService.tokenValue;
-    if (!session_id || !this.currentReceiverLink || !this.newestMessageNumber) {
-      return;
-    }
-    
-    this.pollingSubscription = interval(this.POLLING_INTERVAL).pipe(
-      switchMap(() => {
-        if (!this.currentReceiverLink || !this.newestMessageNumber || !this.authService.tokenValue) {
-          return of(null);
-        }
-        
+private startPolling(): void {
+  this.stopPolling();
+  
+  const session_id = this.authService.tokenValue;
+  if (!session_id || !this.currentReceiverLink) {
+    return;
+  }
+  
+  this.pollingSubscription = interval(this.POLLING_INTERVAL).pipe(
+    switchMap(() => {
+      if (!this.currentReceiverLink || !this.authService.tokenValue) {
+        return of(null);
+      }
+      
+      if (!this.newestMessageNumber) {
+        return this.dataService.classchatDS.getMessages(
+          this.authService.tokenValue, 
+          this.currentReceiverLink, 
+          this.MESSAGES_PER_PAGE
+        ).pipe(
+          catchError(error => {
+            return of(null);
+          })
+        );
+      } else {
         return this.dataService.classchatDS.getNewMessages(
           this.authService.tokenValue, 
           this.currentReceiverLink, 
           this.newestMessageNumber
         ).pipe(
           catchError(error => {
-            console.error('Polling error:', error);
             return of(null);
           })
         );
-      }),
-      filter(response => response !== null),
-      tap((response: any) => {
-        if (response && response.messages && response.messages.length > 0) {
-          this.allMessages = [...this.allMessages, ...response.messages];
-          this.messagesSubject.next(this.allMessages);
-          
-          if (response.newestMessageNumber) {
-            this.newestMessageNumber = response.newestMessageNumber;
+      }
+    }),
+    filter(response => response !== null),
+    tap((response: any) => {
+      if (response && response.messages && response.messages.length > 0) {
+        this.allMessages = [...this.allMessages, ...response.messages];
+        this.messagesSubject.next(this.allMessages);
+        
+        if (response.newestMessageNumber) {
+          this.newestMessageNumber = response.newestMessageNumber;
+        } else if (response.messages && response.messages.length > 0) {
+          const lastMessage = response.messages[response.messages.length - 1];
+          if (lastMessage && lastMessage.message_number) {
+            this.newestMessageNumber = lastMessage.message_number;
           }
         }
-      })
-    ).subscribe();
-  }
-
+      }
+    })
+  ).subscribe();
+}
   private stopPolling(): void {
     if (this.pollingSubscription) {
       this.pollingSubscription.unsubscribe();
@@ -213,6 +228,7 @@ public loadNewMessages(): void {
           this.messagesSubject.next([]);
           this.hasMoreSubject.next(false);
           this.isLoadingSubject.next(false);
+          this.startPolling();
           return of(null);
         })
       ).subscribe();

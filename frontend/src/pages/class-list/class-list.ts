@@ -31,7 +31,7 @@ export class ClassList implements OnInit {
       return;
     }
 
-    this.classes$ = this.dataService.classDS.getClasses(sessionId);
+    this.classes$ = this.dataService.classDS.myClasses(sessionId);
   }
 
   navigateToClass(link: string) {

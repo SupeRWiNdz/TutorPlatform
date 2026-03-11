@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ClasschatService } from '../../services/classchat.service';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { DataService } from '../../services/data-service/data.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-class',
@@ -19,7 +21,9 @@ export class Class implements OnInit{
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private classchatService: ClasschatService) {
+    private classchatService: ClasschatService,
+    private dataService: DataService,
+    private authService: AuthService) {
       this.messages$ = this.classchatService.messages$;
       this.hasMore$ = this.classchatService.hasMore$;
   }
@@ -35,7 +39,7 @@ export class Class implements OnInit{
   ngOnDestroy() {
     this.classchatService.clearMessages();
   }
-    navigateToChat(username: string) {
+  navigateToChat(username: string) {
     this.router.navigate(['/chat', username]);
   }
   sendMessage(text: string): void {
@@ -43,7 +47,44 @@ export class Class implements OnInit{
       this.classchatService.sendMessageForUser(this.class.link, text);
     }
   }
+  public leave(): void {
+    const sessionId = this.authService.tokenValue;
+    const link = this.class.link;
+    if (!link || !sessionId)
+      return;
+    this.dataService.classDS.leave(sessionId, link).pipe(
+        tap(() => {
+          this.router.navigate(['/']);
+        })
+      ).subscribe();
+  }
+  public deleteMember(username: string): void {
+    const sessionId = this.authService.tokenValue;
+    const link = this.class.link;
+    if (!link || !sessionId || !username)
+      return;
+    this.dataService.classDS.deleteMember(sessionId, link, username).pipe(
+        tap(() => {
+          
+        })
+      ).subscribe();
+
+  }
   
+  public editRole(username: string, role: string): void {
+    const sessionId = this.authService.tokenValue;
+    const link = this.class.link;
+    if (!link || !sessionId || !username || !role)
+      return;
+    const newRole: string = (role == 'student')?'teacher':'student';
+    this.dataService.classDS.editRole(sessionId, link, username, newRole).pipe(
+        tap(() => {
+          
+        })
+      ).subscribe();
+
+  }
+
   public loadMoreMessages(): void {
     this.classchatService.loadMoreMessages();
   }

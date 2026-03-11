@@ -3,9 +3,23 @@
     {{this.class.description}}
     {{this.class.created_at}}
     {{this.class.user_role}}
-    @for (member of this.class.members; track member) {
-        <div (click)="navigateToChat(member.username)">{{member.full_name}} {{member.member_role}}</div>
+    @for (member of this.class.members; track member)
+      {
+      <div (click)="navigateToChat(member.username)">{{member.full_name}} {{member.member_role}}</div>
+      @if (this.class.user_role=='creator' && member.member_role!=='creator') {
+        <button (click)="deleteMember(member.username)">удалить</button>
+        @if (member.member_role!=='creator') {
+          <button (click)="editRole(member.username, member.member_role)">
+          @if (member.member_role=='student') { сделать учителем }
+          @else if (member.member_role=='teacher') { сделать учеником }
+          </button>
+        } 
+      }
     }
+    @if (this.class.user_role!=='creator')
+      {
+        <button (click)="leave()">ВЫЙТИ</button>
+      }
     <div>
         <h3>Чат класса:</h3>
         @if (hasMore$ | async)
@@ -23,7 +37,7 @@
         }
         <input #messageInput>
         <button (click)="sendMessage(messageInput.value); messageInput.value = ''">Отправить</button>
-          </div>
+      </div>
 } @else {
     Класса не существует или он недоступен
 }
