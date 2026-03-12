@@ -939,23 +939,17 @@ const leave = async (req, res) => {
 };
 
 const editRole = async (req, res) => {
-    const { session_id, link, username, role } = req.body;
+    const { session_id, link, username } = req.body;
     
     if (!session_id) {
         return res.status(400).json({ message: 'Не выполнен вход' });
     }
     
-    if (!link || !username || !role) {
+    if (!link || !username) {
         return res.status(400).json({ message: 'Необходимо указать ссылку на класс, имя пользователя и новую роль' });
     }
-    
-    // Проверяем, что роль допустима (только student или teacher, не creator)
-    if (role !== 'student' && role !== 'teacher') {
-        return res.status(400).json({ message: 'Можно назначить только роль student или teacher' });
-    }
-    
+
     try {
-        // Начинаем транзакцию
         await pool.query('BEGIN');
         
         // 1. Получаем user_id по session_id
@@ -1033,14 +1027,10 @@ const editRole = async (req, res) => {
             await pool.query('ROLLBACK');
             return res.status(400).json({ message: 'Нельзя изменить роль создателя класса' });
         }
+
+        const role = (membershipCheck.rows[0].role==='student')?'teacher':'student';
         
-        // 8. Проверяем, что новая роль отличается от текущей
-        if (membershipCheck.rows[0].role === role) {
-            await pool.query('ROLLBACK');
-            return res.status(400).json({ message: `Пользователь уже имеет роль ${role}` });
-        }
-        
-        // 9. Обновляем роль участника
+        // 8. Обновляем роль участника
         await pool.query(
             `UPDATE class_members 
              SET role = $1 
@@ -1053,7 +1043,7 @@ const editRole = async (req, res) => {
         
         // Отправляем сообщение об успехе
         res.json({ 
-            message: `Роль пользователя ${username} успешно изменена на ${role}` 
+            role: role 
         });
         
     } catch (err) {

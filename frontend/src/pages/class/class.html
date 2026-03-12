@@ -3,41 +3,51 @@
     {{this.class.description}}
     {{this.class.created_at}}
     {{this.class.user_role}}
-    @for (member of this.class.members; track member)
-      {
-      <div (click)="navigateToChat(member.username)">{{member.full_name}} {{member.member_role}}</div>
-      @if (this.class.user_role=='creator' && member.member_role!=='creator') {
-        <button (click)="deleteMember(member.username)">удалить</button>
-        @if (member.member_role!=='creator') {
-          <button (click)="editRole(member.username, member.member_role)">
-          @if (member.member_role=='student') { сделать учителем }
-          @else if (member.member_role=='teacher') { сделать учеником }
-          </button>
-        } 
-      }
+    
+    @for (member of this.class.members; track member.username) {
+        <div (click)="navigateToChat(member.username)">
+            {{member.full_name}} {{member.member_role}}
+        </div>
+        
+        @if (this.class.user_role == 'creator' && member.member_role !== 'creator') {
+            <button (click)="deleteMember(member.username)">удалить</button>
+            
+            @if (member.member_role !== 'creator') {
+                <button (click)="editRole(member.username, member.member_role)">
+                    @if (member.member_role == 'student') { 
+                        сделать учителем 
+                    } @else if (member.member_role == 'teacher') { 
+                        сделать учеником 
+                    }
+                </button>
+            } 
+        }
     }
-    @if (this.class.user_role!=='creator')
-      {
+    
+    @if (this.class.user_role !== 'creator') {
         <button (click)="leave()">ВЫЙТИ</button>
-      }
+    }
+    
     <div>
         <h3>Чат класса:</h3>
-        @if (hasMore$ | async)
-        {
-          <button (click)="loadMoreMessages()">ЗАГРУЗИТЬ</button>
+        
+        @if (hasMore$ | async) {
+            <button (click)="loadMoreMessages()">ЗАГРУЗИТЬ</button>
         }
-        @for (message of messages$ | async; track message.id || $index) {
-          @if (message) {
-            <div [style.color]="message.type === 'outgoing' ? 'red' : 'blue'">
-              {{message.sender_username}} {{ message.sent_at | date:'dd.MM HH:mm' }} {{ message.text }}
-            </div>
-          }
+        
+        @for (message of messages$ | async; track message.message_number) {
+            @if (message) {
+                <div [style.color]="message.type === 'outgoing' ? 'red' : 'blue'">
+                    {{message.sender_username}} {{ message.sent_at | date:'dd.MM HH:mm' }} {{ message.text }}
+                </div>
+            }
         } @empty {
-          <div>Нет сообщений</div>
+            <div>Нет сообщений</div>
         }
+        
         <input #messageInput>
         <button (click)="sendMessage(messageInput.value); messageInput.value = ''">Отправить</button>
-      </div>
+    </div>
 } @else {
     Класса не существует или он недоступен
 }

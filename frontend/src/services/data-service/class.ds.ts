@@ -34,7 +34,7 @@ export class ClassDataService {
   leave(session_id: string, link: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/class/leave`, { session_id, link });
   }
-  editRole(session_id: string, link: string, username: string, role: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/class/edit-role`, { session_id, link, username, role });
+  editRole(session_id: string, link: string, username: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/class/edit-role`, { session_id, link, username });
   }
 }

@@ -2,9 +2,9 @@
   <h2>Список чатов</h2>
 
   @for (chat of chats$ | async; track $index) {
-    <div (click)="navigateToChat(chat.username)">
+    <button (click)="navigateToChat(chat.username)">
       {{ chat.full_name }}
-    </div>
+    </button><br>
   } @empty {
     <div>Нет доступных чатов</div>
   }

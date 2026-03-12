@@ -3,7 +3,7 @@
     <h2>Всего классов: {{ response.total_classes }}</h2>
     
     @for (class of response.classes; track class.link) {
-      <div class="class-card" (click)="navigateToClass(class.link)">
+      <button class="class-card" (click)="navigateToClass(class.link)">
         <h3>{{ class.name }}</h3>
         <p>{{ class.description }}</p>
         
@@ -11,7 +11,7 @@
           <span>Участников: {{ class.total_members }}</span>
           <span>Ваша роль: {{ class.user_role }}</span>
         </div>
-      </div>
+      </button><br>
     }
   </div>
 } @else {
