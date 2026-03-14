@@ -13,6 +13,8 @@ import { CreateClass } from '../pages/create-class/create-class';
 import { UserResolver } from '../resolvers/user.resolver';
 import { ProfileResolver } from '../resolvers/profile.resolver';
 import { ClassResolver } from '../resolvers/class.resolver';
+import { OwnProfileRedirectGuard } from '../services/own-profile-redirect.guard';
+import { AccountResolver } from '../resolvers/account.resolver';
 
 export const routes: Routes = [
   { 
@@ -39,11 +41,13 @@ export const routes: Routes = [
         path: 'account', 
         component: Account,
         canActivate: [AuthGuard],
+        resolve: {account: AccountResolver},
         title: 'Настройки аккаунта'
       },
       {
         path: 'profile/:username',
         component: Profile,
+        canActivate: [OwnProfileRedirectGuard],
         resolve: { profile: ProfileResolver }
       },
       {

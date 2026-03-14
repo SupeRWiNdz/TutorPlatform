@@ -225,18 +225,19 @@ const editClass = async (req, res) => {
         
         const userId = sessionResult.rows[0].user_id;
         
-        // 2. Получаем id класса по ссылке
-        const classIdResult = await pool.query(
-            `SELECT id FROM classes WHERE link = $1`,
+        // 2. Получаем id класса по ссылке и текущие значения
+        const classResult = await pool.query(
+            `SELECT id, name, link, description FROM classes WHERE link = $1`,
             [link]
         );
         
-        if (classIdResult.rowCount === 0) {
+        if (classResult.rowCount === 0) {
             await pool.query('ROLLBACK');
             return res.status(404).json({ message: 'Класс не найден' });
         }
         
-        const classId = classIdResult.rows[0].id;
+        const classId = classResult.rows[0].id;
+        const currentClass = classResult.rows[0];
         
         // 3. Проверяем, является ли пользователь создателем класса
         const membershipResult = await pool.query(
@@ -293,27 +294,41 @@ const editClass = async (req, res) => {
             return res.status(400).json({ message: 'Описание класса не может превышать 1000 символов' });
         }
         
-        // 7. Формируем запрос на обновление
+        // 7. Формируем запрос на обновление и объект с изменениями
         const updateFields = [];
         const updateValues = [];
+        const changedFields = {};
         let paramCounter = 1;
         
-        if (new_name) {
+        // Отслеживаем изменения
+        if (new_name && new_name !== currentClass.name) {
             updateFields.push(`name = $${paramCounter}`);
             updateValues.push(new_name);
+            changedFields.name = new_name;
             paramCounter++;
         }
         
-        if (new_link) {
+        if (new_link && new_link !== currentClass.link) {
             updateFields.push(`link = $${paramCounter}`);
             updateValues.push(new_link);
+            changedFields.link = new_link;
             paramCounter++;
         }
         
-        if (new_description !== undefined) { // Разрешаем пустое описание
-            updateFields.push(`description = $${paramCounter}`);
-            updateValues.push(new_description || null); // Если пустая строка, сохраняем null
-            paramCounter++;
+        if (new_description !== undefined) {
+            const descriptionValue = new_description || null;
+            if (descriptionValue !== currentClass.description) {
+                updateFields.push(`description = $${paramCounter}`);
+                updateValues.push(descriptionValue);
+                changedFields.description = descriptionValue;
+                paramCounter++;
+            }
+        }
+        
+        // Проверяем, есть ли что обновлять
+        if (updateFields.length === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ message: 'Нет изменений для сохранения' });
         }
         
         // Добавляем id класса в конец параметров
@@ -324,24 +339,38 @@ const editClass = async (req, res) => {
             UPDATE classes 
             SET ${updateFields.join(', ')}
             WHERE id = $${paramCounter}
+            RETURNING id, name, link, description
         `;
         
-        await pool.query(updateQuery, updateValues);
+        const updateResult = await pool.query(updateQuery, updateValues);
         
         // Фиксируем транзакцию
         await pool.query('COMMIT');
         
-        // Формируем сообщение об успехе с информацией о том, что было изменено
-        const changedFields = [];
-        if (new_name) changedFields.push('название');
-        if (new_link) changedFields.push('ссылку');
-        if (new_description !== undefined) changedFields.push('описание');
+        // Формируем сообщение об успехе с измененными полями
+        const changedFieldsList = Object.keys(changedFields);
+        const changedFieldsText = changedFieldsList
+            .map(field => {
+                const fieldNames = {
+                    name: 'название',
+                    link: 'ссылку',
+                    description: 'описание'
+                };
+                return fieldNames[field] || field;
+            })
+            .join(', ');
         
-        const message = `Класс успешно обновлен. Изменено: ${changedFields.join(', ')}.`;
-        
+        // Возвращаем измененные поля и их значения
         res.json({ 
             success: true,
-            message: message
+            message: `Класс успешно обновлен. Изменено: ${changedFieldsText}.`,
+            changed_fields: changedFields,
+            updated_class: {
+                id: updateResult.rows[0].id,
+                name: updateResult.rows[0].name,
+                link: updateResult.rows[0].link,
+                description: updateResult.rows[0].description,
+            }
         });
         
     } catch (err) {
@@ -557,14 +586,7 @@ const getClass = async (req, res) => {
              FROM class_members cm
              JOIN users u ON u.id = cm.user_id
              WHERE cm.class_id = $1
-             ORDER BY 
-                CASE cm.role
-                    WHEN 'creator' THEN 1
-                    WHEN 'teacher' THEN 2
-                    WHEN 'student' THEN 3
-                    ELSE 4
-                END,
-                u.full_name`,
+             ORDER BY cm.joined_at ASC, u.full_name`,
             [classId]
         );
         
@@ -587,7 +609,6 @@ const getClass = async (req, res) => {
                 is_parent: member.is_parent,
                 member_role: member.member_role,
                 joined_at: member.joined_at
-                // email исключен для приватности
             })),
             total_members: membersResult.rowCount
         };
@@ -603,19 +624,14 @@ const getClass = async (req, res) => {
 };
 
 const addMember = async (req, res) => {
-    const { session_id, link, username, role } = req.body;
+    const { session_id, link, username } = req.body;
     
     if (!session_id) {
         return res.status(400).json({ message: 'Не выполнен вход' });
     }
     
-    if (!link || !username || !role) {
+    if (!link || !username ) {
         return res.status(400).json({ message: 'Не все обязательные поля заполнены' });
-    }
-    
-    // Проверяем допустимость роли (только student или teacher)
-    if (role !== 'student' && role !== 'teacher') {
-        return res.status(400).json({ message: 'Недопустимая роль. Можно назначить только student или teacher' });
     }
     
     try {
@@ -668,7 +684,9 @@ const addMember = async (req, res) => {
         
         // 4. Получаем id пользователя, которого хотим добавить, по username
         const userResult = await pool.query(
-            `SELECT id FROM users WHERE username = $1`,
+            `SELECT id, username, full_name, avatar_url, 
+             is_student, is_teacher, is_parent 
+             FROM users WHERE username = $1`,
             [username]
         );
         
@@ -694,21 +712,35 @@ const addMember = async (req, res) => {
         // 6. Добавляем нового участника с указанной ролью
         await pool.query(
             `INSERT INTO class_members (class_id, user_id, role)
-             VALUES ($1, $2, $3)`,
-            [classId, newMemberId, role]
+             VALUES ($1, $2, 'student')`,
+            [classId, newMemberId]
+        );
+
+        // 7. Получаем данные добавленного пользователя с информацией о членстве в классе
+        const memberResult = await pool.query(
+            `SELECT 
+                u.username, 
+                u.full_name, 
+                u.avatar_url,
+                u.is_student, 
+                u.is_teacher, 
+                u.is_parent,
+                cm.role as member_role,
+                cm.joined_at
+             FROM users u
+             JOIN class_members cm ON u.id = cm.user_id
+             WHERE cm.class_id = $1 AND cm.user_id = $2`,
+            [classId, newMemberId]
         );
         
         // Завершаем транзакцию
         await pool.query('COMMIT');
         
-        // Возвращаем сообщение об успехе
-        return res.status(200).json({ 
-            message: `Пользователь ${username} успешно добавлен в класс с ролью ${role}` 
-        });
+        // Возвращаем данные добавленного пользователя
+        return res.status(200).json(memberResult.rows[0]);
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в addMember:', err);
         
         // Обработка специфических ошибок базы данных
         if (err.code === '23505') { // Нарушение уникальности
@@ -718,6 +750,7 @@ const addMember = async (req, res) => {
             return res.status(400).json({ message: 'Некорректные данные для добавления' });
         }
         
+        console.error('Ошибка при добавлении участника:', err);
         return res.status(500).json({ error: 'Ошибка сервера при добавлении участника' });
     }
 };

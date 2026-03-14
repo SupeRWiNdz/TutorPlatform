@@ -1,36 +1,13 @@
-@if (this.class) {
-    <h3>{{this.class.name}}</h3>
-    {{this.class.description}}
-    {{this.class.created_at}}
-    {{this.class.user_role}}
+@if (class) {
+    @if (page === 1 ) {<button (click)="page = 2">Информация</button>}
+    @else if (page === 2) {<button (click)="page = 1; this.exitEditMode();">Чат класса</button>}
     
-    @for (member of this.class.members; track member.username) {
-        <div (click)="navigateToChat(member.username)">
-            {{member.full_name}} {{member.member_role}}
-        </div>
-        
-        @if (this.class.user_role == 'creator' && member.member_role !== 'creator') {
-            <button (click)="deleteMember(member.username)">удалить</button>
-            
-            @if (member.member_role !== 'creator') {
-                <button (click)="editRole(member.username, member.member_role)">
-                    @if (member.member_role == 'student') { 
-                        сделать учителем 
-                    } @else if (member.member_role == 'teacher') { 
-                        сделать учеником 
-                    }
-                </button>
-            } 
-        }
-    }
-    
-    @if (this.class.user_role !== 'creator') {
-        <button (click)="leave()">ВЫЙТИ</button>
-    }
-    
+    <h3>{{class.name}}</h3>
+    @if (page === 1 ) {
     <div>
         <h3>Чат класса:</h3>
-        
+        @if (messages$)
+        {
         @if (hasMore$ | async) {
             <button (click)="loadMoreMessages()">ЗАГРУЗИТЬ</button>
         }
@@ -47,7 +24,62 @@
         
         <input #messageInput>
         <button (click)="sendMessage(messageInput.value); messageInput.value = ''">Отправить</button>
+    } @else { Загрузка... }
     </div>
-} @else {
+    } @else if (page === 2) {
+    @if (class.user_role == 'creator' && !isEditing) {
+        {{class.description}}
+        {{class.created_at}}
+        {{class.user_role}}
+        <button (click)="editMode()">Редактировать</button>
+    } @else if (class.user_role == 'creator' && isEditing) {
+        <form [formGroup]="editClassForm">
+            Название:
+            <input formControlName="new_name" [placeholder]="class?.name || 'Загрузка...'">
+            Описание:
+            <input formControlName="new_description" [placeholder]="class?.description || 'Загрузка...'">
+            Ссылка:
+            <input formControlName="new_link" [placeholder]="class?.link || 'Загрузка...'">
+
+            <button (click)="editClass()">Подтвердить</button>
+            <button (click)="exitEditMode()">Отмена</button>
+        </form>
+    }
+    
+    <h3>Участники</h3>
+    @for (member of class.members; track member.username) {
+        <div (click)="navigateToChat(member.username)">
+            {{member.full_name}} {{member.member_role}}
+        </div>
+        
+        @if (class.user_role == 'creator' && member.member_role !== 'creator') {
+            <button (click)="deleteMember(member.username)">удалить</button>
+            
+            @if (member.member_role !== 'creator') {
+                <button (click)="editRole(member.username, member.member_role)">
+                    @if (member.member_role == 'student') { 
+                        сделать учителем 
+                    } @else if (member.member_role == 'teacher') { 
+                        сделать учеником 
+                    }
+                </button>
+            } 
+        }
+    }
+    
+    @if (class.user_role == 'creator') {
+        <div>
+            <input #addMemberInput>
+            <button (click)="addMember(addMemberInput.value); addMemberInput.value = ''">Добавить</button>
+        </div>}
+    @else {
+        <button (click)="leave()">ВЫЙТИ</button>
+    }
+}
+}
+
+
+@else
+{
     Класса не существует или он недоступен
 }

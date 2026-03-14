@@ -5,18 +5,25 @@ import { catchError, Observable, of, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-class',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './class.html',
   styleUrl: './class.css',
 })
 
 export class Class implements OnInit{
+  public page: 1 | 2 = 1;
+  private _isEditing: boolean = false;
+  public get isEditing(): boolean {
+  return this._isEditing;
+  }
   public class: any | null = null;  
   public messages$: Observable<any[] | null>;
   public hasMore$: Observable<boolean>;
+  public editClassForm: FormGroup;
 
   constructor(
     private route: ActivatedRoute,
@@ -24,26 +31,43 @@ export class Class implements OnInit{
     private classchatService: ClasschatService,
     private dataService: DataService,
     private authService: AuthService,
-  private cdr: ChangeDetectorRef) {
+    private cdr: ChangeDetectorRef) {
       this.messages$ = this.classchatService.messages$;
       this.hasMore$ = this.classchatService.hasMore$;
-  }
-
-  ngOnInit(): void {
-    this.route.data.subscribe(data => {
-      this.class = data['class'];
-      if (this.class?.link) {
-        this.classchatService.loadMessagesForUser(this.class.link);
-      }
+      this.editClassForm = new FormGroup({
+      new_name: new FormControl('', [Validators.minLength(1), Validators.maxLength(100)]),
+      new_description: new FormControl('', [Validators.maxLength(1000)]),
+      new_link: new FormControl('', [Validators.pattern(/^[a-zA-Z0-9-]+$/), Validators.minLength(3), Validators.maxLength(20)])
     });
   }
+
+ngOnInit(): void {
+  this.route.data.subscribe(data => {
+    this.class = data['class'] ?? null;
+
+    if (!this.class) {
+      return;
+    }
+
+    if (this.class.link) {
+      this.classchatService.loadMessagesForUser(this.class.link);
+    }
+
+    this.editClassForm.patchValue({
+      new_name: this.class.name ?? '',
+      new_description: this.class.description ?? '',
+      new_link: this.class.link ?? ''
+    });
+  });
+}
+
   ngOnDestroy() {
     this.classchatService.clearMessages();
   }
-  navigateToChat(username: string) {
+  public navigateToChat(username: string) {
     this.router.navigate(['/chat', username]);
   }
-  sendMessage(text: string): void {
+  public sendMessage(text: string): void {
     if (text?.trim() && this.class?.link) {
       this.classchatService.sendMessageForUser(this.class.link, text);
     }
@@ -76,7 +100,7 @@ export class Class implements OnInit{
       return of(null);
     })
       ).subscribe({
-      next: (response) => {
+      next: () => {
         this.class.members = this.class.members.filter(
           (member: any) => member.username !== username
         );
@@ -84,7 +108,7 @@ export class Class implements OnInit{
       }});
 
   }
-public editRole(username: string, role: string): void {
+  public editRole(username: string, role: string): void {
   const sessionId = this.authService.tokenValue;
   const link = this.class.link;
   
@@ -104,6 +128,7 @@ public editRole(username: string, role: string): void {
     })
   ).subscribe({
       next: (response) => {
+        if (response) {
         const updatedMembers = [...this.class.members];
         updatedMembers[userIndex] = {
           ...updatedMembers[userIndex],
@@ -112,18 +137,52 @@ public editRole(username: string, role: string): void {
         this.class.members = updatedMembers;
         this.cdr.detectChanges();
       }
+      }
     });
 }
-trackByMember(index: number, member: any): string {
+  public trackByMember(index: number, member: any): string {
   return member.username || `index_${index}_${member.member_role || ''}`;
-}
-
-
+  }
   public loadMoreMessages(): void {
     this.classchatService.loadMoreMessages();
   }
-
   public loadNewMessages(): void {
     this.classchatService.loadNewMessages();
   }
+  public addMember(username: string): void {
+    const sessionId = this.authService.tokenValue;
+    const link = this.class.link;
+    if (!link || !sessionId || !username) return;
+    this.dataService.classDS.addMember(sessionId, link, username).pipe().subscribe({
+      next: (response) => {
+        this.class.members = [...this.class.members, response];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+    public editClass(): void {
+      const { tokenValue: sessionId } = this.authService;
+      const { link } = this.class;
+      if (!link || !sessionId || !this.editClassForm.valid) return;
+      const { new_name, new_link, new_description } = this.editClassForm.value;
+      this.dataService.classDS.editClass(sessionId, link, new_name, new_link, new_description)
+        .subscribe(({ changed_fields: { name, description, link } }) => {
+          if (link) this.router.navigate(['/class', link]);
+          if (name) this.class.name = name;
+          if (description) this.class.description = description;
+          this.exitEditMode();
+          this.cdr.detectChanges();
+        });
+    }
+    public editMode(): void {
+      this._isEditing=true;
+    }
+    public exitEditMode(): void {
+      this.editClassForm.patchValue({
+      new_name: this.class.name ?? '',
+      new_description: this.class.description ?? '',
+      new_link: this.class.link ?? ''
+    });
+      this._isEditing=false;
+    }
 }

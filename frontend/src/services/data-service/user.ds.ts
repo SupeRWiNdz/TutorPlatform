@@ -19,4 +19,23 @@ export class UserDataService {
   getProfile(username: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/users/info/${username}`);
   }
+  editUser(data: {
+  session_id: string,
+  new_email?: string,
+  new_username?: string,
+  new_full_name?: string,
+  new_phone?: string,
+  new_birth_date?: string,
+  new_gender?: 'M' | 'F' | 'O'
+}): Observable<any> {
+  const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
+    if (value !== undefined && value !== '') {
+      acc[key] = value;
+    }
+    return acc;
+  }, {} as any);
+
+  return this.http.post<any>(`${this.apiUrl}/users/edit`, filteredData);
+}
+
 }
