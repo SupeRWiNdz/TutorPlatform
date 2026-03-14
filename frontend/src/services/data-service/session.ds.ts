@@ -16,13 +16,16 @@ export class SessionDataService {
   logout(session_id: string) {
     return this.http.post(`${this.apiUrl}/sessions/logout`, { session_id });
   }
-  closeAllSessions(session_id: string) {
-    return this.http.post(`${this.apiUrl}/sessions/close-all-sessions`, { session_id });
+  closeAll(session_id: string) {
+    return this.http.post(`${this.apiUrl}/sessions/close-all`, { session_id });
   }
-  closeOtherSessions(session_id: string) {
-    return this.http.post(`${this.apiUrl}/sessions/close-other-sessions`, { session_id });
+  closeOther(session_id: string) {
+    return this.http.post(`${this.apiUrl}/sessions/close-other`, { session_id });
   }
-  checkActiveSession(session_id: string): Observable<boolean> {
-    return this.http.post<boolean>(`${this.apiUrl}/sessions/check-active-session`, { session_id });
+  checkActive(session_id: string): Observable<boolean> {
+    return this.http.post<boolean>(`${this.apiUrl}/sessions/check-active`, { session_id });
+  }
+  get(session_id: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/sessions/get`, { session_id });
   }
 }

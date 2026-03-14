@@ -78,7 +78,7 @@ export class AuthService {
   public closeAllSessions() {
     const token = this.tokenValue;
     if (token) {
-      this.dataService.sessionDS.closeAllSessions(token).subscribe({
+      this.dataService.sessionDS.closeAll(token).subscribe({
         next: (response) => {
           this.clearLocalData();
         },
@@ -90,19 +90,7 @@ export class AuthService {
       this.clearLocalData();
     }
   }
-  public closeOtherSessions() {
-  const token = this.tokenValue;
-  if (token) {
-    this.dataService.sessionDS.closeOtherSessions(token).subscribe({
-      next: (response) => {
-      },
-      error: (error) => {
-      }
-    });
-  } else {
-    this.clearLocalData();
-  }
-  }
+  
   private clearLocalData(): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('token');
@@ -122,7 +110,7 @@ export class AuthService {
       return of(false);
     }
 
-    return this.dataService.sessionDS.checkActiveSession(token).pipe(
+    return this.dataService.sessionDS.checkActive(token).pipe(
       map((isValid: boolean) => {
         if (!isValid)
           this.clearLocalData();

@@ -42,5 +42,28 @@
     <button (click)="changePassword()">Изменить пароль</button>
 </form>
 @if (errorMessage) {Ошибка:{{ errorMessage }}}
+
+
+@if (sessions$ | async; as response) {
+  @if (response?.data) {
+    <h2>Всего сеансов: {{ response.data.total_active_sessions }}</h2>
+    @if (response.data.current_session) {
+    <div>
+      {{ response.data.current_session.user_agent }}
+      {{ response.data.current_session.ip_address }}
+      {{ response.data.current_session.created_at | date:'dd.MM.yyyy HH:mm' }}
+    </div>
+    }
+    <br>
+    @for (session of response.data.other_sessions; track $index) {
+      <div>
+        {{ session.user_agent }}
+        {{ session.ip_address }}
+        {{ session.created_at | date:'dd.MM.yyyy HH:mm' }}
+      </div>
+    }
+  }
+}
+
 <button (click)="logout()">Выход</button>
-<button (click)="closeOtherSessions()">Закрыть все сеансы</button>
+<button (click)="closeOtherSessions()">Закрыть другие сеансы</button>

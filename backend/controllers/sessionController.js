@@ -86,7 +86,7 @@ const logout = async (req, res) => {
     }
 };
 
-const closeAllSessions = async (req, res) => {
+const closeAll = async (req, res) => {
     const { session_id } = req.body;
     if (!session_id) {
         return res.status(400).json({ message: 'Не выполнен вход' });
@@ -115,7 +115,7 @@ const closeAllSessions = async (req, res) => {
     }
 };
 
-const closeOtherSessions = async (req, res) => {
+const closeOther = async (req, res) => {
     const { session_id } = req.body;
     if (!session_id) {
         return res.status(400).json({ message: 'Не выполнен вход' });
@@ -144,7 +144,7 @@ const closeOtherSessions = async (req, res) => {
     }
 };
 
-const checkActiveSession = async (req, res) => {
+const checkActive = async (req, res) => {
     const { session_id } = req.body;
     
     try {
@@ -164,27 +164,61 @@ const checkActiveSession = async (req, res) => {
     }
 };
 
-const getSessions = async (req, res) => {
+const get = async (req, res) => {
     const { session_id } = req.body;
+    
     try {
-        const result = await pool.query(
-            `SELECT created_at, ip_address, user_agent FROM user_sessions
-            WHERE user_id = (
-            SELECT user_id
-            FROM user_sessions 
-            WHERE session_id = $1 AND is_active = true) AND is_active = true`,
-            [session_id]);
-        res.json(result.rows);
+        const sessionCheck = await pool.query(
+            `SELECT user_id, created_at, ip_address, user_agent 
+             FROM user_sessions 
+             WHERE session_id = $1 AND is_active = true`,
+            [session_id]
+        );
+
+        if (sessionCheck.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Сеанс не найден или неактивен'
+            });
+        }
+
+        const currentSession = sessionCheck.rows[0];
+        const userId = currentSession.user_id;
+
+        delete currentSession.user_id;
+
+        const otherSessions = await pool.query(
+            `SELECT created_at, ip_address, user_agent 
+             FROM user_sessions 
+             WHERE user_id = $1 AND is_active = true AND session_id != $2
+             ORDER BY created_at DESC`,
+            [userId, session_id]
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Данные сеансов успешно получены',
+            data: {
+                current_session: currentSession,
+                other_sessions: otherSessions.rows,
+                total_active_sessions: otherSessions.rows.length + 1
+            }
+        });
+
     } catch (err) {
-        res.status(500).send('Server Error');
+        console.error('Ошибка при получении сеансов:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Внутренняя ошибка сервера'
+        });
     }
 };
 
 module.exports = {
     login,
     logout,
-    closeAllSessions,
-    closeOtherSessions,
-    checkActiveSession,
-    getSessions,
+    closeAll,
+    closeOther,
+    checkActive,
+    get,
 };

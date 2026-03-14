@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { catchError, of } from 'rxjs';
+import { catchError, Observable, of } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { DataService } from '../../services/data-service/data.service';
@@ -17,10 +17,11 @@ export class Account {
   editForm: FormGroup;
   passwordForm: FormGroup;
   errorMessage: string = '';
+  sessions$: Observable<any> = of(null);
   private _isEditing: boolean = false;
   public get isEditing(): boolean {
   return this._isEditing;
-}
+  }
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -40,6 +41,7 @@ export class Account {
       new_birth_date: ['', []],
       new_full_name: ['', []]
     });
+
   }
 
 ngOnInit(): void {
@@ -55,6 +57,14 @@ ngOnInit(): void {
       new_birth_date: this.formatDate(this.user.birth_date) ?? '',
       new_full_name: this.user.full_name ?? ''
     });
+    if (this.authService.tokenValue)
+      this.sessions$ = this.dataService.sessionDS.get(this.authService.tokenValue).pipe(
+      catchError(err => {
+        this.errorMessage = err?.error?.message || 'Не удалось загрузить сеансы';
+        return of(null);
+      })
+    );
+    
   });
 }
 
@@ -63,9 +73,23 @@ ngOnInit(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
-  closeOtherSessions(): void {
-    this.authService.closeOtherSessions();
-  }
+
+closeOtherSessions(): void {
+  const token = this.authService.tokenValue;
+  if (token) {
+  this.dataService.sessionDS.closeOther(token).subscribe((response: any) => {
+    if (response) {
+      this.sessions$ = this.dataService.sessionDS.get(token).pipe(
+        catchError(err => {
+          this.errorMessage = err?.error?.message || 'Не удалось загрузить сеансы';
+          return of(null);
+        })
+      );
+      this.cdr.detectChanges();
+    }
+  });
+}
+}
 
   changePassword(): void {
   const { tokenValue: sessionId } = this.authService;
