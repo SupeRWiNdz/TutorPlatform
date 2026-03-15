@@ -3,10 +3,11 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MessagesService } from '../../services/message.service';
 import { Observable } from 'rxjs';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
 })
@@ -14,14 +15,20 @@ export class Chat {
   public user: any | null = null;  
   public messages$: Observable<any[] | null>;
   public hasMore$: Observable<boolean>;
+  chatForm: FormGroup;
 
   constructor(
     private route: ActivatedRoute,
     private messagesService: MessagesService,
-    public router: Router
+    public router: Router,
+    private fb: FormBuilder
   ) {
     this.messages$ = this.messagesService.messages$;
     this.hasMore$ = this.messagesService.hasMore$;
+
+    this.chatForm = this.fb.group({
+      message: ['', [Validators.required]]
+    });
   }
 
   ngOnInit(): void {
@@ -36,10 +43,13 @@ export class Chat {
     this.messagesService.clearMessages();
   }
 
-  sendMessage(text: string): void {
-    if (text?.trim() && this.user?.username) {
-      this.messagesService.sendMessageForUser(this.user.username, text);
+  sendMessage(): void {
+    if (this.chatForm.pending || this.chatForm.invalid) {
+      return;
     }
+    const { message } = this.chatForm.value;
+    this.messagesService.sendMessageForUser(this.user.username, message);
+    this.chatForm.reset();
   }
   
   public loadMoreMessages(): void {

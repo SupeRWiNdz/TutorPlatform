@@ -14,6 +14,8 @@
   } @empty {
     <div>Нет сообщений</div>
   }
-  <input #messageInput>
-  <button (click)="sendMessage(messageInput.value); messageInput.value = ''">Отправить</button>
+  <form [formGroup]="chatForm">
+  <input formControlName="message">
+  <button (click)="sendMessage()">Отправить</button>
+  </form>
 }

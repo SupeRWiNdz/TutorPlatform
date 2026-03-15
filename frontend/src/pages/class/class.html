@@ -21,9 +21,11 @@
         } @empty {
             <div>Нет сообщений</div>
         }
-        
-        <input #messageInput>
-        <button (click)="sendMessage(messageInput.value); messageInput.value = ''">Отправить</button>
+        <form [formGroup]="chatForm">
+        <input formControlName="message">
+        <button (click)="sendMessage()">Отправить</button>
+        </form>
+
     } @else { Загрузка... }
     </div>
     } @else if (page === 2) {
@@ -68,10 +70,10 @@
     }
     
     @if (class.user_role == 'creator') {
-        <div>
-            <input #addMemberInput>
-            <button (click)="addMember(addMemberInput.value); addMemberInput.value = ''">Добавить</button>
-        </div>}
+          <form [formGroup]="addMemberForm">
+        <input formControlName="username">
+        <button (click)="addMember()">Добавить</button>
+        </form>}
     @else {
         <button (click)="leave()">ВЫЙТИ</button>
     }

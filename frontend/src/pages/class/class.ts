@@ -5,7 +5,7 @@ import { catchError, Observable, of, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-class',
@@ -24,6 +24,8 @@ export class Class implements OnInit{
   public messages$: Observable<any[] | null>;
   public hasMore$: Observable<boolean>;
   public editClassForm: FormGroup;
+  public addMemberForm: FormGroup;
+  public chatForm: FormGroup;
 
   constructor(
     private route: ActivatedRoute,
@@ -31,13 +33,20 @@ export class Class implements OnInit{
     private classchatService: ClasschatService,
     private dataService: DataService,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef) {
+    private cdr: ChangeDetectorRef,
+    private fb: FormBuilder) {
       this.messages$ = this.classchatService.messages$;
       this.hasMore$ = this.classchatService.hasMore$;
       this.editClassForm = new FormGroup({
       new_name: new FormControl('', [Validators.minLength(1), Validators.maxLength(100)]),
       new_description: new FormControl('', [Validators.maxLength(1000)]),
       new_link: new FormControl('', [Validators.pattern(/^[a-zA-Z0-9-]+$/), Validators.minLength(3), Validators.maxLength(20)])
+    });
+      this.addMemberForm = this.fb.group({
+      username: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9-]+$/), Validators.minLength(3), Validators.maxLength(50)]]
+    });
+      this.chatForm = this.fb.group({
+      message: ['', [Validators.required]]
     });
   }
 
@@ -67,10 +76,13 @@ ngOnInit(): void {
   public navigateToChat(username: string) {
     this.router.navigate(['/chat', username]);
   }
-  public sendMessage(text: string): void {
-    if (text?.trim() && this.class?.link) {
-      this.classchatService.sendMessageForUser(this.class.link, text);
+  public sendMessage(): void {
+    if (this.chatForm.pending || this.chatForm.invalid) {
+      return;
     }
+    const { message } = this.chatForm.value;
+    this.classchatService.sendMessageForUser(this.class.link, message);
+    this.chatForm.reset();
   }
   public leave(): void {
     const sessionId = this.authService.tokenValue;
@@ -149,13 +161,16 @@ ngOnInit(): void {
   public loadNewMessages(): void {
     this.classchatService.loadNewMessages();
   }
-  public addMember(username: string): void {
+  public addMember(): void {
     const sessionId = this.authService.tokenValue;
     const link = this.class.link;
+    const { username } = this.addMemberForm.value;
+
     if (!link || !sessionId || !username) return;
     this.dataService.classDS.addMember(sessionId, link, username).pipe().subscribe({
       next: (response) => {
         this.class.members = [...this.class.members, response];
+        this.addMemberForm.reset();
         this.cdr.detectChanges();
       }
     });

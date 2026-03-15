@@ -53,8 +53,10 @@
       {{ response.data.current_session.ip_address }}
       {{ response.data.current_session.created_at | date:'dd.MM.yyyy HH:mm' }}
     </div>
+    <button (click)="logout()">Выход</button>
     }
     <br>
+    @if (response.data.total_active_sessions!=1) {
     @for (session of response.data.other_sessions; track $index) {
       <div>
         {{ session.user_agent }}
@@ -62,8 +64,7 @@
         {{ session.created_at | date:'dd.MM.yyyy HH:mm' }}
       </div>
     }
+    <button (click)="closeOtherSessions()">Закрыть другие сеансы</button>
+    }
   }
 }
-
-<button (click)="logout()">Выход</button>
-<button (click)="closeOtherSessions()">Закрыть другие сеансы</button>
