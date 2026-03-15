@@ -1,5 +1,19 @@
 const pool = require('../config/database');
 
+const formatDate = (date) => {
+    if (!date) return null;
+    
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    if (isNaN(dateObj.getTime())) return null;
+    
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    
+    return `${day}.${month}.${year}`;
+};
+
 const getUserData = async (req, res) => {
     const { session_id } = req.body;
     try {
@@ -29,6 +43,9 @@ const getUserData = async (req, res) => {
         }
 
         const user = result.rows[0];
+        if (user.birth_date) {
+            user.birth_date = formatDate(user.birth_date);
+        }
         res.json(user);
 
     } catch (err) {
@@ -447,7 +464,9 @@ const editUser = async (req, res) => {
                 username: updateResult.rows[0].username,
                 full_name: updateResult.rows[0].full_name,
                 phone: updateResult.rows[0].phone,
-                birth_date: updateResult.rows[0].birth_date,
+                birth_date: updateResult.rows[0].birth_date 
+                ? formatDate(updateResult.rows[0].birth_date) 
+                : null,
                 gender: updateResult.rows[0].gender
             }
         });

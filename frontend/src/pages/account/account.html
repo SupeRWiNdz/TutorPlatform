@@ -1,7 +1,7 @@
 @if (user) {
     @if (!isEditing) {
     <h2>{{ user.full_name }}</h2>
-    {{ user.birth_date | date:'dd.MM.yyyy' }}
+    {{ user.birth_date }}
 
     @if (user.gender === 'M') {Муж.}
     @if (user.gender === 'F') {Жен.}

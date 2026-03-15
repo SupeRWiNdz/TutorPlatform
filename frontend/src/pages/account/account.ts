@@ -54,7 +54,7 @@ ngOnInit(): void {
       new_email: this.user.email ?? '',
       new_phone: this.user.phone ?? '',
       new_username: this.user.username ?? '',
-      new_birth_date: this.formatDate(this.user.birth_date) ?? '',
+      new_birth_date: this.user.birth_date ?? '',
       new_full_name: this.user.full_name ?? ''
     });
     if (this.authService.tokenValue)
@@ -133,7 +133,7 @@ public editUser(): void {
     ...((new_username && new_username !== this.user.username) ? { new_username } : {}),
     ...((new_full_name && new_full_name !== this.user.full_name) ? { new_full_name } : {}),
     ...((new_phone && new_phone !== this.user.phone) ? { new_phone } : {}),
-    ...((new_birth_date && new_birth_date !== this.formatDate(this.user.birth_date)) ? { new_birth_date } : {})
+    ...((new_birth_date && new_birth_date !== this.user.birth_date) ? { new_birth_date } : {})
   };
 
   this.dataService.userDS
@@ -172,20 +172,9 @@ public editUser(): void {
       new_email: this.user.email ?? '',
       new_phone: this.user.phone ?? '',
       new_username: this.user.username ?? '',
-      new_birth_date: this.formatDate(this.user.birth_date) ?? '',
+      new_birth_date: this.user.birth_date ?? '',
       new_full_name: this.user.full_name ?? ''
     });
     this._isEditing=false;
   }
-    public formatDate = (dateString: string): string => {
-      if (!dateString) return '';
-      
-      const date = new Date(dateString);
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      
-      return `${day}.${month}.${year}`;
-    };
-
 }
