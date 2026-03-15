@@ -1,5 +1,22 @@
 @if (classes$ | async; as response) {
-  <div class="classes-container">
+  @if (isCreating)
+  {
+    <form [formGroup]="createClassForm">
+            Название:
+            <input formControlName="name">
+            Ссылка:
+            <input formControlName="link">
+            Описание:
+            <input formControlName="description">
+
+
+            <button (click)="createClass()">Подтвердить</button>
+            <button (click)="exitCreateMode()">Отмена</button>
+        </form>
+  }
+  @else
+  {
+  <button (click)="createMode()">Создать новый</button>
     <h2>Всего классов: {{ response.total_classes }}</h2>
     
     @for (class of response.classes; track class.link) {
@@ -13,7 +30,7 @@
         </div>
       </button><br>
     }
-  </div>
+  }
 } @else {
   <div class="loading">
     Загрузка классов...

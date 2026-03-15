@@ -1,6 +1,5 @@
 <div>
   <h2>Список чатов</h2>
-
   @for (chat of chats$ | async; track $index) {
     <button (click)="navigateToChat(chat.username)">
       {{ chat.full_name }}

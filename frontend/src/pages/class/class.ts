@@ -200,4 +200,16 @@ ngOnInit(): void {
     });
       this._isEditing=false;
     }
+    public deleteClass(): void {
+    const { tokenValue: sessionId } = this.authService;
+    if (!sessionId) return;
+    this.dataService.classDS.deleteClass(sessionId, this.class.link).subscribe((response: any) => {
+    if (response) {
+      this.router.navigate(['/class']);
+    }
+    
+    }
+  )
+}
+    
 }

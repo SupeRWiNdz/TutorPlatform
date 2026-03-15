@@ -88,7 +88,8 @@ const createClass = async (req, res) => {
             message: 'Класс успешно создан',
             class: {
                 link: link,
-                name: name
+                name: name,
+                description: description
             }
         });
         
@@ -171,6 +172,11 @@ const deleteClass = async (req, res) => {
             await pool.query('ROLLBACK');
             return res.status(404).json({ message: 'Не удалось удалить класс' });
         }
+        
+        await pool.query(
+            `DELETE FROM messages WHERE receiver_uuid = $1`,
+            [classId]
+        );
         
         // Подтверждаем транзакцию
         await pool.query('COMMIT');

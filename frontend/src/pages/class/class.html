@@ -1,10 +1,8 @@
-@if (class) {
-    @if (page === 1 ) {<button (click)="page = 2">Информация</button>}
-    @else if (page === 2) {<button (click)="page = 1; this.exitEditMode();">Чат класса</button>}
-    
+@if (class) {    
     <h3>{{class.name}}</h3>
     @if (page === 1 ) {
     <div>
+        <button (click)="page = 2">Информация</button>
         <h3>Чат класса:</h3>
         @if (messages$)
         {
@@ -29,11 +27,13 @@
     } @else { Загрузка... }
     </div>
     } @else if (page === 2) {
+        <button (click)="page = 1; this.exitEditMode();">Чат класса</button>
     @if (class.user_role == 'creator' && !isEditing) {
         {{class.description}}
         {{class.created_at}}
         {{class.user_role}}
         <button (click)="editMode()">Редактировать</button>
+        <button (click)="deleteClass()">Удалить класс</button>
     } @else if (class.user_role == 'creator' && isEditing) {
         <form [formGroup]="editClassForm">
             Название:
@@ -68,7 +68,6 @@
             } 
         }
     }
-    
     @if (class.user_role == 'creator') {
           <form [formGroup]="addMemberForm">
         <input formControlName="username">
