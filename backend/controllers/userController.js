@@ -494,10 +494,186 @@ const editUser = async (req, res) => {
     }
 };
 
+const register = async (req, res) => {
+    const { 
+        email, 
+        password, 
+        phone, 
+        username, 
+        birth_date, 
+        full_name 
+    } = req.body;
+    
+    const ip_address = req.ip;
+    const user_agent = req.headers['user-agent'];
+
+    if (!email || !password || !username || !full_name) {
+        return res.status(400).json({ 
+            message: 'Не все обязательные поля заполнены. Требуются: email, пароль, username, полное имя' 
+        });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Некорректный формат email' });
+    }
+    if (email.length > 255) {
+        return res.status(400).json({ message: 'Email не может превышать 255 символов' });
+    }
+
+    if (password.length < 6) {
+        return res.status(400).json({ 
+            message: 'Пароль должен содержать минимум 6 символов' 
+        });
+    }
+
+    if (username.length < 3 || username.length > 50) {
+        return res.status(400).json({ 
+            message: 'Имя пользователя должно быть от 3 до 50 символов' 
+        });
+    }
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(username)) {
+        return res.status(400).json({ 
+            message: 'Имя пользователя может содержать только буквы, цифры и подчеркивание' 
+        });
+    }
+
+    if (full_name.length > 100) {
+        return res.status(400).json({ 
+            message: 'Полное имя не может превышать 100 символов' 
+        });
+    }
+
+    if (phone) {
+        const digitsOnly = phone.replace(/\D/g, '');
+        if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+            return res.status(400).json({ 
+                message: 'Номер телефона должен содержать от 10 до 15 цифр' 
+            });
+        }
+        if (phone.length > 20) {
+            return res.status(400).json({ 
+                message: 'Номер телефона не может превышать 20 символов' 
+            });
+        }
+    }
+
+    if (birth_date) {
+        const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
+        if (!dateRegex.test(birth_date)) {
+            return res.status(400).json({ 
+                message: 'Некорректный формат даты. Используйте ДД.ММ.ГГГГ' 
+            });
+        }
+        
+        const [day, month, year] = birth_date.split('.').map(Number);
+        const birthDate = new Date(year, month - 1, day);
+        
+        if (birthDate.getDate() !== day || birthDate.getMonth() !== month - 1 || birthDate.getFullYear() !== year) {
+            return res.status(400).json({ message: 'Некорректная дата рождения' });
+        }
+        
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        if (age < 5 || age > 120) {
+            return res.status(400).json({ 
+                message: 'Некорректная дата рождения. Возраст должен быть от 5 до 120 лет' 
+            });
+        }
+    }
+
+    const client = await pool.connect();
+    
+    try {
+        await client.query('BEGIN');
+
+        const checkExisting = await client.query(
+            `SELECT email, username FROM users 
+             WHERE email = $1 OR username = $2`,
+            [email, username]
+        );
+
+        if (checkExisting.rows.length > 0) {
+            const existing = checkExisting.rows[0];
+            if (existing.email === email) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ message: 'Этот email уже используется' });
+            }
+            if (existing.username === username) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ message: 'Это имя пользователя уже занято' });
+            }
+        }
+
+        const createUserResult = await client.query(
+            `INSERT INTO users (
+                email, 
+                username, 
+                full_name, 
+                phone, 
+                birth_date, 
+                password_hash
+            ) VALUES (
+                $1, $2, $3, $4, 
+                CASE WHEN $5::text IS NOT NULL 
+                    THEN to_date($5, 'DD.MM.YYYY') 
+                    ELSE NULL 
+                END,
+                double_hash_password($6)
+            ) RETURNING id`,
+            [email, username, full_name, phone || null, birth_date || null, password]
+        );
+
+        const userId = createUserResult.rows[0].id;
+
+        const sessionResult = await client.query(
+            `INSERT INTO user_sessions (user_id, ip_address, user_agent)
+             VALUES ($1, $2, $3)
+             RETURNING session_id`,
+            [userId, ip_address, user_agent]
+        );
+
+        const session_id = sessionResult.rows[0].session_id;
+
+        await client.query('COMMIT');
+
+        res.status(201).json({
+            message: 'Пользователь успешно зарегистрирован',
+            session_id: session_id
+        });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Ошибка в register:', err);
+        
+        if (err.code === '23505') {
+            const detail = err.detail || '';
+            if (detail.includes('email')) {
+                return res.status(400).json({ message: 'Этот email уже используется' });
+            }
+            if (detail.includes('username')) {
+                return res.status(400).json({ message: 'Это имя пользователя уже занято' });
+            }
+        }
+        
+        res.status(500).json({ message: 'Ошибка сервера при регистрации' });
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     checkRoles,
     getUserData,
     changePassword,
     getUserByUsername,
-    editUser
+    editUser,
+    register
 };

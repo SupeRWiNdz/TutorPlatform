@@ -9,12 +9,12 @@ import { Main } from '../pages/main/main';
 import { ChatList } from '../pages/chat-list/chat-list';
 import { ClassList } from '../pages/class-list/class-list';
 import { Class } from '../pages/class/class';
-import { CreateClass } from '../pages/create-class/create-class';
 import { UserResolver } from '../resolvers/user.resolver';
 import { ProfileResolver } from '../resolvers/profile.resolver';
 import { ClassResolver } from '../resolvers/class.resolver';
 import { OwnProfileRedirectGuard } from '../services/own-profile-redirect.guard';
 import { AccountResolver } from '../resolvers/account.resolver';
+import { RegisterComponent } from '../pages/register/register';
 
 export const routes: Routes = [
   { 
@@ -36,6 +36,11 @@ export const routes: Routes = [
         path: 'login', 
         component: LoginComponent,
         title: 'Войти в аккаунт'
+      },
+      {
+        path: 'register', 
+        component: RegisterComponent,
+        title: 'Зарегистрироваться'
       },
       { 
         path: 'account', 
@@ -61,12 +66,6 @@ export const routes: Routes = [
         component: ClassList,
         canActivate: [AuthGuard],
         title: 'Список классов'
-      },
-      {
-        path: 'new-class',
-        component: CreateClass,
-        canActivate: [AuthGuard],
-        title: 'Создать класс'
       },
       {
         path: 'class/:link',

@@ -37,5 +37,15 @@ export class UserDataService {
 
   return this.http.post<any>(`${this.apiUrl}/users/edit`, filteredData);
 }
+register(userData: {
+  email: string,
+  password: string,
+  phone?: string,
+  username: string,
+  birth_date?: string,
+  full_name: string
+}): Observable<any> {
+  return this.http.post<any>(`${this.apiUrl}/users/register`, userData);
+}
 
 }

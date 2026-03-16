@@ -1,0 +1,56 @@
+<button [routerLink]="'/login'">Войти в систему</button>
+<h2>Регистрация</h2>
+  
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      Email *
+      <input 
+        type="email"
+        id="email" 
+        formControlName="email"
+        [class.is-invalid]="email?.invalid && email?.touched"
+      >
+      Имя пользователя *
+      <input 
+        type="text" 
+        id="username" 
+        formControlName="username"
+        [class.is-invalid]="username?.invalid && username?.touched">
+
+      Полное имя *
+      <input 
+        type="text" 
+        id="full_name" 
+        formControlName="full_name"
+        [class.is-invalid]="full_name?.invalid && full_name?.touched">
+        Пароль *
+      <input 
+        type="password" 
+        id="password" 
+        formControlName="password"
+        [class.is-invalid]="password?.invalid && password?.touched">
+
+      Телефон
+      <input 
+        type="tel" 
+        id="phone" 
+        formControlName="phone"
+        placeholder="89876543210"
+      >
+
+      Дата рождения
+      <input 
+        type="text" 
+        id="birth_date" 
+        formControlName="birth_date"
+        placeholder="ДД.ММ.ГГГГ"
+        [class.is-invalid]="birth_date?.invalid && birth_date?.touched"
+      >
+
+    <button type="submit">Зарегистрироваться</button>
+  </form>
+@if (errorMessage) {
+    <strong>Ошибка</strong>
+    <p>
+        {{ errorMessage }}
+    </p>
+}
