@@ -4,6 +4,7 @@ import { ClassDataService } from './class.ds';
 import { MessageDataService } from './message.ds';
 import { SessionDataService } from './session.ds';
 import { UserDataService } from './user.ds';
+import { RequestDataService } from './request.ds';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,7 @@ export class DataService {
     public classchatDS: ClasschatDataService,
     public classDS: ClassDataService,
     public messageDS: MessageDataService,
+    public requestDS: RequestDataService,
     public sessionDS: SessionDataService,
     public userDS: UserDataService
   ) {}

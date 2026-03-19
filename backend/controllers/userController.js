@@ -473,7 +473,6 @@ const editUser = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в editUser:', err);
         
         // Обработка специфических ошибок базы данных
         if (err.code === '23505') { // Unique violation
@@ -651,7 +650,6 @@ const register = async (req, res) => {
 
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error('Ошибка в register:', err);
         
         if (err.code === '23505') {
             const detail = err.detail || '';

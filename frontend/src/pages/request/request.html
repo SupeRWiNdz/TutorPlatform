@@ -1,0 +1,26 @@
+<h3>Приглашение в класс:</h3>
+@if (response)
+{
+    @if (response.name)
+    {
+        {{response.name}}
+        {{response.description}}
+        {{response.created_at}}
+        @for (member of response.members; track member.username)
+    {
+        <div>
+            {{member.full_name}} {{member.member_role}}
+        </div>
+    }
+        <button (click)="accept()">Принять</button>
+        <button (click)="decline()">Отклонить</button>
+    }
+    @else if (response.message)
+    {
+        {{response.message}}
+    }
+    @else
+    {
+        Загрузка...
+    }
+}

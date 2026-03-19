@@ -15,6 +15,8 @@ import { ClassResolver } from '../resolvers/class.resolver';
 import { OwnProfileRedirectGuard } from '../services/own-profile-redirect.guard';
 import { AccountResolver } from '../resolvers/account.resolver';
 import { RegisterComponent } from '../pages/register/register';
+import { Request } from '../pages/request/request';
+import { RequestResolver } from '../resolvers/request.resolver';
 
 export const routes: Routes = [
   { 
@@ -72,6 +74,12 @@ export const routes: Routes = [
         component: Class,
         resolve: { class: ClassResolver },
         canActivate: [AuthGuard]
+      },
+      {
+        path: 'request/:link',
+        component: Request,
+        canActivate: [AuthGuard],
+        resolve: { request: RequestResolver }
       },
       {
         path: '**',

@@ -206,7 +206,6 @@ const get = async (req, res) => {
         });
 
     } catch (err) {
-        console.error('Ошибка при получении сеансов:', err);
         res.status(500).json({
             success: false,
             message: 'Внутренняя ошибка сервера'

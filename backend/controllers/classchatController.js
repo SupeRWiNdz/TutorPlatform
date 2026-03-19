@@ -69,7 +69,6 @@ const sendMessage = async (req, res) => {
             client.release();
         }
     } catch (err) {
-        console.error('Ошибка в sendMessage:', err);
         res.status(500).json({ message: 'Ошибка сервера' });
     }
 };
@@ -260,7 +259,6 @@ const getNewMessages = async (req, res) => {
         });
         
     } catch (err) {
-        console.error('Ошибка в getNewMessages:', err);
         res.status(500).json({ message: 'Ошибка сервера', error: err.message });
     }
 };

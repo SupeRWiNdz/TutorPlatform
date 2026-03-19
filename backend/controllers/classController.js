@@ -95,7 +95,6 @@ const createClass = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в createClass:', err);
         
         // Обработка специфических ошибок PostgreSQL
         if (err.code === '23505') { // Нарушение уникальности
@@ -186,7 +185,6 @@ const deleteClass = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в deleteClass:', err);
         
         // Обработка специфических ошибок базы данных
         if (err.code === '23503') { // Foreign key violation
@@ -381,7 +379,6 @@ const editClass = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в editClass:', err);
         
         // Обработка специфических ошибок базы данных
         if (err.code === '23505') { // Unique violation
@@ -513,7 +510,6 @@ const myClasses = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в myClasses:', err);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 };
@@ -624,7 +620,6 @@ const getClass = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в getClass:', err);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 };
@@ -756,7 +751,6 @@ const addMember = async (req, res) => {
             return res.status(400).json({ message: 'Некорректные данные для добавления' });
         }
         
-        console.error('Ошибка при добавлении участника:', err);
         return res.status(500).json({ error: 'Ошибка сервера при добавлении участника' });
     }
 };
@@ -873,8 +867,6 @@ const deleteMember = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в deleteMember:', err);
-        
         // Обработка специфических ошибок базы данных
         if (err.code === '23503') { // Нарушение внешнего ключа
             return res.status(400).json({ message: 'Некорректные данные для удаления' });
@@ -966,7 +958,6 @@ const leave = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в leave:', err);
         
         // Обработка специфических ошибок PostgreSQL
         if (err.code === '23503') { // Foreign key violation
@@ -1087,7 +1078,6 @@ const editRole = async (req, res) => {
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        console.error('Ошибка в editRole:', err);
         
         // Обработка специфических ошибок PostgreSQL
         if (err.code === '23505') { // Unique violation
