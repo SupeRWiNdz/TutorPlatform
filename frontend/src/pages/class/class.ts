@@ -6,19 +6,28 @@ import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MessagesService } from '../../services/message.service';
+import { AdvancedFormatMessagePipe } from '../../services/advanced-message.pipe';
 
 @Component({
   selector: 'app-class',
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe],
   templateUrl: './class.html',
   styleUrl: './class.css',
 })
 
 export class Class implements OnInit{
-  public page: 1 | 2 = 1;
+  private _page: 1 | 2 = 1;
+  public get page(): 1 | 2 {
+  return this._page;
+  }
   private _isEditing: boolean = false;
+  private _deleteConfirm: boolean = false;
   public get isEditing(): boolean {
   return this._isEditing;
+  }
+  public get deleteConfirm(): boolean {
+  return this._deleteConfirm;
   }
   public class: any | null = null;  
   public messages$: Observable<any[] | null>;
@@ -26,6 +35,7 @@ export class Class implements OnInit{
   public editClassForm: FormGroup;
   public addMemberForm: FormGroup;
   public chatForm: FormGroup;
+  public invitation: string='';
 
   constructor(
     private route: ActivatedRoute,
@@ -34,7 +44,10 @@ export class Class implements OnInit{
     private dataService: DataService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private fb: FormBuilder) {
+    private messagesService: MessagesService,
+    private fb: FormBuilder
+  )
+    {
       this.messages$ = this.classchatService.messages$;
       this.hasMore$ = this.classchatService.hasMore$;
       this.editClassForm = new FormGroup({
@@ -165,16 +178,17 @@ ngOnInit(): void {
     const sessionId = this.authService.tokenValue;
     const link = this.class.link;
     const { username } = this.addMemberForm.value;
-
     if (!link || !sessionId || !username) return;
-    this.dataService.classDS.addMember(sessionId, link, username).pipe().subscribe({
+    this.dataService.requestDS.create(sessionId, link, username).pipe().subscribe({
       next: (response) => {
-        this.class.members = [...this.class.members, response];
-        this.addMemberForm.reset();
-        this.cdr.detectChanges();
+          this.addMemberForm.reset();
+          const message = 'Приглашаю вас присоединиться в класс: "'+this.class.name+'" по ссылке: '+'http://localhost:4200/request/'+response.link;
+          this.messagesService.sendMessageForUser(username, message);
+          this.chatForm.reset();
       }
     });
   }
+
     public editClass(): void {
       const { tokenValue: sessionId } = this.authService;
       const { link } = this.class;
@@ -190,6 +204,7 @@ ngOnInit(): void {
         });
     }
     public editMode(): void {
+      this.exitDeleteMode()
       this._isEditing=true;
     }
     public exitEditMode(): void {
@@ -200,16 +215,44 @@ ngOnInit(): void {
     });
       this._isEditing=false;
     }
+    public deleteMode(): void {
+      this.exitEditMode();
+      this._deleteConfirm=true;
+    }
+    public exitDeleteMode(): void {
+      this._deleteConfirm=false;
+    }
     public deleteClass(): void {
     const { tokenValue: sessionId } = this.authService;
     if (!sessionId) return;
     this.dataService.classDS.deleteClass(sessionId, this.class.link).subscribe((response: any) => {
     if (response) {
       this.router.navigate(['/class']);
+    }    
+    }
+    )
+    }
+
+    public createRequest(): void {
+      const { tokenValue: sessionId } = this.authService;
+      const { link } = this.class;
+      if (!link || !sessionId) return;
+      this.dataService.requestDS.create(sessionId, link)
+        .subscribe({next: (response) => {
+        if (response) {
+          this.invitation='http://localhost:4200/request/'+response.link;
+          this.cdr.detectChanges();
+      }
+      }
+    });
     }
     
+    public pageOne(): void {
+      this.exitEditMode();
+      this.exitDeleteMode()
+      this._page=1;
     }
-  )
-}
-    
+    public pageTwo(): void {
+      this._page=2;
+    }
 }

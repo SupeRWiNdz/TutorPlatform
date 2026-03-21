@@ -25,9 +25,6 @@ export class ClassDataService {
   myClasses(session_id: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/class/list`, { session_id });
   }
-  addMember(session_id: string, link: string, username: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/class/invite`, { session_id, link, username });
-  }
   deleteMember(session_id: string, link: string, username: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/class/delete-member`, { session_id, link, username });
   }

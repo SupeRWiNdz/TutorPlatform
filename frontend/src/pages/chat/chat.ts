@@ -4,10 +4,11 @@ import { CommonModule } from '@angular/common';
 import { MessagesService } from '../../services/message.service';
 import { Observable } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AdvancedFormatMessagePipe } from "../../services/advanced-message.pipe";
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
 })

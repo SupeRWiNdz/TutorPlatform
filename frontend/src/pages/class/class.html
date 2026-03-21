@@ -1,8 +1,8 @@
 @if (class) {    
     <h3>{{class.name}}</h3>
-    @if (page === 1 ) {
+    @if (page == 1 ) {
     <div>
-        <button (click)="page = 2">Информация</button>
+        <button (click)="pageTwo()">Информация</button>
         <h3>Чат класса:</h3>
         @if (messages$)
         {
@@ -13,7 +13,8 @@
         @for (message of messages$ | async; track message.message_number) {
             @if (message) {
                 <div [style.color]="message.type === 'outgoing' ? 'red' : 'blue'">
-                    {{message.sender_username}} {{ message.sent_at | date:'dd.MM HH:mm' }} {{ message.text }}
+                  {{ message.sent_at | date:'dd.MM HH:mm' }}
+                  <span [innerHTML]="message.text | advancedFormatMessage"></span>
                 </div>
             }
         } @empty {
@@ -26,14 +27,22 @@
 
     } @else { Загрузка... }
     </div>
-    } @else if (page === 2) {
-        <button (click)="page = 1; this.exitEditMode();">Чат класса</button>
+    } @else if (page == 2) {
+        <button (click)="pageOne()">Чат класса</button>
     @if (class.user_role == 'creator' && !isEditing) {
         {{class.description}}
         {{class.created_at}}
         {{class.user_role}}
         <button (click)="editMode()">Редактировать</button>
-        <button (click)="deleteClass()">Удалить класс</button>
+        @if (!deleteConfirm)
+        {
+            <button (click)="deleteMode()">Удалить класс</button>
+        }
+        @else
+        {
+            <button (click)="deleteClass()">подтвердить удаление</button>
+            <button (click)="exitDeleteMode()">отмена</button>
+        }
     } @else if (class.user_role == 'creator' && isEditing) {
         <form [formGroup]="editClassForm">
             Название:
@@ -55,8 +64,7 @@
         </div>
         
         @if (class.user_role == 'creator' && member.member_role !== 'creator') {
-            <button (click)="deleteMember(member.username)">удалить</button>
-            
+            <button (click)="deleteMember(member.username)">Удалить</button>
             @if (member.member_role !== 'creator') {
                 <button (click)="editRole(member.username, member.member_role)">
                     @if (member.member_role == 'student') { 
@@ -68,11 +76,17 @@
             } 
         }
     }
-    @if (class.user_role == 'creator') {
-          <form [formGroup]="addMemberForm">
+    @if (class.user_role == 'creator')
+    {
+        <form [formGroup]="addMemberForm">
         <input formControlName="username">
-        <button (click)="addMember()">Добавить</button>
-        </form>}
+        <button (click)="addMember()">Пригласить по username</button>
+        </form>
+        <button (click)="createRequest()">Создать общее приглашение</button>
+        @if (invitation) {
+            {{invitation}}
+        }
+    }
     @else {
         <button (click)="leave()">ВЫЙТИ</button>
     }

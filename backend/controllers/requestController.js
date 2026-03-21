@@ -1,62 +1,7 @@
 const pool = require('../config/database');
 
-const createForUser = async (req, res) => {
+const create = async (req, res) => {
     const { session_id, link, username } = req.body;
-
-    try {
-        if (!session_id || !link || !username) {
-            return res.status(400).json({ message: 'Не указаны обязательные данные' });
-        }
-
-        const sessionResult = await pool.query(
-            'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
-            [session_id]
-        );
-        
-        if (sessionResult.rows.length === 0) {
-            return res.status(401).json({ error: 'Сеанс не найден' });
-        }
-        
-        const userResult = await pool.query(
-            `SELECT id FROM users
-            WHERE username = $1`,
-            [username]
-        );
-
-        if (userResult.rows.length === 0) {
-            return res.status(401).json({ message: 'Пользователь не найден' });
-        }
-
-        const classCheck = await pool.query(
-            `SELECT c.id FROM classes c
-             JOIN class_members cm ON c.id = cm.class_id
-             WHERE c.link = $1 AND cm.user_id = $2 AND cm.role = 'creator'`,
-            [link, sessionResult.rows[0].user_id]
-        );
-
-        if (classCheck.rows.length === 0) {
-            return res.status(403).json({ message: 'Класс не существует или у пользователя недостаточно полномочий' });
-        }
-
-        const requestResult = await pool.query(
-            `INSERT INTO requests (class_id, user_id)
-             VALUES ($1, $2)
-             RETURNING link`,
-            [classCheck.rows[0].id, userResult.rows[0].id]
-        );
-        
-        return res.status(201).json({ 
-            message: 'Заявка успешно создана', 
-            link: requestResult.rows[0].link 
-        });
-
-    } catch (err) {
-        res.status(500).json({ message: 'Ошибка сервера' });
-    }
-};
-
-const createForEveryone = async (req, res) => {
-    const { session_id, link } = req.body;
 
     try {
         if (!session_id || !link) {
@@ -71,7 +16,7 @@ const createForEveryone = async (req, res) => {
         if (sessionResult.rows.length === 0) {
             return res.status(401).json({ error: 'Сеанс не найден' });
         }
-
+        
         const classCheck = await pool.query(
             `SELECT c.id FROM classes c
              JOIN class_members cm ON c.id = cm.class_id
@@ -83,18 +28,42 @@ const createForEveryone = async (req, res) => {
             return res.status(403).json({ message: 'Класс не существует или у пользователя недостаточно полномочий' });
         }
 
-        const requestResult = await pool.query(
+        if (username)
+        {
+            const userResult = await pool.query(
+            `SELECT id FROM users
+            WHERE username = $1`,
+            [username]
+            );
+
+            if (userResult.rows.length === 0) {
+                return res.status(401).json({ message: 'Пользователь не найден' });
+            }
+
+            const requestResult = await pool.query(
+            `INSERT INTO requests (class_id, user_id)
+             VALUES ($1, $2)
+             RETURNING link`,
+            [classCheck.rows[0].id, userResult.rows[0].id]
+            );
+
+            return res.status(201).json({ 
+            message: 'Личная заявка успешно создана', 
+            link: requestResult.rows[0].link 
+            });
+        } else {
+            const requestResult = await pool.query(
             `INSERT INTO requests (class_id)
              VALUES ($1)
              RETURNING link`,
             [classCheck.rows[0].id]
-        );
-        
-        return res.status(201).json({ 
-            message: 'Заявка успешно создана', 
-            link: requestResult.rows[0].link 
-        });
+            );
 
+            return res.status(201).json({ 
+            message: 'Общая заявка успешно создана', 
+            link: requestResult.rows[0].link 
+            });
+        }
     } catch (err) {
         res.status(500).json({ message: 'Ошибка сервера' });
     }
@@ -412,5 +381,5 @@ const decline = async (req, res) => {
 };
 
 module.exports = {
-    createForUser, createForEveryone, check, accept, decline
+    create, check, accept, decline
 };
