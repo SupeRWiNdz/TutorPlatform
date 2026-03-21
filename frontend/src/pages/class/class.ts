@@ -233,7 +233,7 @@ ngOnInit(): void {
     )
     }
 
-    public createRequest(): void {
+    public createInvitation(): void {
       const { tokenValue: sessionId } = this.authService;
       const { link } = this.class;
       if (!link || !sessionId) return;

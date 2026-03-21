@@ -82,10 +82,8 @@
         <input formControlName="username">
         <button (click)="addMember()">Пригласить по username</button>
         </form>
-        <button (click)="createRequest()">Создать общее приглашение</button>
-        @if (invitation) {
-            {{invitation}}
-        }
+        <button (click)="createInvitation()">Создать общее приглашение</button>
+        @if (invitation) { <span [innerHTML]="invitation | advancedFormatMessage"></span> }
     }
     @else {
         <button (click)="leave()">ВЫЙТИ</button>
