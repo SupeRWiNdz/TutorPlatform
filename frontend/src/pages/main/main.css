@@ -1,0 +1,14 @@
+.button-container {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  flex-wrap: wrap;
+  
+  button {
+    min-width: 180px;
+    
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}

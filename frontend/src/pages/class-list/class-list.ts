@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
@@ -6,10 +6,18 @@ import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RoleIconPipe } from '../../services/role-icon.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-class-list',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RoleIconPipe,
+    MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './class-list.html',
   styleUrl: './class-list.css',
 })
@@ -31,7 +39,7 @@ export class ClassList implements OnInit {
     this.createClassForm = new FormGroup({
     name: new FormControl('', [Validators.minLength(1), Validators.maxLength(100)]),
     description: new FormControl('', [Validators.maxLength(1000)]),
-    link: new FormControl('', [Validators.pattern(/^[a-zA-Z0-9-]+$/), Validators.minLength(3), Validators.maxLength(20)])
+    link: new FormControl('', [Validators.pattern(/^[a-zA-Z-]+$/), Validators.minLength(3), Validators.maxLength(20)])
     });
   }
 

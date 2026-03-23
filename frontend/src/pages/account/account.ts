@@ -1,14 +1,21 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { catchError, Observable, of } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { DataService } from '../../services/data-service/data.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import {MatDatepickerModule} from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-account',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule,
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatDatepickerModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './account.html',
   styleUrl: './account.css',
 })
@@ -176,5 +183,18 @@ public editUser(): void {
       new_full_name: this.user.full_name ?? ''
     });
     this._isEditing=false;
+  }
+  
+  hideOldPassword = signal(true);
+  hideNewPassword = signal(true);
+  
+  toggleOldPassword(event: MouseEvent): void {
+    this.hideOldPassword.set(!this.hideOldPassword());
+    event.stopPropagation();
+  }
+  
+  toggleNewPassword(event: MouseEvent): void {
+    this.hideNewPassword.set(!this.hideNewPassword());
+    event.stopPropagation();
   }
 }

@@ -1,14 +1,6 @@
 <app-header></app-header>
 <div class="mainblock">
-    <div class="content-wrapper">
-        @if (router.url !== '/') {
-            <div class="nav-button">
-                <button (click)="router.navigate(['/'])">ГЛАВНАЯ</button>
-                <button (click)="goBack()">ВЕРНУТЬСЯ</button>
-            </div>
-        }
-        <div class="innerblock">
-            <router-outlet></router-outlet>
-        </div>
+    <div class="innerblock">
+        <router-outlet></router-outlet>
     </div>
 </div>

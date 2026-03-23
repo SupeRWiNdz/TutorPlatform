@@ -12,8 +12,8 @@
             {{member.full_name}} {{member.member_role}}
         </div>
     }
-        <button (click)="accept()">Принять</button>
-        <button (click)="decline()">Отклонить</button>
+        <button mat-raised-button (click)="accept()">Принять</button>
+        <button mat-raised-button (click)="decline()">Отклонить</button>
     }
     @else if (response.message)
     {

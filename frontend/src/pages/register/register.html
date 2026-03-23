@@ -1,52 +1,112 @@
-<button [routerLink]="'/login'">Войти в систему</button>
+<button mat-raised-button color="primary" [routerLink]="'/login'" type="button">Войти в систему</button>
 <h2>Регистрация</h2>
   
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      Email *
-      <input 
+<mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input
+        matInput
         type="email"
         id="email" 
         formControlName="email"
         [class.is-invalid]="email?.invalid && email?.touched"
       >
-      Имя пользователя *
+    <mat-error>
+    @if (form.get('email')?.errors?.['required'])
+    {Введите почту}
+    @if (form.get('email')?.errors?.['email'])
+    {Введите корректную почту}
+    </mat-error>
+</mat-form-field>
+<mat-form-field appearance="outline">
+      <mat-label>username</mat-label>
       <input 
+        matInput
         type="text" 
         id="username" 
         formControlName="username"
         [class.is-invalid]="username?.invalid && username?.touched">
+    <mat-error>
+    @if (form.get('username')?.errors?.['required'])
+    {Введите username}
+    @else if (form.get('username')?.errors)
+    {Введите корректный username}
+    </mat-error>
+</mat-form-field>
 
-      Полное имя *
-      <input 
+<mat-form-field appearance="outline">
+      <mat-label>Полное имя</mat-label>
+      <input
+        matInput
         type="text" 
         id="full_name" 
         formControlName="full_name"
         [class.is-invalid]="full_name?.invalid && full_name?.touched">
-        Пароль *
-      <input 
-        type="password" 
+    <mat-error>
+    @if (form.get('full_name')?.errors?.['required'])
+    {Введите полное имя}
+    @else if (form.get('full_name')?.errors)
+    {Введите корректное полное имя}
+    </mat-error>
+</mat-form-field>
+
+<mat-form-field appearance="outline">
+      <mat-label>Пароль</mat-label>
+      <input
+        matInput
+        [type]="hide() ? 'password' : 'text'"
         id="password" 
         formControlName="password"
         [class.is-invalid]="password?.invalid && password?.touched">
+        <button
+      matIconButton
+      matSuffix
+      (click)="clickEvent($event)"
+      [attr.aria-label]="'Скрыть пароль'"
+      [attr.aria-pressed]="hide()"
+    >
+      <mat-icon>{{hide() ? 'visibility_off' : 'visibility'}}</mat-icon>
+    </button>
+    <mat-error>
+    @if (form.get('password')?.errors?.['required'])
+    {Введите пароль}
+    @else if (form.get('password')?.errors)
+    {Введите корректный пароль}
+    </mat-error>
+</mat-form-field>
 
-      Телефон
-      <input 
+<mat-form-field appearance="outline">
+      <mat-label>Телефон</mat-label>
+      <input
+        matInput
         type="tel" 
         id="phone" 
         formControlName="phone"
         placeholder="89876543210"
       >
+    <mat-error>
+    @if (form.get('phone')?.errors)
+    {Введите корректный номер телефона}
+    </mat-error>
+</mat-form-field>
 
-      Дата рождения
-      <input 
+<mat-form-field appearance="outline">
+      <mat-label>Дата рождения</mat-label>
+      <input
+        matInput
         type="text" 
         id="birth_date" 
         formControlName="birth_date"
         placeholder="ДД.ММ.ГГГГ"
         [class.is-invalid]="birth_date?.invalid && birth_date?.touched"
       >
+    <mat-error>
+    @if (form.get('birth_date')?.errors)
+    {Введите корректную дату рождения}
+    </mat-error>
+</mat-form-field>
 
-    <button type="submit">Зарегистрироваться</button>
+    <button mat-raised-button color="primary" type="submit">Подтвердить</button>
   </form>
 @if (errorMessage) {
     <strong>Ошибка</strong>

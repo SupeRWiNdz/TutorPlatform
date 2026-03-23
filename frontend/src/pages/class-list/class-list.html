@@ -2,32 +2,57 @@
   @if (isCreating)
   {
     <form [formGroup]="createClassForm">
-            Название:
-            <input formControlName="name">
-            Ссылка:
-            <input formControlName="link">
-            Описание:
-            <input formControlName="description">
 
-
-            <button (click)="createClass()">Подтвердить</button>
-            <button (click)="exitCreateMode()">Отмена</button>
+            <mat-form-field appearance="outline">
+                <mat-label>Название</mat-label>
+                <input matInput formControlName="name" >
+                <mat-error>
+                @if (createClassForm.get('name')?.errors?.['required'])
+                {Введите название}
+                @else if (createClassForm.get('name')?.errors)
+                {Введите корректное название}
+                </mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Ссылка</mat-label>
+                <input matInput formControlName="link" >
+                <mat-error>
+                @if (createClassForm.get('link')?.errors?.['required'])
+                {Введите ссылку}
+                @else if (createClassForm.get('link')?.errors)
+                {Введите корректную ссылку}
+                </mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Описание</mat-label>
+                <input matInput formControlName="description" >
+                <mat-error>
+                @if (createClassForm.get('description')?.errors?.['required'])
+                {Введите описание}
+                @else if (createClassForm.get('description')?.errors)
+                {Введите корректное описание}
+                </mat-error>
+            </mat-form-field>
+            <button (click)="createClass()" mat-raised-button>Подтвердить</button>
+            <button (click)="exitCreateMode()" mat-raised-button>Отмена</button>
         </form>
   }
   @else
   {
-  <button (click)="createMode()">Создать новый</button>
+        <button
+      mat-mini-fab
+      matSuffix
+      (click)="createMode()"
+      [attr.aria-label]="'Создать класс'"
+      ><mat-icon>add</mat-icon></button>
     <h2>Всего классов: {{ response.total_classes }}</h2>
     
     @for (class of response.classes; track class.link) {
       <button class="class-card" (click)="navigateToClass(class.link)">
         <h3>{{ class.name }}</h3>
         <p>{{ class.description }}</p>
-        
-        <div class="class-info">
-          <span>Участников: {{ class.total_members }}</span>
-          <span>Ваша роль: {{ class.user_role }}</span>
-        </div>
+          {{ class.total_members }}<mat-icon>people</mat-icon>
+          <mat-icon>{{class.user_role | roleIcon}}</mat-icon>
       </button><br>
     }
   }

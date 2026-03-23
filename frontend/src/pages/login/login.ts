@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { catchError } from 'rxjs/operators';
@@ -6,15 +6,20 @@ import { of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
+import { MatInputModule} from '@angular/material/input'
+import { MatFormFieldModule} from '@angular/material/form-field'
+import { MatButtonModule } from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.html',
-  imports: [ReactiveFormsModule, CommonModule, RouterModule]
+  imports: [ReactiveFormsModule, CommonModule, RouterModule,
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   form: FormGroup;
-  errorMessage: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -29,17 +34,16 @@ export class LoginComponent {
   }
 
   onSubmit(): void {
+    //console.log(this.form.get('email')?.errors);
     if (this.form.pending || this.form.invalid) {
-      this.errorMessage = 'Введите email и пароль';
       return;
     }
 
     const { email, password } = this.form.value;
-    this.errorMessage = '';
 
     this.dataService.sessionDS.login(email, password).pipe(
       catchError(error => {
-        this.errorMessage = error.error?.message || 'Ошибка при входе';
+        //this.errorMessage = error.error?.message || 'Ошибка при входе';
         return of(null);
       })
     ).subscribe({
@@ -52,5 +56,10 @@ export class LoginComponent {
         }
       }
     });
+  }
+  hide = signal(true);
+  clickEvent(event: MouseEvent) {
+    this.hide.set(!this.hide());
+    event.stopPropagation();
   }
 }

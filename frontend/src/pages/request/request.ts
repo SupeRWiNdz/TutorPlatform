@@ -3,10 +3,13 @@ import { ActivatedRoute, ActivatedRouteSnapshot, Router, RouterModule } from '@a
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data-service/data.service';
 import { AuthService } from '../../services/auth.service';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-request',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule,
+    MatButtonModule
+  ],
   templateUrl: './request.html',
   styleUrl: './request.css',
 })

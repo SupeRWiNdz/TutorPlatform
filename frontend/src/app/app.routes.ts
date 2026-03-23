@@ -8,7 +8,7 @@ import { AuthGuard } from '../services/auth.guard';
 import { Main } from '../pages/main/main';
 import { ChatList } from '../pages/chat-list/chat-list';
 import { ClassList } from '../pages/class-list/class-list';
-import { Class } from '../pages/class/class';
+import { ClassInfo } from '../pages/class-info/class-info';
 import { UserResolver } from '../resolvers/user.resolver';
 import { ProfileResolver } from '../resolvers/profile.resolver';
 import { ClassResolver } from '../resolvers/class.resolver';
@@ -17,6 +17,7 @@ import { AccountResolver } from '../resolvers/account.resolver';
 import { RegisterComponent } from '../pages/register/register';
 import { Request } from '../pages/request/request';
 import { RequestResolver } from '../resolvers/request.resolver';
+import { ClassChat } from '../pages/class-chat/class-chat';
 
 export const routes: Routes = [
   { 
@@ -71,7 +72,13 @@ export const routes: Routes = [
       },
       {
         path: 'class/:link',
-        component: Class,
+        component: ClassChat,
+        resolve: { class: ClassResolver },
+        canActivate: [AuthGuard]
+      },
+            {
+        path: 'class/:link/info',
+        component: ClassInfo,
         resolve: { class: ClassResolver },
         canActivate: [AuthGuard]
       },

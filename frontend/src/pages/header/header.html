@@ -1,16 +1,16 @@
-<header>
-  <table>
-    <tbody>
-      @if (currentUser$ | async; as user) {
-      <td [routerLink]="'/profile/'+user.username">
-        {{ user.full_name }}
-      </td>
-      <td>
-        @if (user.is_teacher) {Учитель}
-        @if (user.is_student) {Ученик}
-        @if (user.is_parent) {Родитель}
-      </td>
-      }
-    </tbody>
-  </table>
-</header>
+<button
+  matIconButton
+  matSuffix
+  [routerLink]="'/'"
+  [attr.aria-label]="'Главная'"
+  ><mat-icon>menu_book</mat-icon></button>
+
+@if (currentUser$ | async; as user) {
+<span [routerLink]="'/profile/'+user.username">
+  {{ user.full_name }}
+  
+  @if (user.is_teacher) {Учитель}
+  @if (user.is_student) {Ученик}
+  @if (user.is_parent) {Родитель}
+</span>
+}

@@ -1,5 +1,11 @@
 @if (user) {
-  <button [routerLink]="'/profile/' + user.username">Профиль</button>
+    <button
+      mat-mini-fab
+      matSuffix
+      [routerLink]="'/profile/' + user.username"
+      [attr.aria-label]="'Профиль'"
+      ><mat-icon>person</mat-icon></button>
+
   <h2>{{ user.full_name }}</h2>
   @if (hasMore$ | async)
   {
@@ -17,7 +23,14 @@
     <div>Нет сообщений</div>
   }
   <form [formGroup]="chatForm">
-  <input formControlName="message">
-  <button (click)="sendMessage()">Отправить</button>
+  <mat-form-field appearance="fill">
+  <input matInput type="text" formControlName="message" placeholder="Сообщение">
+  <button
+      matIconButton
+      matSuffix
+      (click)="sendMessage()"
+      [attr.aria-label]="'Отправить'"
+      ><mat-icon>send</mat-icon></button>
+  </mat-form-field>
   </form>
 }

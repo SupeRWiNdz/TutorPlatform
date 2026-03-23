@@ -1,3 +1,16 @@
-<button [routerLink]="'/chat/'">Список чатов</button><br>
-<button [routerLink]="'/class/'">Список классов</button><br>
-<button [routerLink]="'/login/'">Войти в аккаунт</button><br>
+<div class="button-container">
+  <button mat-raised-button color="primary" [routerLink]="'/chat/'">
+    <mat-icon>chat</mat-icon>
+    Список чатов
+  </button>
+  
+  <button mat-raised-button color="primary" [routerLink]="'/class/'">
+    <mat-icon>class</mat-icon>
+    Список классов
+  </button>
+  
+  <button mat-raised-button color="primary" [routerLink]="'/login/'">
+    <mat-icon>login</mat-icon>
+    Войти в аккаунт
+  </button>
+</div>

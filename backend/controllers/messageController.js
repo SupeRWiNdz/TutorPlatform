@@ -17,7 +17,7 @@ const getChats = async (req, res) => {
         
         const result = await pool.query(
             `SELECT username, full_name FROM users
-             WHERE id IN (SELECT user2_id FROM chat_list WHERE user1_id = $1)`,
+             WHERE id IN (SELECT user2_id FROM chats WHERE user1_id = $1)`,
             [user_id]
         );
         
@@ -61,7 +61,7 @@ const sendMessage = async (req, res) => {
         const receiver_id = receiverResult.rows[0].id;
 
         const chatExists = await pool.query(
-            `SELECT 1 FROM chat_list 
+            `SELECT 1 FROM chats 
              WHERE (user1_id = $1 AND user2_id = $2) 
                 OR (user1_id = $2 AND user2_id = $1)`,
             [sender_id, receiver_id]
@@ -74,13 +74,13 @@ const sendMessage = async (req, res) => {
                 await client.query('BEGIN');
                 
                 await client.query(
-                    `INSERT INTO chat_list (user1_id, user2_id)
+                    `INSERT INTO chats (user1_id, user2_id)
                      VALUES ($1, $2)`,
                     [sender_id, receiver_id]
                 );
                 
                 await client.query(
-                    `INSERT INTO chat_list (user1_id, user2_id)
+                    `INSERT INTO chats (user1_id, user2_id)
                      VALUES ($1, $2)`,
                     [receiver_id, sender_id]
                 );

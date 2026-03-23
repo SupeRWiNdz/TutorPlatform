@@ -10,38 +10,81 @@
     {{user.phone}}
     {{user.updated_at| date:'dd.MM.yyyy'}}
     {{user.username}}
-    <button (click)="editMode()">Редактировать</button>
+      <button
+      mat-mini-fab
+      matSuffix
+      (click)="editMode()"
+      [attr.aria-label]="'Редактировать'"
+      ><mat-icon>edit</mat-icon></button>
+
     } @else {
     <form [formGroup]="editForm">
-        Почта: <input formControlName="new_email">
-        Телефон: <input formControlName="new_phone">
-        Username: <input formControlName="new_username">
-        Дата рождения: <input formControlName="new_birth_date">
-        Полное имя: <input formControlName="new_full_name">
-    <button (click)="editUser()">Подтвердить</button>
-    <button (click)="exitEditMode()">Отмена</button>
+      <mat-form-field appearance="outline">
+        <mat-label>Почта</mat-label>
+          <input matInput formControlName="new_email" placeholder="example@mail.com">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Телефон</mat-label>
+          <input matInput formControlName="new_phone" placeholder="89876543210">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Username</mat-label>
+          <input matInput formControlName="new_username">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Дата рождения</mat-label>
+          <input matInput formControlName="new_birth_date" placeholder="ДД.ММ.ГГГГ">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Полное имя</mat-label>
+          <input matInput formControlName="new_full_name">
+        </mat-form-field>  
+    <button mat-raised-button color="primary" type="submit" (click)="editUser()">Подтвердить</button>
+    <button mat-raised-button (click)="exitEditMode()">Отмена</button>
     </form>
     }
 }
 <h3>Сменить пароль</h3>
 <form [formGroup]="passwordForm">
-    Старый пароль:
-        <input type="password" formControlName="old_password" placeholder="••••••••••">
-    
-    @if (passwordForm.get('old_password')?.touched&&passwordForm.get('old_password')?.errors?.['required'])
+<mat-form-field appearance="outline">
+    <mat-label>Старый пароль</mat-label>
+    <input matInput [type]="hideOldPassword() ? 'password' : 'text'" formControlName="old_password">
+    <button
+      matIconButton
+      matSuffix
+      (click)="toggleOldPassword($event)"
+      [attr.aria-label]="'Скрыть пароль'"
+      [attr.aria-pressed]="hideOldPassword()"
+    >
+      <mat-icon>{{hideOldPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+    </button>
+    <mat-error>
+    @if (passwordForm.get('old_password')?.errors?.['required'])
     {Введите старый пароль}
-    @if (passwordForm.get('old_password')?.touched&&passwordForm.get('old_password')?.errors?.['old_pass'])
-    {Введите корректный старый пароль}
+    </mat-error>
+</mat-form-field>
         
-    Новый пароль:<input type="password" formControlName="new_password" placeholder="••••••••••">
-    @if (passwordForm.get('new_password')?.touched&&passwordForm.get('new_password')?.errors?.['required'])
+<mat-form-field appearance="outline">
+    <mat-label>Новый пароль</mat-label>
+    <input matInput [type]="hideNewPassword() ? 'password' : 'text'" formControlName="new_password">
+    <button
+      matIconButton
+      matSuffix
+      (click)="toggleNewPassword($event)"
+      [attr.aria-label]="'Скрыть пароль'"
+      [attr.aria-pressed]="hideNewPassword()"
+    >
+      <mat-icon>{{hideNewPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+    </button>
+    <mat-error>
+    @if (passwordForm.get('new_password')?.errors?.['required'])
     {Введите новый пароль}
-    @if (passwordForm.get('new_password')?.touched&&passwordForm.get('new_password')?.errors?.['new_password'])
-    {Введите корректный новый пароль}
+    </mat-error>
+</mat-form-field>
         
-    <button (click)="changePassword()">Изменить пароль</button>
+    <button mat-raised-button (click)="changePassword()">Изменить пароль</button>
 </form>
-@if (errorMessage) {Ошибка:{{ errorMessage }}}
+@if (errorMessage) {{{ errorMessage }}}
 
 
 @if (sessions$ | async; as response) {
@@ -53,7 +96,7 @@
       {{ response.data.current_session.ip_address }}
       {{ response.data.current_session.created_at | date:'dd.MM.yyyy HH:mm' }}
     </div>
-    <button (click)="logout()">Выход</button>
+    <button mat-raised-button (click)="logout()">Выход</button>
     }
     <br>
     @if (response.data.total_active_sessions!=1) {
@@ -64,7 +107,7 @@
         {{ session.created_at | date:'dd.MM.yyyy HH:mm' }}
       </div>
     }
-    <button (click)="closeOtherSessions()">Закрыть другие сеансы</button>
+    <button mat-raised-button (click)="closeOtherSessions()">Закрыть другие сеансы</button>
     }
   }
 }

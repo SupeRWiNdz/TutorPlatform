@@ -1,0 +1,42 @@
+@if (class) {    
+    <h3>{{class.name}}</h3>
+    <div>
+            <button
+      mat-mini-fab
+      matSuffix
+      [routerLink]="'/class/'+this.class.link+'/info/'"
+      [attr.aria-label]="'Информация'"
+      ><mat-icon>info</mat-icon></button>
+        <h3>Чат класса:</h3>
+        @if (messages$)
+        {
+        @if (hasMore$ | async) {
+            <button (click)="loadMoreMessages()" mat-button>ЗАГРУЗИТЬ</button>
+        }
+        
+        @for (message of messages$ | async; track message.message_number) {
+            @if (message) {
+                <div [style.color]="message.type === 'outgoing' ? 'red' : 'blue'">
+                  {{ message.sent_at | date:'dd.MM HH:mm' }}
+                  <span [innerHTML]="message.text | advancedFormatMessage"></span>
+                </div>
+            }
+        } @empty {
+            <div>Нет сообщений</div>
+        }
+
+        <form [formGroup]="chatForm">
+        <mat-form-field appearance="fill">
+        <input matInput type="text" formControlName="message" placeholder="Сообщение">
+        <button
+            matIconButton
+            matSuffix
+            (click)="sendMessage()"
+            [attr.aria-label]="'Отправить'"
+            ><mat-icon>send</mat-icon></button>
+        </mat-form-field>
+        </form>
+
+    } @else { Загрузка... }
+    </div>
+}

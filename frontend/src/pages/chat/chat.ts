@@ -5,10 +5,15 @@ import { MessagesService } from '../../services/message.service';
 import { Observable } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdvancedFormatMessagePipe } from "../../services/advanced-message.pipe";
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe,
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
 })
@@ -28,7 +33,7 @@ export class Chat {
     this.hasMore$ = this.messagesService.hasMore$;
 
     this.chatForm = this.fb.group({
-      message: ['', [Validators.required]]
+      message: ['', []]
     });
   }
 
