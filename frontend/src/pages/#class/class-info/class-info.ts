@@ -1,20 +1,20 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ClasschatService } from '../../services/classchat.service';
 import { catchError, of, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { DataService } from '../../services/data-service/data.service';
-import { AuthService } from '../../services/auth.service';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MessagesService } from '../../services/message.service';
-import { AdvancedFormatMessagePipe } from '../../services/advanced-message.pipe';
-import { environment } from '../../../environment';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { RoleIconPipe } from '../../services/role-icon.pipe';
 import {MatMenuModule} from '@angular/material/menu';
+import { environment } from '../../../../environment';
+import { AdvancedFormatMessagePipe } from '../../../pipes/advanced-message.pipe';
+import { RoleIconPipe } from '../../../pipes/role-icon.pipe';
+import { AuthService } from '../../../services/auth.service';
+import { ClasschatService } from '../../../services/classchat.service';
+import { DataService } from '../../../services/data.service';
+import { MessagesService } from '../../../services/message.service';
 
 @Component({
   selector: 'app-class',

@@ -1,6 +1,6 @@
 import { Inject, Injectable, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, of, Subscription, tap, interval, switchMap, filter } from 'rxjs';
-import { DataService } from './data-service/data.service';
+import { DataService } from './data.service';
 import { AuthService } from './auth.service';
 
 @Injectable({

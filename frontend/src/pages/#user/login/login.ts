@@ -4,12 +4,12 @@ import { Router, RouterModule } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { DataService } from '../../services/data-service/data.service';
-import { AuthService } from '../../services/auth.service';
 import { MatInputModule} from '@angular/material/input'
 import { MatFormFieldModule} from '@angular/material/form-field'
 import { MatButtonModule } from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
+import { AuthService } from '../../../services/auth.service';
+import { DataService } from '../../../services/data.service';
 
 @Component({
   selector: 'app-login',

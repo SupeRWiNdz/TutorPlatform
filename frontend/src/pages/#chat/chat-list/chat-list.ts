@@ -1,13 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { DataService } from '../../services/data-service/data.service';
-import { AuthService } from '../../services/auth.service';
 import { Observable } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { AuthService } from '../../../services/auth.service';
+import { DataService } from '../../../services/data.service';
 
 @Component({
   selector: 'app-chat-list',
-  imports: [CommonModule],
+  imports: [CommonModule,
+    MatButtonModule
+  ],
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.css',
 })

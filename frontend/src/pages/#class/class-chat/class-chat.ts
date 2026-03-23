@@ -1,19 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ClasschatService } from '../../services/classchat.service';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdvancedFormatMessagePipe } from '../../services/advanced-message.pipe';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AdvancedFormatMessagePipe } from '../../../pipes/advanced-message.pipe';
+import { ClasschatService } from '../../../services/classchat.service';
 
 @Component({
   selector: 'app-class',
   imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './class-chat.html',
   styleUrl: './class-chat.css',
 })

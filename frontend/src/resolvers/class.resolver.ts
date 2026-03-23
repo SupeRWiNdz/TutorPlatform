@@ -3,7 +3,7 @@ import { Resolve, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { Observable, catchError, map, tap, of, EMPTY } from 'rxjs';
 import { AuthService } from '../services/auth.service';
-import { DataService } from '../services/data-service/data.service';
+import { DataService } from '../services/data.service';
 
 @Injectable({ providedIn: 'root' })
 export class ClassResolver implements Resolve<any | null> {

@@ -1,7 +1,7 @@
 import { Component, signal, ViewEncapsulation } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import { Header } from '../pages/header/header';
 import { Location } from '@angular/common';
+import { Header } from '../pages/#navigation/header/header';
 
 @Component({
   selector: 'app-root',

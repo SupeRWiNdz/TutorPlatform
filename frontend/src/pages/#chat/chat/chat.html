@@ -9,7 +9,7 @@
   <h2>{{ user.full_name }}</h2>
   @if (hasMore$ | async)
   {
-    <button (click)="loadMoreMessages()">ЗАГРУЗИТЬ</button>
+    <button mat-button (click)="loadMoreMessages()">ЗАГРУЗИТЬ</button>
   }
   @for (message of messages$ | async; track message.id || $index) {
     @if (message) {

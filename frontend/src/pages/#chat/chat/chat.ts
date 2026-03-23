@@ -1,14 +1,14 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MessagesService } from '../../services/message.service';
 import { Observable } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdvancedFormatMessagePipe } from "../../services/advanced-message.pipe";
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { AdvancedFormatMessagePipe } from '../../../pipes/advanced-message.pipe';
+import { MessagesService } from '../../../services/message.service';
 
 @Component({
   selector: 'app-chat',

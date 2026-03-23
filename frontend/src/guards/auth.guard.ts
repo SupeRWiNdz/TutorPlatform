@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { CanActivate, Router, UrlTree } from '@angular/router';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth.service';
 import { Observable, map, take, of } from 'rxjs';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 

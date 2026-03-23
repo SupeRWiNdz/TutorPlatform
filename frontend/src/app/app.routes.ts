@@ -1,23 +1,22 @@
 import { Routes } from '@angular/router';
-import { NotExist } from '../pages/not-exist/not-exist';
-import { Account } from '../pages/account/account';
-import { LoginComponent } from '../pages/login/login';
-import { Profile } from '../pages/profile/profile';
-import { Chat } from '../pages/chat/chat';
-import { AuthGuard } from '../services/auth.guard';
-import { Main } from '../pages/main/main';
-import { ChatList } from '../pages/chat-list/chat-list';
-import { ClassList } from '../pages/class-list/class-list';
-import { ClassInfo } from '../pages/class-info/class-info';
+import { AuthGuard } from '../guards/auth.guard';
 import { UserResolver } from '../resolvers/user.resolver';
 import { ProfileResolver } from '../resolvers/profile.resolver';
 import { ClassResolver } from '../resolvers/class.resolver';
-import { OwnProfileRedirectGuard } from '../services/own-profile-redirect.guard';
+import { OwnProfileRedirectGuard } from '../guards/own-profile-redirect.guard';
 import { AccountResolver } from '../resolvers/account.resolver';
-import { RegisterComponent } from '../pages/register/register';
-import { Request } from '../pages/request/request';
 import { RequestResolver } from '../resolvers/request.resolver';
-import { ClassChat } from '../pages/class-chat/class-chat';
+import { ChatList } from '../pages/#chat/chat-list/chat-list';
+import { Chat } from '../pages/#chat/chat/chat';
+import { ClassChat } from '../pages/#class/class-chat/class-chat';
+import { ClassInfo } from '../pages/#class/class-info/class-info';
+import { ClassList } from '../pages/#class/class-list/class-list';
+import { Main } from '../pages/#navigation/main/main';
+import { NotExist } from '../pages/#navigation/not-exist/not-exist';
+import { Account } from '../pages/#user/account/account';
+import { LoginComponent } from '../pages/#user/login/login';
+import { Profile } from '../pages/#user/profile/profile';
+import { RegisterComponent } from '../pages/#user/register/register';
 
 export const routes: Routes = [
   { 

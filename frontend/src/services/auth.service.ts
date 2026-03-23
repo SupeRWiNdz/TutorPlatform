@@ -1,7 +1,7 @@
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
-import { DataService } from './data-service/data.service';
+import { DataService } from './data.service';
 
 @Injectable({
   providedIn: 'root'

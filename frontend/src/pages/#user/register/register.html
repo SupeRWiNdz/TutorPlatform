@@ -9,7 +9,7 @@
         type="email"
         id="email" 
         formControlName="email"
-        [class.is-invalid]="email?.invalid && email?.touched"
+        [class.is-invalid]="email?.invalid && email?.touched" placeholder="example@mail.com"
       >
     <mat-error>
     @if (form.get('email')?.errors?.['required'])

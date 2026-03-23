@@ -1,21 +1,21 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DataService } from '../../services/data-service/data.service';
-import { AuthService } from '../../services/auth.service';
-
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RoleIconPipe } from '../../services/role-icon.pipe';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import { RoleIconPipe } from '../../../pipes/role-icon.pipe';
+import { AuthService } from '../../../services/auth.service';
+import { DataService } from '../../../services/data.service';
 
 @Component({
   selector: 'app-class-list',
   imports: [CommonModule, ReactiveFormsModule, RoleIconPipe,
-    MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule
+    MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './class-list.html',
