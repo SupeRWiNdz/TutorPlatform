@@ -1,6 +1,7 @@
-<button mat-raised-button color="primary" [routerLink]="'/register'" type="button">Зарегистрироваться</button>
+<div class="form-container">
 <h2>Войти в систему</h2>
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
+<div class="input-box">
 <mat-form-field appearance="outline">
     <mat-label>Электронная почта</mat-label>
     <input matInput formControlName="email" placeholder="example@mail.com" >
@@ -11,6 +12,8 @@
     {Введите корректную почту}
     </mat-error>
 </mat-form-field>
+</div>
+<div class="input-box">
 <mat-form-field appearance="outline">
     <mat-label>Пароль</mat-label>
     <input matInput [type]="hide() ? 'password' : 'text'" formControlName="password">
@@ -29,5 +32,8 @@
     {Введите пароль}
     </mat-error>
 </mat-form-field>
-<button mat-raised-button type="submit">Подтвердить</button>
+</div>
+<button mat-raised-button type="submit" [disabled]="!form.valid">Подтвердить</button>
 </form>
+<span>Нет аккаунта? <a [routerLink]="'/register'">Зарегистрироваться</a></span>
+</div>

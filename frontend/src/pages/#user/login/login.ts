@@ -14,6 +14,7 @@ import { DataService } from '../../../services/data.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.html',
+  styleUrl: '../user.scss',
   imports: [ReactiveFormsModule, CommonModule, RouterModule,
     MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,

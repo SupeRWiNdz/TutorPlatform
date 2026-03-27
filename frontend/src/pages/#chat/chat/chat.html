@@ -16,6 +16,7 @@
     <div [style.color]="message.type === 'outgoing' ? 'red' : 'blue'">
       {{ message.sent_at | date:'dd.MM HH:mm' }}
       <span [innerHTML]="message.text | advancedFormatMessage"></span>
+      @if (!message.is_read && message.type === 'outgoing') {<mat-icon>circle</mat-icon>}
     </div>
 
     }

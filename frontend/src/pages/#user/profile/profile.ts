@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatButtonModule, MatIconModule
   ],
   templateUrl: './profile.html',
-  styleUrl: './profile.css',
+  styleUrl: './profile.scss',
 })
 export class Profile implements OnInit{
   user: any | null = null;  

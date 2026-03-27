@@ -14,6 +14,13 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+// Искусственная задержка
+
+//app.use((req, res, next) => {
+//    const delay = 1000;
+//    setTimeout(next, delay);
+//});
+
 app.use('/', [userRoutes, messageRoutes, classRoutes, sessionRoutes, classchatRoutes, requestRoutes]);
 
 module.exports = { app };

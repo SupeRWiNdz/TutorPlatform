@@ -12,7 +12,7 @@ import { DataService } from '../../../services/data.service';
     MatButtonModule, MatProgressSpinnerModule
   ],
   templateUrl: './request.html',
-  styleUrl: './request.css',
+  styleUrl: './request.scss',
 })
 export class Request implements OnInit{
 

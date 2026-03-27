@@ -21,7 +21,7 @@ import { MessagesService } from '../../../services/message.service';
   imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe, RoleIconPipe,
     MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule],
   templateUrl: './class-info.html',
-  styleUrl: './class-info.css',
+  styleUrl: './class-info.scss',
 })
 
 export class ClassInfo implements OnInit{

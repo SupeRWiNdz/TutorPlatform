@@ -10,14 +10,15 @@ import { MatIconModule } from '@angular/material/icon';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import { AuthService } from '../../../services/auth.service';
 import { DataService } from '../../../services/data.service';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-account',
   imports: [CommonModule, ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatDatepickerModule],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatDatepickerModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './account.html',
-  styleUrl: './account.css',
+  styleUrl: './account.scss',
 })
 export class Account {
   user: any | null = null;
@@ -25,9 +26,9 @@ export class Account {
   passwordForm: FormGroup;
   errorMessage: string = '';
   sessions$: Observable<any> = of(null);
-  private _isEditing: boolean = false;
-  public get isEditing(): boolean {
-  return this._isEditing;
+  private _mode: string = 'none';
+  public get mode(): string {
+  return this._mode;
   }
   constructor(
     private fb: FormBuilder,
@@ -171,9 +172,8 @@ public editUser(): void {
     });
 }
 
-  public editMode(): void {
-    this._isEditing=true;
-  }
+  public editMode(): void { this._mode='edit'; }
+  public passwordMode(): void { this._mode='password'; }
   public exitEditMode(): void {
     this.editForm.patchValue({
       new_email: this.user.email ?? '',
@@ -182,8 +182,12 @@ public editUser(): void {
       new_birth_date: this.user.birth_date ?? '',
       new_full_name: this.user.full_name ?? ''
     });
-    this._isEditing=false;
+    this._mode='none';
   }
+  public exitPasswordMode(): void {
+    this.passwordForm.reset();
+    this._mode='none'
+  };
   
   hideOldPassword = signal(true);
   hideNewPassword = signal(true);

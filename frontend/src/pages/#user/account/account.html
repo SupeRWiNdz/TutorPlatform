@@ -1,6 +1,15 @@
 @if (user) {
-    @if (!isEditing) {
+
+@if (mode=='none') {
     <h2>{{ user.full_name }}</h2>
+
+    <button mat-icon-button [matMenuTriggerFor]="user_menu"><mat-icon>more_vert</mat-icon></button>
+    <mat-menu #user_menu>
+      <button mat-menu-item (click)="editMode()">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
+      <button mat-menu-item (click)="passwordMode()">Сменить пароль<mat-icon matTextPrefix>password</mat-icon></button>
+      <button mat-menu-item (click)="logout()">Выход<mat-icon matTextPrefix>exit_to_app</mat-icon></button>
+    </mat-menu>
+
     {{ user.birth_date }}
 
     @if (user.gender === 'M') {Муж.}
@@ -10,15 +19,52 @@
     {{user.phone}}
     {{user.updated_at| date:'dd.MM.yyyy'}}
     {{user.username}}
-      <button
-      mat-mini-fab
-      matSuffix
-      (click)="editMode()"
-      [attr.aria-label]="'Редактировать'"
-      ><mat-icon>edit</mat-icon></button>
+}
+@else if (mode=='password'){
+      <form [formGroup]="passwordForm">
+      <h3>Сменить пароль</h3>
+      <mat-form-field appearance="outline">
+          <mat-label>Старый пароль</mat-label>
+          <input matInput [type]="hideOldPassword() ? 'password' : 'text'" formControlName="old_password">
+          <button
+            matIconButton
+            matSuffix
+            (click)="toggleOldPassword($event)"
+            [attr.aria-label]="'Скрыть пароль'"
+            [attr.aria-pressed]="hideOldPassword()"
+          >
+            <mat-icon>{{hideOldPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error>
+          @if (passwordForm.get('old_password')?.errors?.['required'])
+          {Введите старый пароль}
+          </mat-error>
+      </mat-form-field>
 
-    } @else {
+      <mat-form-field appearance="outline">
+          <mat-label>Новый пароль</mat-label>
+          <input matInput [type]="hideNewPassword() ? 'password' : 'text'" formControlName="new_password">
+          <button
+            matIconButton
+            matSuffix
+            (click)="toggleNewPassword($event)"
+            [attr.aria-label]="'Скрыть пароль'"
+            [attr.aria-pressed]="hideNewPassword()"
+          >
+            <mat-icon>{{hideNewPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error>
+          @if (passwordForm.get('new_password')?.errors?.['required'])
+          {Введите новый пароль}
+          </mat-error>
+      </mat-form-field>
+
+          <button mat-raised-button (click)="changePassword()" [disabled]="!passwordForm.valid">Изменить пароль</button>
+          <button mat-raised-button (click)="exitPasswordMode()">Отмена</button>
+      </form>
+    } @else if (mode=='edit') {
     <form [formGroup]="editForm">
+      <h3>Редактировать</h3>
       <mat-form-field appearance="outline">
         <mat-label>Почта</mat-label>
           <input matInput formControlName="new_email" placeholder="example@mail.com">
@@ -44,46 +90,7 @@
     </form>
     }
 }
-<h3>Сменить пароль</h3>
-<form [formGroup]="passwordForm">
-<mat-form-field appearance="outline">
-    <mat-label>Старый пароль</mat-label>
-    <input matInput [type]="hideOldPassword() ? 'password' : 'text'" formControlName="old_password">
-    <button
-      matIconButton
-      matSuffix
-      (click)="toggleOldPassword($event)"
-      [attr.aria-label]="'Скрыть пароль'"
-      [attr.aria-pressed]="hideOldPassword()"
-    >
-      <mat-icon>{{hideOldPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
-    </button>
-    <mat-error>
-    @if (passwordForm.get('old_password')?.errors?.['required'])
-    {Введите старый пароль}
-    </mat-error>
-</mat-form-field>
-        
-<mat-form-field appearance="outline">
-    <mat-label>Новый пароль</mat-label>
-    <input matInput [type]="hideNewPassword() ? 'password' : 'text'" formControlName="new_password">
-    <button
-      matIconButton
-      matSuffix
-      (click)="toggleNewPassword($event)"
-      [attr.aria-label]="'Скрыть пароль'"
-      [attr.aria-pressed]="hideNewPassword()"
-    >
-      <mat-icon>{{hideNewPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
-    </button>
-    <mat-error>
-    @if (passwordForm.get('new_password')?.errors?.['required'])
-    {Введите новый пароль}
-    </mat-error>
-</mat-form-field>
-        
-    <button mat-raised-button (click)="changePassword()">Изменить пароль</button>
-</form>
+
 @if (errorMessage) {{{ errorMessage }}}
 
 
@@ -96,7 +103,7 @@
       {{ response.data.current_session.ip_address }}
       {{ response.data.current_session.created_at | date:'dd.MM.yyyy HH:mm' }}
     </div>
-    <button mat-raised-button (click)="logout()">Выход</button>
+    
     }
     <br>
     @if (response.data.total_active_sessions!=1) {

@@ -8,7 +8,7 @@ import { MatIcon } from '@angular/material/icon';
     MatIcon
   ],
   templateUrl: './main.html',
-  styleUrl: './main.css',
+  styleUrl: './main.scss',
 })
 export class Main {
 

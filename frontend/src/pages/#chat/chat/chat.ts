@@ -15,7 +15,7 @@ import { MessagesService } from '../../../services/message.service';
   imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe,
     MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule],
   templateUrl: './chat.html',
-  styleUrl: './chat.css',
+  styleUrl: './chat.scss',
 })
 export class Chat {
   public user: any | null = null;  

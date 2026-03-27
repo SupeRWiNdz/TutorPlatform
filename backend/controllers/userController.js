@@ -197,34 +197,35 @@ const editUser = async (req, res) => {
     if (!new_email && !new_username && !new_full_name && !new_phone && !new_birth_date && !new_gender) {
         return res.status(400).json({ message: 'Не указаны данные для изменения' });
     }
-    
+
+    const client = await pool.connect(); 
     try {
         // Начинаем транзакцию
-        await pool.query('BEGIN');
+        await client.query('BEGIN');
         
         // 1. Получаем user_id по session_id
-        const sessionResult = await pool.query(
+        const sessionResult = await client.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
             [session_id]
         );
         
         if (sessionResult.rowCount === 0) {
-            await pool.query('ROLLBACK');
+            await client.query('ROLLBACK');
             return res.status(401).json({ message: 'Сессия недействительна или истекла' });
         }
         
         const userId = sessionResult.rows[0].user_id;
         
         // 2. Получаем текущие данные пользователя
-        const userResult = await pool.query(
+        const userResult = await client.query(
             `SELECT id, email, username, full_name, phone, birth_date, gender 
              FROM users WHERE id = $1`,
             [userId]
         );
         
         if (userResult.rowCount === 0) {
-            await pool.query('ROLLBACK');
+            await client.query('ROLLBACK');
             return res.status(404).json({ message: 'Пользователь не найден' });
         }
         
@@ -237,24 +238,24 @@ const editUser = async (req, res) => {
             // Проверка формата email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(new_email)) {
-                await pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Некорректный формат email' });
             }
             
             // Проверка длины email
             if (new_email.length > 255) {
-                await pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Email не может превышать 255 символов' });
             }
             
             // Проверка уникальности email
-            const emailCheckResult = await pool.query(
+            const emailCheckResult = await client.query(
                 `SELECT id FROM users WHERE email = $1 AND id != $2`,
                 [new_email, userId]
             );
             
             if (emailCheckResult.rowCount > 0) {
-                await pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Этот email уже используется другим пользователем' });
             }
         }
@@ -263,25 +264,25 @@ const editUser = async (req, res) => {
         if (new_username && new_username !== currentUser.username) {
             // Проверка длины username
             if (new_username.length < 3 || new_username.length > 50) {
-                await pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Имя пользователя должно быть от 3 до 50 символов' });
             }
             
             // Проверка допустимых символов (буквы, цифры, подчеркивание)
             const usernameRegex = /^[a-zA-Z0-9_]+$/;
             if (!usernameRegex.test(new_username)) {
-                await pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Имя пользователя может содержать только буквы, цифры и подчеркивание' });
             }
             
             // Проверка уникальности username
-            const usernameCheckResult = await pool.query(
+            const usernameCheckResult = await client.query(
                 `SELECT id FROM users WHERE username = $1 AND id != $2`,
                 [new_username, userId]
             );
             
             if (usernameCheckResult.rowCount > 0) {
-                await pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Это имя пользователя уже занято' });
             }
         }
@@ -289,7 +290,7 @@ const editUser = async (req, res) => {
         // Проверка full_name, если он изменяется
         if (new_full_name !== undefined) {
             if (new_full_name !== null && new_full_name.length > 100) {
-                await pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Полное имя не может превышать 100 символов' });
             }
         }
@@ -300,11 +301,11 @@ const editUser = async (req, res) => {
                 // Удаляем все нецифровые символы для проверки
                 const digitsOnly = new_phone.replace(/\D/g, '');
                 if (digitsOnly.length < 10 || digitsOnly.length > 15) {
-                    await pool.query('ROLLBACK');
+                    await client.query('ROLLBACK');
                     return res.status(400).json({ message: 'Номер телефона должен содержать от 10 до 15 цифр' });
                 }
                 if (new_phone.length > 20) {
-                    await pool.query('ROLLBACK');
+                    await client.query('ROLLBACK');
                     return res.status(400).json({ message: 'Номер телефона не может превышать 20 символов' });
                 }
             }
@@ -315,7 +316,7 @@ const editUser = async (req, res) => {
     if (new_birth_date !== null) {
         const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
         if (!dateRegex.test(new_birth_date)) {
-            await pool.query('ROLLBACK');
+            await client.query('ROLLBACK');
             return res.status(400).json({ message: 'Некорректный формат даты. Используйте ДД.ММ.ГГГГ (например, 01.01.2000)' });
         }
         
@@ -324,7 +325,7 @@ const editUser = async (req, res) => {
         const birthDate = new Date(year, month - 1, day);
         
         if (birthDate.getDate() !== day || birthDate.getMonth() !== month - 1 || birthDate.getFullYear() !== year) {
-            await pool.query('ROLLBACK');
+            await client.query('ROLLBACK');
             return res.status(400).json({ message: 'Некорректная дата рождения' });
         }
         
@@ -337,7 +338,7 @@ const editUser = async (req, res) => {
         }
         
         if (age < 5 || age > 120) {
-            await pool.query('ROLLBACK');
+            await client.query('ROLLBACK');
             return res.status(400).json({ message: 'Некорректная дата рождения. Возраст должен быть от 5 до 120 лет' });
         }
         }
@@ -346,7 +347,7 @@ const editUser = async (req, res) => {
         // Проверка gender, если он изменяется
         if (new_gender !== undefined) {
             if (new_gender !== null && !['M', 'F', 'O'].includes(new_gender)) {
-                await pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Некорректное значение пола. Допустимые значения: M, F, O' });
             }
         }
@@ -417,7 +418,7 @@ const editUser = async (req, res) => {
         
         // Проверяем, есть ли что обновлять
         if (updateFields.length === 1) { // Только updated_at
-            await pool.query('ROLLBACK');
+            await client.query('ROLLBACK');
             return res.status(400).json({ message: 'Нет изменений для сохранения' });
         }
         
@@ -432,10 +433,10 @@ const editUser = async (req, res) => {
             RETURNING id, email, username, full_name, phone, birth_date, gender
         `;
         
-        const updateResult = await pool.query(updateQuery, updateValues);
+        const updateResult = await client.query(updateQuery, updateValues);
         
         // Фиксируем транзакцию
-        await pool.query('COMMIT');
+        await client.query('COMMIT');
         
         // Формируем сообщение об успехе с измененными полями
         const changedFieldsList = Object.keys(changedFields);
@@ -472,7 +473,7 @@ const editUser = async (req, res) => {
         });
         
     } catch (err) {
-        await pool.query('ROLLBACK');
+        await client.query('ROLLBACK');
         
         // Обработка специфических ошибок базы данных
         if (err.code === '23505') { // Unique violation
@@ -490,6 +491,8 @@ const editUser = async (req, res) => {
         }
         
         res.status(500).json({ error: 'Ошибка сервера при обновлении профиля' });
+    } finally {
+        client.release();
     }
 };
 

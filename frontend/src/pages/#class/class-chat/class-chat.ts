@@ -16,7 +16,7 @@ import { ClasschatService } from '../../../services/classchat.service';
   imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe,
     MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './class-chat.html',
-  styleUrl: './class-chat.css',
+  styleUrl: './class-chat.scss',
 })
 
 export class ClassChat implements OnInit{

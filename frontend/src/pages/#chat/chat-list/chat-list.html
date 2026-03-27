@@ -1,10 +1,13 @@
 
 <h2>Список чатов</h2>
 @for (chat of chats$ | async; track $index) {
-  <div>
-  <button mat-raised-button (click)="navigateToChat(chat.username)">
-    {{ chat.full_name }}
-  </button>
+  <div class="chat" (click)="navigateToChat(chat.username)">
+    <div class="name">
+      {{ chat.full_name | truncate:34 }}@if (!chat.last_message_is_read) {<mat-icon>circle</mat-icon>}
+    </div>
+    <div class="last_message">
+      @if (chat.last_message_type=='outgoing') {Вы:} {{ chat.last_message_text | truncate:32}}
+    </div>
   </div>
 } @empty {
   Нет доступных чатов

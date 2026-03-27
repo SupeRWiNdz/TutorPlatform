@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-not-exist',
   imports: [],
   templateUrl: './not-exist.html',
-  styleUrl: './not-exist.css',
+  styleUrl: './not-exist.scss',
 })
 export class NotExist {
 

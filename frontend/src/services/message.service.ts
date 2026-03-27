@@ -2,6 +2,7 @@ import { Inject, Injectable, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, of, Subscription, tap, interval, switchMap, filter } from 'rxjs';
 import { DataService } from './data.service';
 import { AuthService } from './auth.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -70,6 +71,7 @@ export class MessagesService implements OnDestroy {
             
             this.oldestMessageNumber = response.oldestMessageNumber;
             this.hasMoreSubject.next(response.hasMore);
+
           }
           this.isLoadingSubject.next(false);
         }),
@@ -81,10 +83,23 @@ export class MessagesService implements OnDestroy {
     }
   }
 
+private markOutgoingMessagesAsRead(): void {
+  let updated = false;
+  for (const message of this.allMessages) {
+    if (message.type === 'outgoing' && !message.is_read) {
+      message.is_read = true;
+      updated = true;
+    }
+  }
+  if (updated) {
+    this.messagesSubject.next([...this.allMessages]);
+  }
+}
+
 public loadNewMessages(): void {
   if (this.currentReceiverUsername && !this.isLoadingSubject.value) {
     this.isLoadingSubject.next(true);
-    
+
     const session_id = this.authService.tokenValue;
     if (!session_id) {
       this.isLoadingSubject.next(false);
@@ -97,11 +112,12 @@ public loadNewMessages(): void {
           if (response && response.messages && response.messages.length > 0) {
             this.allMessages = response.messages;
             this.messagesSubject.next(this.allMessages);
-            
+
             this.oldestMessageNumber = response.oldestMessageNumber;
             this.newestMessageNumber = response.newestMessageNumber;
             this.hasMoreSubject.next(response.hasMore);
-            
+            this.markOutgoingMessagesAsRead();
+
             if (this.newestMessageNumber) {
               this.startPolling();
             }
@@ -116,13 +132,18 @@ public loadNewMessages(): void {
     } else {
       this.dataService.messageDS.getNewMessages(session_id, this.currentReceiverUsername, this.newestMessageNumber).pipe(
         tap((response: any) => {
+          if (response.is_last_outgoing_message_read) {
+            this.markOutgoingMessagesAsRead();
+          }
           if (response && response.messages && response.messages.length > 0) {
             this.allMessages = [...this.allMessages, ...response.messages];
             this.messagesSubject.next(this.allMessages);
-            
+
             if (response.newestMessageNumber) {
               this.newestMessageNumber = response.newestMessageNumber;
             }
+
+
           }
           this.isLoadingSubject.next(false);
         }),
@@ -136,47 +157,43 @@ public loadNewMessages(): void {
 }
 
 private startPolling(): void {
+  if (!isPlatformBrowser(this.platformId)) return;
   this.stopPolling();
-  
+
   const session_id = this.authService.tokenValue;
   if (!session_id || !this.currentReceiverUsername) {
     return;
   }
-  
+
   this.pollingSubscription = interval(this.POLLING_INTERVAL).pipe(
     switchMap(() => {
       if (!this.currentReceiverUsername || !this.authService.tokenValue) {
         return of(null);
       }
-      
+
       if (!this.newestMessageNumber) {
         return this.dataService.messageDS.getMessages(
-          this.authService.tokenValue, 
-          this.currentReceiverUsername, 
+          this.authService.tokenValue,
+          this.currentReceiverUsername,
           this.MESSAGES_PER_PAGE
-        ).pipe(
-          catchError(error => {
-            return of(null);
-          })
-        );
+        ).pipe(catchError(error => of(null)));
       } else {
         return this.dataService.messageDS.getNewMessages(
-          this.authService.tokenValue, 
-          this.currentReceiverUsername, 
+          this.authService.tokenValue,
+          this.currentReceiverUsername,
           this.newestMessageNumber
-        ).pipe(
-          catchError(error => {
-            return of(null);
-          })
-        );
+        ).pipe(catchError(error => of(null)));
       }
     }),
     filter(response => response !== null),
     tap((response: any) => {
+      if (response.is_last_outgoing_message_read) {
+        this.markOutgoingMessagesAsRead();
+      }
       if (response && response.messages && response.messages.length > 0) {
         this.allMessages = [...this.allMessages, ...response.messages];
         this.messagesSubject.next(this.allMessages);
-        
+
         if (response.newestMessageNumber) {
           this.newestMessageNumber = response.newestMessageNumber;
         } else if (response.messages && response.messages.length > 0) {
@@ -221,6 +238,7 @@ private startPolling(): void {
             this.newestMessageNumber = response.newestMessageNumber;
             this.hasMoreSubject.next(response.hasMore);
             
+
             this.startPolling();
           }
           this.isLoadingSubject.next(false);

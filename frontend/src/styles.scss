@@ -1,0 +1,9 @@
+body {
+  display: grid;
+  place-items: center;
+}
+
+button[mat-raised-button] {
+  height: 44px;
+  border-radius: 15px;
+}

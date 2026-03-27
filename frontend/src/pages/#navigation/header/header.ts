@@ -12,7 +12,7 @@ import { AuthService } from '../../../services/auth.service';
     MatIconModule, MatButtonModule
   ],
   templateUrl: './header.html',
-  styleUrl: './header.css',
+  styleUrl: './header.scss',
 })
 export class Header {
 

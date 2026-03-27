@@ -5,14 +5,16 @@ import { Observable } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../../services/auth.service';
 import { DataService } from '../../../services/data.service';
+import { TruncatePipe } from '../../../pipes/truncate.pipe';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-chat-list',
-  imports: [CommonModule,
-    MatButtonModule
+  imports: [CommonModule, TruncatePipe,
+    MatButtonModule, MatIconModule
   ],
   templateUrl: './chat-list.html',
-  styleUrl: './chat-list.css',
+  styleUrl: './chat-list.scss',
 })
 export class ChatList implements OnInit {
   chats$: Observable<any>;

@@ -5,8 +5,9 @@ const login = async (req, res) => {
     const ip_address = req.ip;
     const user_agent = req.headers['user-agent'];
 
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        const result = await client.query(
             `SELECT 
                 id,
                 email,
@@ -26,40 +27,47 @@ const login = async (req, res) => {
         );
 
         if (result.rows.length === 0) {
+            await client.release();
             return res.status(401).json({ message: 'Пользователь не найден' });
         }
 
         const user = result.rows[0];
         
-        const passwordCheck = await pool.query(
+        const passwordCheck = await client.query(
             'SELECT verify_double_hash_password($1, $2) AS is_valid',
             [user.username, password]
         );
 
         if (!passwordCheck.rows[0].is_valid) {
+            await client.release();
             return res.status(401).json({ message: 'Неверный пароль' });
         }
 
-        await pool.query(
+        await client.query('BEGIN');
+
+        await client.query(
             'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
             [user.id]
         );
 
-        const sessionResult = await pool.query(
+        const sessionResult = await client.query(
             `INSERT INTO user_sessions (user_id, ip_address, user_agent)
              VALUES ($1, $2, $3)
              RETURNING session_id`,
             [user.id, ip_address, user_agent]
         );
 
+        await client.query('COMMIT');
+
         const session_id = sessionResult.rows[0].session_id;
 
-        res.json({
-            session_id: session_id
-        });
+        res.json({ session_id });
 
     } catch (err) {
+        await client.query('ROLLBACK');
         res.status(500).json({ message: 'Ошибка сервера' });
+    } finally {
+        client.release();
     }
 };
 

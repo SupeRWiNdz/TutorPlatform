@@ -19,7 +19,7 @@ import { DataService } from '../../../services/data.service';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './class-list.html',
-  styleUrl: './class-list.css',
+  styleUrl: './class-list.scss',
 })
 
 export class ClassList implements OnInit {
