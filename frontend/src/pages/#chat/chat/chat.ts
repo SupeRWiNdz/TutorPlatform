@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
@@ -20,11 +20,12 @@ import { DateTodayPipe } from "@pipes/date-today.pipe";
 })
 export class Chat implements OnInit, OnDestroy {
   private messagesSubscription: Subscription | null = null;
-  public user: any | null = null;  
+  public user: any | null = null;
   public messages$: Observable<any[] | null>;
   public hasMore$: Observable<boolean>;
   chatForm: FormGroup;
   private isBrowser = false;
+  private initialScroll: boolean = false;
 
   constructor(
     @Inject(PLATFORM_ID) platformId: Object,
@@ -42,18 +43,25 @@ export class Chat implements OnInit, OnDestroy {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
-    ngOnInit(): void {
+  ngOnInit(): void {
     this.route.data.subscribe(data => {
       this.user = data['profile'];
       if (this.user?.username) {
         this.messagesService.loadMessagesForUser(this.user.username);
+        setTimeout(() => this.scrollToBottom(), 100);
       }
     });
 
     this.messagesSubscription = this.messages$.subscribe(messages => {
       if (messages) {
-        setTimeout(() => this.scrollToBottom(), 100);
-    }});
+        if (this.getScrollPosition() == 'down')
+          setTimeout(() => this.scrollToBottom(), 1);
+        else if (!this.initialScroll) {
+          setTimeout(() => this.scrollToBottom('instant'), 1);
+          this.initialScroll = false;
+        }
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -67,10 +75,11 @@ export class Chat implements OnInit, OnDestroy {
     }
     const { message } = this.chatForm.value;
     this.messagesService.sendMessageForUser(this.user.username, message);
-    
+
     this.chatForm.reset();
+    setTimeout(() => this.scrollToBottom(), 100);
   }
-  
+
   public loadMoreMessages(): void {
     this.messagesService.loadMoreMessages();
   }
@@ -78,15 +87,37 @@ export class Chat implements OnInit, OnDestroy {
   public loadNewMessages(): void {
     this.messagesService.loadNewMessages();
   }
-  
+
   @ViewChild('messagesContainer') scrollBox?: ElementRef<HTMLElement>;
 
-scrollToBottom(behavior: ScrollBehavior = 'smooth') {
+  public getScrollPosition(): string | null {
+    if (!this.isBrowser) return null;
+
+    const container = this.scrollBox?.nativeElement;
+    if (!container) return null;
+
+    const scrollTop = container.scrollTop;
+
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+
+    if (scrollHeight == clientHeight)
+      return 'all';
+    else if ((scrollHeight - clientHeight - scrollTop) < 210)
+      return 'down';
+    else if (scrollTop < 210)
+      return 'up';
+    else
+      return 'center';
+  }
+
+  scrollToBottom(behavior: ScrollBehavior = 'smooth') {
     if (!this.isBrowser) return;
     const el = this.scrollBox?.nativeElement;
     if (!el) return;
     this.safeScrollTo(el, el.scrollHeight, behavior);
   }
+
   scrollToTop(behavior: ScrollBehavior = 'smooth') {
     if (!this.isBrowser) return;
     const el = this.scrollBox?.nativeElement;
@@ -95,7 +126,6 @@ scrollToBottom(behavior: ScrollBehavior = 'smooth') {
   }
 
   private safeScrollTo(el: HTMLElement, top: number, behavior: ScrollBehavior) {
-    // scrollTo может отсутствовать в некоторых окружениях
     if (typeof (el as any).scrollTo === 'function') {
       el.scrollTo({ top, behavior });
     } else {

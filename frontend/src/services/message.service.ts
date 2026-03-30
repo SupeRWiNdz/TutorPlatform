@@ -25,8 +25,8 @@ export class MessagesService implements OnDestroy {
   private pollingSubscription: Subscription | null = null;
   
   private readonly POLLING_INTERVAL = 3000;
-  private readonly MESSAGES_PER_LOAD = 8;
-  private readonly MESSAGES_PER_PAGE = 8;
+  private readonly MESSAGES_PER_LOAD = 50;
+  private readonly MESSAGES_PER_PAGE = 50;
 
   constructor(
     private dataService: DataService,
@@ -262,7 +262,7 @@ private startPolling(): void {
     if (session_id && receiver_username && text?.trim()) {
       this.dataService.messageDS.sendMessage(session_id, receiver_username, text).pipe(
         tap(() => {
-          this.loadNewMessages();
+          //this.loadNewMessages();
         })
       ).subscribe();
     }
