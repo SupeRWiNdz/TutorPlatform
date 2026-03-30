@@ -1,56 +1,32 @@
 @use '@angular/material' as mat;
 
-.form-container {
-    text-align: center;
-    padding: 22px 20px 18px 20px;
-    border-radius: 16px;
-    border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
-    box-shadow:
-      0 10px 30px color-mix(in srgb, #000 28%, transparent),
-      0 1px 0 color-mix(in srgb, var(--mat-sys-outline-variant) 25%, transparent);
-    backdrop-filter: blur(10px);
-    display: grid;
-    gap: 14px;
-    min-width: 440px;
-
-      .row-2 {
-        grid-template-columns: 1fr 1fr;
-        display: grid;
-        gap: 14px;
-        width: 100%;
-      }    
-
-  > h2 {
-    width: min(420px, 100%);
-    margin: 0 0 16px;
-    letter-spacing: 0.2px;
-    font: var(--mat-sys-headline-small);
-    color: var(--mat-sys-on-surface);
+.row-2 {
+      grid-template-columns: 1fr 1fr;
+      display: grid;
+      gap: 14px;
+       > * {
+    min-width: 0; // разрешает сжатие элементов сетки
   }
-
-  .input-box {
-    padding: 5px 0px;
+    }
+.input-box {
+  padding: 5px 0px;
+  width: 100%;
+  mat-form-field {
     width: 100%;
-
-    mat-form-field {
-      width: 100%;
-
-      .mat-mdc-text-field-wrapper {
-        border-radius: 12px;
-      }
-
-      .mat-mdc-form-field-subscript-wrapper {
-        min-height: 18px;
-      }
+    .mat-mdc-text-field-wrapper {
+      border-radius: 12px;
+    }
+    .mat-mdc-form-field-subscript-wrapper {
+      min-height: 18px;
     }
   }
-
-  span {
-        font-weight: 400;
-      }
-  a {
-      font-weight: 600;
-      color: var(--mat-sys-primary);
-      cursor: pointer;
-    }
 }
+
+span {
+      font-weight: 400;
+    }
+a {
+    font-weight: 600;
+    color: var(--mat-sys-primary);
+    cursor: pointer;
+  }

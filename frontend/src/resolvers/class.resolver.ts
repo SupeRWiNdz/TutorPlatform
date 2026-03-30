@@ -14,24 +14,25 @@ export class ClassResolver implements Resolve<any | null> {
   ) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<any | null> {
-    const link = route.paramMap.get('link');
-    const token = this.authService.tokenValue;
+  const link = route.paramMap.get('link');
+  const token = this.authService.tokenValue;
 
-    if (!link || !token) {
-      return of(null);
-    }
-    
-    return this.dataService.classDS.getClass(token, link).pipe(
-      tap((selected_class: any) => {
-        if (selected_class && selected_class.name) {
-          const pageTitle = selected_class.name;
-          this.titleService.setTitle(`${pageTitle}`);
-        }
-      }),
-      catchError(error => {
-        this.titleService.setTitle('Класс недоступен');
-        return of(null);
-      })
-    );
+  if (!link || !token) {
+    this.titleService.setTitle('Класс недоступен');
+    return of({ message: 'Сессия не найдена или ссылка не указана' });
   }
+  
+  return this.dataService.classDS.getClass(token, link).pipe(
+    tap((response: any) => {
+      if (response && response.name) {
+        this.titleService.setTitle(response.name);
+      }
+    }),
+    catchError(error => {
+      this.titleService.setTitle('Класс недоступен');
+      const errorMessage = error?.error?.message || 'Не удалось загрузить класс';
+      return of({ message: errorMessage });
+    })
+  );
+}
 }

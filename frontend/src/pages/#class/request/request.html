@@ -1,26 +1,38 @@
-<h3>Приглашение в класс:</h3>
-@if (response)
-{
+<div class="main-container">
+    <div class="top-container">
+        <div class="title">
+            Приглашение в класс:
+        </div>
+        <div class="info">
+            @if (response)
+            {
+            @if (response.name)
+            {
+            {{response.name}}
+            {{response.description}}
+            {{response.created_at}}
+            @for (member of response.members; track member.username)
+            {
+            <div>
+                {{member.full_name}} {{member.member_role}}
+            </div>
+            }
+
+            }
+            @else if (response.message)
+            {
+            {{response.message}}
+            }
+            @else
+            {
+            <mat-spinner></mat-spinner>
+            }
+            }
+        </div>
+    </div>
     @if (response.name)
     {
-        {{response.name}}
-        {{response.description}}
-        {{response.created_at}}
-        @for (member of response.members; track member.username)
-    {
-        <div>
-            {{member.full_name}} {{member.member_role}}
-        </div>
+    <button mat-raised-button (click)="accept()">Принять</button>
+    <button mat-raised-button (click)="decline()">Отклонить</button>
     }
-        <button mat-raised-button (click)="accept()">Принять</button>
-        <button mat-raised-button (click)="decline()">Отклонить</button>
-    }
-    @else if (response.message)
-    {
-        {{response.message}}
-    }
-    @else
-    {
-        <mat-spinner></mat-spinner>
-    }
-}
+</div>

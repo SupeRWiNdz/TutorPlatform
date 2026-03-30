@@ -64,19 +64,17 @@ ngOnInit(): void {
   this.route.data.subscribe(data => {
     this.class = data['class'] ?? null;
 
-    if (!this.class) {
-      return;
-    }
+    if (this.class?.name) {
+      if (this.class.link) {
+        this.classchatService.loadMessagesForUser(this.class.link);
+      }
 
-    if (this.class.link) {
-      this.classchatService.loadMessagesForUser(this.class.link);
+      this.editClassForm.patchValue({
+        new_name: this.class.name ?? '',
+        new_description: this.class.description ?? '',
+        new_link: this.class.link ?? ''
+      });
     }
-
-    this.editClassForm.patchValue({
-      new_name: this.class.name ?? '',
-      new_description: this.class.description ?? '',
-      new_link: this.class.link ?? ''
-    });
   });
 }
 
@@ -85,6 +83,7 @@ ngOnInit(): void {
   }
 
   public leave(): void {
+    if (!this.class?.name) return;
     const sessionId = this.authService.tokenValue;
     const link = this.class.link;
     if (!link || !sessionId)

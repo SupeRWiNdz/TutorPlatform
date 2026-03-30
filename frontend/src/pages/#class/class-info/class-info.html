@@ -1,83 +1,95 @@
-@if (class) {    
-    <h3>{{class.name}}</h3>
-    <button
-      mat-mini-fab
-      matSuffix
-      [routerLink]="'/class/'+this.class.link"
-      [attr.aria-label]="'Чат класса'"
-      ><mat-icon>message</mat-icon></button>
-
-    @if (!isEditing) {
-        {{class.description}}
-        Дата создания: {{class.created_at | date:'dd.MM.yyyy'}}
-        <mat-icon>{{class.user_role | roleIcon}}</mat-icon>
-        <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
-        <mat-menu #class_menu>
-            @if (class.user_role == 'creator') {
-          <button mat-menu-item (click)="editMode()">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
-            <button mat-menu-item (click)="deleteMode()">Удалить класс<mat-icon matTextPrefix>delete_forever</mat-icon></button>
-            <button mat-menu-item (click)="createInvitation()">Создать общее приглашение<mat-icon matTextPrefix>link</mat-icon></button>
-            } @else {<button mat-menu-item (click)="leave()">Выйти<mat-icon matTextPrefix>exit_to_app</mat-icon></button>}
-        </mat-menu>
-        @if (deleteConfirm)
-        {
-            <button mat-raised-button (click)="deleteClass()">подтвердить удаление</button>
-            <button mat-raised-button (click)="exitDeleteMode()">отмена</button>
+<div class="main-container">
+    @if (class.name) {
+    <div class="top-container">
+        <div class="title">
+            {{class.name}}
+            <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
+            <mat-menu #class_menu>
+                @if (class.user_role == 'creator') {
+                <button mat-menu-item (click)="editMode()">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
+                <button mat-menu-item (click)="deleteMode()">Удалить класс<mat-icon
+                        matTextPrefix>delete_forever</mat-icon></button>
+                <button mat-menu-item (click)="createInvitation()">Создать общее приглашение<mat-icon
+                        matTextPrefix>link</mat-icon></button>
+                } @else {<button mat-menu-item (click)="leave()">Выйти<mat-icon
+                        matTextPrefix>exit_to_app</mat-icon></button>}
+            </mat-menu>
+            <button mat-mini-fab matSuffix [routerLink]="'/class/'+this.class.link"
+                [attr.aria-label]="'Чат класса'"><mat-icon>message</mat-icon></button>
+        </div>
+        @if (!isEditing) {
+        <div class="info">
+            {{class.description}}
+            Дата создания: {{class.created_at | date:'dd.MM.yyyy'}}
+            <mat-icon>{{class.user_role | roleIcon}}</mat-icon>
+        </div>
         }
-        @if (invitation) { <span [innerHTML]="invitation | advancedFormatMessage"></span> }
-    } @else if (class.user_role == 'creator' && isEditing) {
-        <form [formGroup]="editClassForm">
-<mat-form-field appearance="outline">
+    </div>
+    @if (!isEditing) {
+    @if (deleteConfirm)
+    {
+    <button mat-raised-button (click)="deleteClass()">подтвердить удаление</button>
+    <button mat-raised-button (click)="exitDeleteMode()">отмена</button>
+    }
+    @if (invitation) { <span [innerHTML]="invitation | advancedFormatMessage"></span> }
+    }
+
+    @if (class.user_role == 'creator' && isEditing) {
+    <form [formGroup]="editClassForm">
+        <mat-form-field appearance="outline">
             <mat-label>Название</mat-label>
             <input matInput formControlName="new_name" [placeholder]="class?.name || 'Загрузка...'">
-</mat-form-field>
-<mat-form-field appearance="outline">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
             <mat-label>Описание</mat-label>
             <input matInput formControlName="new_description" [placeholder]="class?.description || 'Загрузка...'">
-</mat-form-field>
-<mat-form-field appearance="outline">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
             <mat-label>Ссылка</mat-label>
             <input matInput formControlName="new_link" [placeholder]="class?.link || 'Загрузка...'">
-</mat-form-field>
+        </mat-form-field>
 
-            <button mat-raised-button (click)="editClass()">Подтвердить</button>
-            <button mat-raised-button (click)="exitEditMode()">Отмена</button>
-        </form>
+        <button mat-raised-button (click)="editClass()">Подтвердить</button>
+        <button mat-raised-button (click)="exitEditMode()">Отмена</button>
+    </form>
     }
-    
-    <h3>Участники</h3>
+
     @for (member of class.members; track member.username) {
-        <div>
-            <mat-icon>{{member.member_role | roleIcon}}</mat-icon> {{member.full_name}}
-            <button mat-icon-button [matMenuTriggerFor]="member_menu"><mat-icon>more_vert</mat-icon></button>
-            <mat-menu #member_menu>
-              <button mat-menu-item route [routerLink]="'/chat/'+member.username">Перейти в чат<mat-icon matTextPrefix>messenger</mat-icon></button>
-              <button mat-menu-item route [routerLink]="'/profile/'+member.username">Перейти в профиль<mat-icon matTextPrefix>person</mat-icon></button>
-              @if (class.user_role == 'creator' && member.member_role !== 'creator') 
-              {
-              @if (member.member_role == 'student')
-              {<button mat-menu-item (click)="editRole(member.username, member.member_role)">Сделать учителем<mat-icon matTextPrefix>self_improvement</mat-icon></button>}
-              @else if (member.member_role == 'teacher')
-              {<button mat-menu-item (click)="editRole(member.username, member.member_role)">Сделать учеником<mat-icon matTextPrefix>man</mat-icon></button>}
-                <button mat-menu-item (click)="deleteMember(member.username)">Удалить из класса<mat-icon matTextPrefix>person_remove</mat-icon></button>
-              }
-            </mat-menu>
-        </div>
+    <div class="user-info">
+        <mat-icon>{{member.member_role | roleIcon}}</mat-icon> {{member.full_name}}
+        <button mat-icon-button [matMenuTriggerFor]="member_menu"
+            class="mini_more"><mat-icon>more_vert</mat-icon></button>
+        <mat-menu #member_menu>
+            <button mat-menu-item route [routerLink]="'/chat/'+member.username">Перейти в чат<mat-icon
+                    matTextPrefix>messenger</mat-icon></button>
+            <button mat-menu-item route [routerLink]="'/profile/'+member.username">Перейти в профиль<mat-icon
+                    matTextPrefix>person</mat-icon></button>
+            @if (class.user_role == 'creator' && member.member_role !== 'creator')
+            {
+            @if (member.member_role == 'student')
+            {<button mat-menu-item (click)="editRole(member.username, member.member_role)">Сделать учителем<mat-icon
+                    matTextPrefix>self_improvement</mat-icon></button>}
+            @else if (member.member_role == 'teacher')
+            {<button mat-menu-item (click)="editRole(member.username, member.member_role)">Сделать учеником<mat-icon
+                    matTextPrefix>man</mat-icon></button>}
+            <button mat-menu-item (click)="deleteMember(member.username)">Удалить из класса<mat-icon
+                    matTextPrefix>person_remove</mat-icon></button>
+            }
+        </mat-menu>
+    </div>
     }
     @if (class.user_role == 'creator')
     {
-        <form [formGroup]="addMemberForm">
-<mat-form-field appearance="fill">
-    <mat-label>Пригласить в класс</mat-label>
-        <input matInput formControlName="username" placeholder="username">
-          <button
-      matIconButton
-      matSuffix
-      (click)="addMember()"
-      [attr.aria-label]="'Отправить'"
-      ><mat-icon>person_add</mat-icon></button>
-      <mat-error>{{addMemberError}}</mat-error>
-</mat-form-field>
-        </form>
+    <form [formGroup]="addMemberForm">
+        <mat-form-field appearance="fill">
+            <mat-label>Пригласить в класс</mat-label>
+            <input matInput formControlName="username" placeholder="username">
+            <button matIconButton matSuffix (click)="addMember()"
+                [attr.aria-label]="'Отправить'"><mat-icon>person_add</mat-icon></button>
+            <mat-error>{{addMemberError}}</mat-error>
+        </mat-form-field>
+    </form>
     }
-}
+    }
+    @else if (class.message) {{{ class.message }}}
+</div>
