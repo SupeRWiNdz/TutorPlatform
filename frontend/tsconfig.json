@@ -21,6 +21,7 @@
       "@pipes/*": ["src/pipes/*"],
       "@resolvers/*": ["src/resolvers/*"],
       "@services/*": ["src/services/*"],
+      "@templates/*": ["src/templates/*"],
     }
   },
   "angularCompilerOptions": {

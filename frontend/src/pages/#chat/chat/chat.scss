@@ -41,15 +41,22 @@
   @include no-scrollbar;
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 8px 4px;
-  min-height: 0;
 }
 
 .messages-container > :first-child {
   margin-top: auto;
+}
+.chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;          // или max-height: 100%, если родитель задаёт высоту
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .message-wrapper {
@@ -69,7 +76,7 @@
 .message-bubble {
   text-align: left;
   max-width: 70%;
-  padding: 10px 14px;
+  padding: 10px 12px 0px 12px;
   border-radius: 13px;
   position: relative;
   word-wrap: break-word;
@@ -113,9 +120,8 @@
   justify-content: flex-end;
   align-items: center;
   gap: 6px;
-  margin-top: 4px;
   font-size: 0.7rem;
-  opacity: 0.7;
+  opacity: 0.45;
 
   .timestamp {
     font-feature-settings: 'tnum';

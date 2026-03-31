@@ -1,27 +1,5 @@
 @use '@angular/material' as mat;
 
-.row-2 {
-      grid-template-columns: 1fr 1fr;
-      display: grid;
-      gap: 14px;
-       > * {
-    min-width: 0; // разрешает сжатие элементов сетки
-  }
-    }
-.input-box {
-  padding: 5px 0px;
-  width: 100%;
-  mat-form-field {
-    width: 100%;
-    .mat-mdc-text-field-wrapper {
-      border-radius: 12px;
-    }
-    .mat-mdc-form-field-subscript-wrapper {
-      min-height: 18px;
-    }
-  }
-}
-
 span {
       font-weight: 400;
     }

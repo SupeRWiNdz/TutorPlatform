@@ -1,14 +1,17 @@
 import { Component, signal, ViewEncapsulation } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { Location } from '@angular/common';
-import { HeaderComponent } from '../pages/#navigation/header/header';
+import { MatButtonModule } from '@angular/material/button';
+import { NavButtons } from "src/templates/nav-buttons/nav-buttons";
+import { UserInfo } from '@templates/user-info/user-info';
+import { NavBottom } from '@templates/nav-bottom/nav-bottom';
 
 @Component({
   selector: 'app-root',
   imports: [
-    RouterOutlet,
-    HeaderComponent
-  ],
+    RouterOutlet, UserInfo, RouterModule, MatButtonModule,
+    NavButtons, NavBottom
+],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

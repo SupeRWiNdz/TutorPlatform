@@ -1,22 +1,19 @@
-<div class="main-container">
-  <div class="top-container">
-    <div class="title">
+<div class="top-container">
+  <div class="title">
     Список чатов
-    </div>
   </div>
   @for (chat of chats$ | async; track $index) {
   <div class="chat" (click)="navigateToChat(chat.username)"
     [ngStyle]="{ 'font-weight': (!chat.last_message_is_read && chat.last_message_type == 'incoming') ? '900' : 'normal' }">
     <div class="name">
-      {{ chat.full_name | truncate:34 }} @if (!chat.last_message_is_read && chat.last_message_type=='outgoing')
+      {{ chat.full_name | truncate:46 }} @if (!chat.last_message_is_read && chat.last_message_type=='outgoing')
       {<mat-icon>circle</mat-icon>}
     </div>
     <div class="last_message">
       @if (chat.last_message_type=='outgoing') {Вы: }
-      {{ chat.last_message_text | truncate:32}}
+      {{ chat.last_message_text | truncate:64}}
     </div>
   </div>
   } @empty {
   Нет доступных чатов
   }
-</div>

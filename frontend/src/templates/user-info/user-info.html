@@ -1,5 +1,3 @@
-<button matIconButton matSuffix [routerLink]="'/'" [attr.aria-label]="'Главная'"><mat-icon>menu_book</mat-icon></button>
-
 @if (currentUser$ | async; as user) {
 <span [routerLink]="'/profile/'+user.username">
   {{ user.full_name }}

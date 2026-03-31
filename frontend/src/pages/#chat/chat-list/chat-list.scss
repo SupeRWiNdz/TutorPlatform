@@ -1,26 +1,30 @@
 .chat {
     align-self: center;
-    width:275px;
+    width: 100%;
     text-align: left;
     padding: 22px 20px 18px 20px;
     border-radius: 16px;
-     &:hover {
-    background-color: var(--mat-sys-surface-container-high);
+
+    &:hover {
+        background-color: var(--mat-sys-surface-container-high);
     }
+
     .name {
         font: var(--mat-sys-body-medium);
         display: flex;
         align-items: center;
-        gap:10px;
+        gap: 10px;
+
         mat-icon {
             font-size: 10px;
         }
     }
+
     .last_message {
-  gap: 6px;
-  margin-top: 4px;
-  font-size: 0.7rem;
-  opacity: 0.7;
+        gap: 6px;
+        margin-top: 4px;
+        font-size: 0.7rem;
+        opacity: 0.7;
 
     }
 }

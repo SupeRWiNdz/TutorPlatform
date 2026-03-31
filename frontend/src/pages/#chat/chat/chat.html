@@ -1,8 +1,8 @@
-<div class="main-container">
-  @if (user) {
+<div class="chat">
+@if (user) {
   <div class="top-container">
     <div class="title">
-      <span>{{ user.full_name }}</span>
+      <span>{{ user.full_name}}</span>
       <button mat-mini-fab matSuffix [routerLink]="'/profile/' + user.username" [attr.aria-label]="'Профиль'">
         <mat-icon>person</mat-icon>
       </button>

@@ -58,7 +58,7 @@ export class Chat implements OnInit, OnDestroy {
           setTimeout(() => this.scrollToBottom(), 1);
         else if (!this.initialScroll) {
           setTimeout(() => this.scrollToBottom('instant'), 1);
-          this.initialScroll = false;
+          this.initialScroll = true;
         }
       }
     });

@@ -27,26 +27,6 @@ button[mat-raised-button] {
   color: var(--mat-sys-primary);
 }
 
-.main-container {
-  text-align: center;
-  padding: 22px 20px 18px 20px;
-  border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
-  box-shadow:
-    0 0px 15px color-mix(in srgb, var(--mat-sys-primary) 15%, transparent),
-    0 1px 0 color-mix(in srgb, var(--mat-sys-outline-variant) 25%, transparent);
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-
-  height: 100%;
-  max-height: 100%;
-  overflow: hidden;
-  width: 100%;
-  box-sizing: border-box;
-}
-
 .top-container {
   @include flex-center;
   display: flex;
@@ -71,7 +51,7 @@ button[mat-raised-button] {
 .bottom-container {
   @include no-scrollbar;
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden; 
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -82,3 +62,24 @@ button[mat-raised-button] {
   transform: scale(0.8);
   margin-left: -4px;
 }
+
+.input-box {
+  width: 100%;
+  mat-form-field {
+    width: 100%;
+    .mat-mdc-text-field-wrapper {
+      border-radius: 12px;
+    }
+    .mat-mdc-form-field-subscript-wrapper {
+      min-height: 18px;
+    }
+  }
+}
+.row-2 {
+      grid-template-columns: 1fr 1fr;
+      display: grid;
+      gap: 14px;
+       > * {
+    min-width: 0;
+  }
+    }

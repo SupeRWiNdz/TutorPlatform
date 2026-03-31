@@ -4,17 +4,17 @@ import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs/internal/Observable';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { AuthService } from '../../../services/auth.service';
+import { AuthService } from '@services/auth.service';
 
 @Component({
-  selector: 'app-header',
+  selector: 'user-info',
   imports: [CommonModule, RouterModule,
     MatIconModule, MatButtonModule
   ],
-  templateUrl: './header.html',
-  styleUrl: './header.scss',
+  templateUrl: './user-info.html',
+  styleUrl: './user-info.scss',
 })
-export class HeaderComponent {
+export class UserInfo {
 
   currentUser$: Observable<any | null>;
   

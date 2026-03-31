@@ -1,6 +1,16 @@
 <div class="app">
-    <app-header></app-header>
     <div class="block">
-        <router-outlet></router-outlet>
+        
+        <div class="nav">
+            <user-info class="nav-content"></user-info>
+            <nav-buttons class="nav-content"></nav-buttons>
+        </div>
+        <div class="main-container">
+            <router-outlet></router-outlet>
+    <nav-bottom></nav-bottom>
+        </div>
+        <div class="nav">
+
+        </div>
     </div>
 </div>
