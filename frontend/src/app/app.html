@@ -1,16 +1,14 @@
 <div class="app">
-    <div class="block">
-        
-        <div class="nav">
-            <user-info class="nav-content"></user-info>
-            <nav-buttons class="nav-content"></nav-buttons>
-        </div>
-        <div class="main-container">
-            <router-outlet></router-outlet>
-    <nav-bottom></nav-bottom>
-        </div>
-        <div class="nav">
-
-        </div>
+    <div class="container side">
+        <user-info class="block"></user-info>
+        <nav-buttons class="block"></nav-buttons>
+    </div>
+    <div class="container middle">
+        <div class="block"><router-outlet></router-outlet></div>
+        <div class="bottom"><nav-bottom></nav-bottom></div>
+    </div>
+    <div class="container side">
+        <div class="block"><user-info></user-info></div>
+        <div class="block"><nav-buttons></nav-buttons></div>
     </div>
 </div>
