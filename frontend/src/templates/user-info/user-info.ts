@@ -5,10 +5,11 @@ import { Observable } from 'rxjs/internal/Observable';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '@services/auth.service';
+import { TruncatePipe } from '@pipes/truncate.pipe';
 
 @Component({
   selector: 'user-info',
-  imports: [CommonModule, RouterModule,
+  imports: [CommonModule, RouterModule, TruncatePipe,
     MatIconModule, MatButtonModule
   ],
   templateUrl: './user-info.html',

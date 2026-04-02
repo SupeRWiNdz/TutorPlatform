@@ -79,7 +79,19 @@ button[mat-raised-button] {
       grid-template-columns: 1fr 1fr;
       display: grid;
       gap: 14px;
+      margin-top:-16px;
        > * {
     min-width: 0;
   }
     }
+
+.scrollable {
+    @include no-scrollbar;
+    max-height: calc(100vh - 100px);
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}

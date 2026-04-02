@@ -20,6 +20,7 @@
       </div>
       }
       @for (message of messages$ | async; track message.id || $index) {
+        
       @if (message) {
       <div class="message-wrapper" [class.outgoing]="message.type === 'outgoing'"
         [class.incoming]="message.type !== 'outgoing'">

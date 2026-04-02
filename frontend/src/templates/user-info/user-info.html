@@ -1,9 +1,6 @@
 @if (currentUser$ | async; as user) {
-<span [routerLink]="'/profile/'+user.username">
-  {{ user.full_name }}
-
-  @if (user.is_teacher) {Учитель}
-  @if (user.is_student) {Ученик}
-  @if (user.is_parent) {Родитель}
-</span>
+<div [routerLink]="'/account'">
+    <p class="name">{{ user.full_name | truncate:25}}</p>
+    <p class="username">{{ user.username | truncate:45}}</p>
+</div>
 }

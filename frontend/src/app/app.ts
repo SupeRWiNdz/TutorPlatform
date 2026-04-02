@@ -5,12 +5,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { NavButtons } from "src/templates/nav-buttons/nav-buttons";
 import { UserInfo } from '@templates/user-info/user-info';
 import { NavBottom } from '@templates/nav-bottom/nav-bottom';
+import { NextLesson } from "@templates/next-lesson/next-lesson";
 
 @Component({
   selector: 'app-root',
   imports: [
     RouterOutlet, UserInfo, RouterModule, MatButtonModule,
-    NavButtons, NavBottom
+    NavButtons, NavBottom,
+    NextLesson
 ],
   templateUrl: './app.html',
   styleUrl: './app.scss'

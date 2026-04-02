@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
-import { AuthService } from '../../../services/auth.service';
-import { DataService } from '../../../services/data.service';
-import { TruncatePipe } from '../../../pipes/truncate.pipe';
+import { AuthService } from '@services/auth.service';
+import { DataService } from '@services/data.service';
+import { TruncatePipe } from '@pipes/truncate.pipe';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({

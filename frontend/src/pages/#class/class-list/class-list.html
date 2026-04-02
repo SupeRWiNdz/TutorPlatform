@@ -47,12 +47,8 @@
 {
 <div class="top-container">
   <div class="title">
-    Мои классы
-    <button mat-mini-fab matSuffix (click)="createMode()"
+    Всего классов: {{ response.total_classes }}<button mat-mini-fab matSuffix (click)="createMode()"
       [attr.aria-label]="'Создать класс'"><mat-icon>add</mat-icon></button>
-  </div>
-  <div class="info">
-    Всего классов: {{ response.total_classes }}
   </div>
 </div>
 

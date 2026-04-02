@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
@@ -25,14 +25,15 @@ export class Chat implements OnInit, OnDestroy {
   public hasMore$: Observable<boolean>;
   chatForm: FormGroup;
   private isBrowser = false;
-  private initialScroll: boolean = false;
+  public initialScroll: boolean = false;
 
   constructor(
     @Inject(PLATFORM_ID) platformId: Object,
     private route: ActivatedRoute,
     private messagesService: MessagesService,
     public router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {
     this.messages$ = this.messagesService.messages$;
     this.hasMore$ = this.messagesService.hasMore$;
@@ -48,18 +49,16 @@ export class Chat implements OnInit, OnDestroy {
       this.user = data['profile'];
       if (this.user?.username) {
         this.messagesService.loadMessagesForUser(this.user.username);
-        setTimeout(() => this.scrollToBottom(), 100);
       }
     });
 
     this.messagesSubscription = this.messages$.subscribe(messages => {
       if (messages) {
-        if (this.getScrollPosition() == 'down')
-          setTimeout(() => this.scrollToBottom(), 1);
-        else if (!this.initialScroll) {
-          setTimeout(() => this.scrollToBottom('instant'), 1);
-          this.initialScroll = true;
+        if (!this.initialScroll) {
+          setTimeout(() => { this.scrollToBottom('instant'); this.initialScroll = true; }, 50);
         }
+        else if (this.getScrollPosition() == 'down')
+          setTimeout(() => this.scrollToBottom(), 1);
       }
     });
   }
