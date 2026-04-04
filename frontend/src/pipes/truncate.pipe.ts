@@ -10,6 +10,7 @@ export class TruncatePipe implements PipeTransform {
     limit: number,
   ): string {
     if (!value) return '';
+    if (limit==-1) return value;
     const letterLimit = limit !== undefined ? limit : 100;
     let textToTruncate = value;
     if (textToTruncate.length <= letterLimit) {

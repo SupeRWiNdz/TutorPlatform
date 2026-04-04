@@ -1,5 +1,4 @@
-<div class="top-container">
-  <div class="scrollable">
+<div class="bottom-container">
   @for (chat of chats$ | async; track $index) {
   <div class="chat" (click)="navigateToChat(chat.username)"
     [ngStyle]="{ 'font-weight': (!chat.last_message_is_read && chat.last_message_type == 'incoming') ? '900' : 'normal' }">
@@ -15,4 +14,4 @@
   } @empty {
   Нет доступных чатов
   }
-  </div>
+</div>

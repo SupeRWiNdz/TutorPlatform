@@ -10,6 +10,7 @@
     justify-content: center;
     flex-direction: column;
     font-size: 0.7rem;
+    line-height: 1;
     border-radius: 0;
     border-top: 1px solid var(--mat-sys-outline-variant);
     
@@ -20,10 +21,6 @@
   &.active-button {
     background-color: var(--mat-sys-primary);
     color: var(--mat-sys-surface-container-high);
-    
-    mat-icon {
-      color: var(--mat-sys-surface-container-high);
-    }
     
     &:hover {
       background-color: var(--mat-sys-tertiary);

@@ -8,15 +8,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import { RoleIconPipe } from '../../../pipes/role-icon.pipe';
-import { AuthService } from '../../../services/auth.service';
-import { DataService } from '../../../services/data.service';
+import { RoleIconPipe } from '@pipes/role-icon.pipe';
+import { AuthService } from '@services/auth.service';
+import { DataService } from '@services/data.service';
+import { TruncatePipe } from '@pipes/truncate.pipe';
+import { RoleNamePipe } from "@pipes/role-name.pipe";
 
 @Component({
   selector: 'app-class-list',
-  imports: [CommonModule, ReactiveFormsModule, RoleIconPipe,
-    MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule, RoleIconPipe, TruncatePipe,
+    MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule, RoleNamePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './class-list.html',
   styleUrl: './class-list.scss',

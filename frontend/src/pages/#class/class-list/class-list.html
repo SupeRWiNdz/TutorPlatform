@@ -1,66 +1,69 @@
 @if (classes$ | async; as response) {
-@if (isCreating)
-{
-<form [formGroup]="createClassForm">
-
-  <p class="input-box">
-    <mat-form-field appearance="outline">
-      <mat-label>Название</mat-label>
-      <input matInput formControlName="name">
-      <mat-error>
-        @if (createClassForm.get('name')?.errors?.['required'])
-        {Введите название}
-        @else if (createClassForm.get('name')?.errors)
-        {Введите корректное название}
-      </mat-error>
-    </mat-form-field>
-  </p>
-  <p class="input-box">
-    <mat-form-field appearance="outline">
-      <mat-label>Ссылка</mat-label>
-      <input matInput formControlName="link">
-      <mat-error>
-        @if (createClassForm.get('link')?.errors?.['required'])
-        {Введите ссылку}
-        @else if (createClassForm.get('link')?.errors)
-        {Введите корректную ссылку}
-      </mat-error>
-    </mat-form-field>
-  </p>
-  <p class="input-box">
-    <mat-form-field appearance="outline">
-      <mat-label>Описание</mat-label>
-      <input matInput formControlName="description">
-      <mat-error>
-        @if (createClassForm.get('description')?.errors?.['required'])
-        {Введите описание}
-        @else if (createClassForm.get('description')?.errors)
-        {Введите корректное описание}
-      </mat-error>
-    </mat-form-field>
-  </p>
-  <button (click)="createClass()" mat-raised-button>Подтвердить</button>
-  <button (click)="exitCreateMode()" mat-raised-button>Отмена</button>
-</form>
-}
-@else
-{
 <div class="top-container">
   <div class="title">
     Всего классов: {{ response.total_classes }}<button mat-mini-fab matSuffix (click)="createMode()"
       [attr.aria-label]="'Создать класс'"><mat-icon>add</mat-icon></button>
   </div>
 </div>
+<div class="bottom-container">
+  @if (isCreating)
+  {
+  <form [formGroup]="createClassForm">
 
-@for (class of response.classes; track class.link) {
-<button (click)="navigateToClass(class.link)">
-  {{ class.name }}
-  <p>{{ class.description }}</p>
-  {{ class.total_members }}<mat-icon>people</mat-icon>
-  <mat-icon>{{class.user_role | roleIcon}}</mat-icon>
-</button>
-}
-}
-} @else {
-<mat-spinner></mat-spinner>
+    <p class="input-box">
+      <mat-form-field appearance="outline">
+        <mat-label>Название</mat-label>
+        <input matInput formControlName="name">
+        <mat-error>
+          @if (createClassForm.get('name')?.errors?.['required'])
+          {Введите название}
+          @else if (createClassForm.get('name')?.errors)
+          {Введите корректное название}
+        </mat-error>
+      </mat-form-field>
+    </p>
+    <p class="input-box">
+      <mat-form-field appearance="outline">
+        <mat-label>Ссылка</mat-label>
+        <input matInput formControlName="link">
+        <mat-error>
+          @if (createClassForm.get('link')?.errors?.['required'])
+          {Введите ссылку}
+          @else if (createClassForm.get('link')?.errors)
+          {Введите корректную ссылку}
+        </mat-error>
+      </mat-form-field>
+    </p>
+    <p class="input-box">
+      <mat-form-field appearance="outline">
+        <mat-label>Описание</mat-label>
+        <input matInput formControlName="description">
+        <mat-error>
+          @if (createClassForm.get('description')?.errors?.['required'])
+          {Введите описание}
+          @else if (createClassForm.get('description')?.errors)
+          {Введите корректное описание}
+        </mat-error>
+      </mat-form-field>
+    </p>
+    <button (click)="createClass()" mat-raised-button>Подтвердить</button>
+    <button (click)="exitCreateMode()" mat-raised-button>Отмена</button>
+  </form>
+  }
+  @else
+  {
+  @for (class of response.classes; track class.link) {
+  <div class="one-class" (click)="navigateToClass(class.link)">
+    <div class="name">
+      {{ class.name | truncate:46 }}
+    </div>
+    <div class="class-info">
+      <p>{{ class.description }}</p>
+      <p>{{ class.total_members }} участника. Ваша роль: {{class.user_role | roleName}}<mat-icon>{{class.user_role | roleIcon}}</mat-icon></p>
+    </div>
+  </div>
+  }
+  }
+</div>
+
 }

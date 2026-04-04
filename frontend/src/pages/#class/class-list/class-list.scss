@@ -1,0 +1,44 @@
+.one-class {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    overflow: hidden;
+    padding: 22px 20px 18px 20px;
+    border-radius: 16px;
+
+    //min-height: 92px;
+    //max-height: 92px;
+
+    &:hover {
+        background-color: var(--mat-sys-surface-container-high);
+    }
+
+    .name {
+        font: var(--mat-sys-body-medium);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        mat-icon {
+            font-size: 10px;
+        }
+    }
+
+.class-info {
+    gap: 6px;
+    font-size: 0.7rem;
+    opacity: 0.7;
+    
+    p:last-child {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    mat-icon {
+        font-size: 17px;
+        vertical-align: middle;
+    }
+}
+}

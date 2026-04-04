@@ -9,17 +9,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import {MatMenuModule} from '@angular/material/menu';
 import { environment } from '../../../../environment';
-import { AdvancedFormatMessagePipe } from '../../../pipes/advanced-message.pipe';
-import { RoleIconPipe } from '../../../pipes/role-icon.pipe';
-import { AuthService } from '../../../services/auth.service';
-import { ClasschatService } from '../../../services/classchat.service';
-import { DataService } from '../../../services/data.service';
-import { MessagesService } from '../../../services/message.service';
+import { AdvancedFormatMessagePipe } from '@pipes/advanced-message.pipe';
+import { RoleIconPipe } from '@pipes/role-icon.pipe';
+import { AuthService } from '@services/auth.service';
+import { ClasschatService } from '@services/classchat.service';
+import { DataService } from '@services/data.service';
+import { MessagesService } from '@services/message.service';
+import { TruncatePipe } from "@pipes/truncate.pipe";
 
 @Component({
   selector: 'app-class',
   imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe, RoleIconPipe,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, TruncatePipe],
   templateUrl: './class-info.html',
   styleUrl: './class-info.scss',
 })
@@ -38,6 +39,7 @@ export class ClassInfo implements OnInit{
   public addMemberForm: FormGroup;
   public invitation: string='';
   public addMemberError: string='';
+  public isTitleActive: number = 50;
 
   constructor(
     private route: ActivatedRoute,
@@ -225,5 +227,11 @@ ngOnInit(): void {
       }
       }
     });
+    }
+    public showTitle(): void {
+      if (this.isTitleActive==50)
+        this.isTitleActive=-1;
+      else
+        this.isTitleActive=50;
     }
 }

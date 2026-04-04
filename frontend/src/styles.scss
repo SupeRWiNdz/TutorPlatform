@@ -12,6 +12,17 @@
   }
 }
 
+@mixin scrollable {
+    @include no-scrollbar;
+    max-height: calc(100vh);
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
 body {
   margin: 0;
   height: 100vh;
@@ -49,13 +60,11 @@ button[mat-raised-button] {
 }
 
 .bottom-container {
-  @include no-scrollbar;
+  @include scrollable;
   flex: 1;
-  overflow: hidden; 
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .mini_more {
@@ -85,13 +94,170 @@ button[mat-raised-button] {
   }
     }
 
-.scrollable {
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+
+  .load-more-wrapper {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+
+    button {
+      border-radius: 40px;
+      font-weight: 500;
+      padding: 0 20px;
+      color: var(--mat-sys-primary);
+      transition: all 0.2s;
+
+      mat-icon {
+        margin-right: 4px;
+        font-size: 20px;
+      }
+
+      &:hover {
+        background-color: var(--mat-sys-surface-container-high);
+      }
+    }
+  }
+
+  .messages-container {
     @include no-scrollbar;
-    max-height: calc(100vh - 100px);
-    width: 100%;
+    flex: 1;
     overflow-y: auto;
-    overflow-x: hidden;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
+    gap: 12px;
+    padding: 8px 4px;
+  }
+
+  .message-wrapper {
+    display: flex;
+    width: 100%;
+    flex-shrink: 0;
+
+    &.outgoing {
+      justify-content: flex-end;
+    }
+
+    &.incoming {
+      justify-content: flex-start;
+    }
+  }
+
+  .message-bubble {
+    text-align: left;
+    max-width: 70%;
+    padding: 10px 12px 0px 12px;
+    border-radius: 13px;
+    position: relative;
+    word-wrap: break-word;
+    transition: transform 0.1s ease;
+    animation: fadeInUp 0.2s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .outgoing .message-bubble {
+    background-color: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    border-bottom-right-radius: 2px;
+  }
+
+  .incoming .message-bubble {
+    background-color: var(--mat-sys-surface-container-high);
+    color: var(--mat-sys-on-surface);
+    border-bottom-left-radius: 2px;
+  }
+
+  .message-text {
+    font: var(--mat-sys-body-medium);
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+  .message-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: left;
+    margin-top: -8px;
+    margin-bottom: -2px;
+    font-size: 0.56rem;
+    font-weight: 500;
+    color: var(--mat-sys-primary);
+  }
+
+  .message-meta {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    opacity: 0.45;
+
+    .timestamp {
+      font-feature-settings: 'tnum';
+      letter-spacing: 0.3px;
+    }
+
+    .read-status {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  .empty-messages {
+    @include flex-center;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    color: var(--mat-sys-outline);
+    font: var(--mat-sys-body-large);
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      opacity: 0.6;
+    }
+  }
+
+  .message-form {
+    flex-shrink: 0;
+    margin-bottom: -18px;
+
+    .message-input {
+      width: 100%;
+
+      input {
+        font: var(--mat-sys-body-large);
+      }
+
+      button[matSuffix] {
+        color: var(--mat-sys-primary);
+        transition: transform 0.1s;
+
+        &:active {
+          transform: scale(0.95);
+        }
+      }
+    }
+  }
+
+  .messages-container> :first-child {
+    margin-top: auto;
+  }
 }

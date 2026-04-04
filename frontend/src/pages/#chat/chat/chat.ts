@@ -10,11 +10,12 @@ import { MatInputModule } from '@angular/material/input';
 import { AdvancedFormatMessagePipe } from '@pipes/advanced-message.pipe';
 import { MessagesService } from '@services/message.service';
 import { DateTodayPipe } from "@pipes/date-today.pipe";
+import { TruncatePipe } from "@pipes/truncate.pipe";
 
 @Component({
   selector: 'app-chat',
   imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, DateTodayPipe],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, DateTodayPipe, TruncatePipe],
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
 })
@@ -26,6 +27,7 @@ export class Chat implements OnInit, OnDestroy {
   chatForm: FormGroup;
   private isBrowser = false;
   public initialScroll: boolean = false;
+  public isTitleActive: number = 50;
 
   constructor(
     @Inject(PLATFORM_ID) platformId: Object,
@@ -130,5 +132,11 @@ export class Chat implements OnInit, OnDestroy {
     } else {
       el.scrollTop = top;
     }
+  }
+  public showTitle(): void {
+    if (this.isTitleActive == 50)
+      this.isTitleActive = -1;
+    else
+      this.isTitleActive = 50;
   }
 }

@@ -8,14 +8,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import {MatDatepickerModule} from '@angular/material/datepicker';
-import { AuthService } from '../../../services/auth.service';
-import { DataService } from '../../../services/data.service';
+import { AuthService } from '@services/auth.service';
+import { DataService } from '@services/data.service';
 import { MatMenuModule } from '@angular/material/menu';
+import { TruncatePipe } from "@pipes/truncate.pipe";
 
 @Component({
   selector: 'app-account',
   imports: [CommonModule, ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatDatepickerModule],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatDatepickerModule, TruncatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './account.html',
   styleUrl: './account.scss',
@@ -30,6 +31,7 @@ export class Account {
   public get mode(): string {
   return this._mode;
   }
+  public isTitleActive: number = 50;
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -200,5 +202,11 @@ public editUser(): void {
   toggleNewPassword(event: MouseEvent): void {
     this.hideNewPassword.set(!this.hideNewPassword());
     event.stopPropagation();
+  }
+  public showTitle(): void {
+    if (this.isTitleActive == 50)
+      this.isTitleActive = -1;
+    else
+      this.isTitleActive = 50;
   }
 }

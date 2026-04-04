@@ -1,5 +1,5 @@
 @if (currentUser$ | async; as user) {
-<div [routerLink]="'/account'">
+<div [routerLink]="'/account'" class="user-info">
     <p class="name">{{ user.full_name | truncate:25}}</p>
     <p class="username">{{ user.username | truncate:45}}</p>
 </div>

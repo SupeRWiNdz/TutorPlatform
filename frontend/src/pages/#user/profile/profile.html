@@ -1,7 +1,7 @@
 @if (user) {
 <div class="top-container">
   <div class="title">
-    <span>{{ user.full_name }}</span>
+    <span [innerHTML]="user.full_name | truncate: isTitleActive" (click)="showTitle()"></span>
     <button mat-mini-fab matSuffix [routerLink]="'/chat/' + user.username"
       [attr.aria-label]="'Личный чат'"><mat-icon>message</mat-icon></button>
   </div>

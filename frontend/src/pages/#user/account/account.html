@@ -3,7 +3,7 @@
 @if (mode=='none') {
 <div class="top-container">
   <div class="title">
-    {{ user.full_name }}
+    <span [innerHTML]="user.full_name | truncate: isTitleActive" (click)="showTitle()"></span>
 
     <button mat-icon-button [matMenuTriggerFor]="user_menu"><mat-icon>more_vert</mat-icon></button>
     <mat-menu #user_menu>
