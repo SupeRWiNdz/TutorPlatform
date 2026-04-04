@@ -1,12 +1,12 @@
 <div class="chat-container">
-    @if (class.name) {
-<div class="top-container">
+  @if (class.name) {
+  <div class="top-container">
     <div class="title">
-        <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>
-        <button mat-mini-fab matSuffix [routerLink]="'/class/'+this.class.link+'/info/'"
-            [attr.aria-label]="'Информация'"><mat-icon>info</mat-icon></button>
+      <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>
+      <button mat-mini-fab matSuffix [routerLink]="'/class/'+this.class.link+'/info/'"
+        [attr.aria-label]="'Информация'"><mat-icon>info</mat-icon></button>
     </div>
-</div>
+  </div>
 
   <div class="messages-container" #messagesContainer>
     @if (hasMore$ | async) {
@@ -23,14 +23,16 @@
     <div class="message-wrapper" [class.outgoing]="message.type === 'outgoing'"
       [class.incoming]="message.type !== 'outgoing'">
       <div class="message-bubble">
-        @if (message.type === 'incoming') { <div class="message-header" [routerLink]="'/chat/'+message.sender_username">{{message.sender_username | truncate:24}}</div>}
+        @if (message.type === 'incoming') { <div class="message-header" [routerLink]="'/chat/'+message.sender_username">
+          {{message.sender_username | truncate:message.text.length+4}}
+        </div>}
         <div></div>
         <div class="message-text" [innerHTML]="message.text | advancedFormatMessage"></div>
         <div class="message-meta">
           <span class="timestamp">{{ message.sent_at | dateToday }}</span>
           @if (message.type === 'outgoing') {
-            @if (message.is_read) {<mat-icon class="read-status">done_all</mat-icon>}
-            @else {<mat-icon class="read-status">check</mat-icon>}
+          @if (message.is_read) {<mat-icon class="read-status">done_all</mat-icon>}
+          @else {<mat-icon class="read-status">check</mat-icon>}
           }
         </div>
       </div>
@@ -53,6 +55,6 @@
     </mat-form-field>
   </form>
 
-    }
-@else if (class.message) {{{ class.message }}}
+  }
+  @else if (class.message) {{{ class.message }}}
 </div>

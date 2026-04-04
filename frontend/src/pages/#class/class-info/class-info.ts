@@ -12,7 +12,6 @@ import { environment } from '../../../../environment';
 import { AdvancedFormatMessagePipe } from '@pipes/advanced-message.pipe';
 import { RoleIconPipe } from '@pipes/role-icon.pipe';
 import { AuthService } from '@services/auth.service';
-import { ClasschatService } from '@services/classchat.service';
 import { DataService } from '@services/data.service';
 import { MessagesService } from '@services/message.service';
 import { TruncatePipe } from "@pipes/truncate.pipe";
@@ -44,7 +43,6 @@ export class ClassInfo implements OnInit{
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private classchatService: ClasschatService,
     private dataService: DataService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
@@ -67,9 +65,6 @@ ngOnInit(): void {
     this.class = data['class'] ?? null;
 
     if (this.class?.name) {
-      if (this.class.link) {
-        this.classchatService.loadMessagesForUser(this.class.link);
-      }
 
       this.editClassForm.patchValue({
         new_name: this.class.name ?? '',
@@ -79,10 +74,6 @@ ngOnInit(): void {
     }
   });
 }
-
-  ngOnDestroy() {
-    this.classchatService.clearMessages();
-  }
 
   public leave(): void {
     if (!this.class?.name) return;

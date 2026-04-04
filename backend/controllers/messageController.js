@@ -279,7 +279,6 @@ const getNewMessages = async (req, res) => {
             await markMessagesAsRead(sender_uuid, receiver_uuid, client);
         }
         
-        // Получаем последнее отправленное сообщение текущего пользователя к собеседнику
         const lastOutgoingResult = await client.query(`
             SELECT is_read
             FROM messages

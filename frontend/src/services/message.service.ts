@@ -116,7 +116,6 @@ public loadNewMessages(): void {
             this.oldestMessageNumber = response.oldestMessageNumber;
             this.newestMessageNumber = response.newestMessageNumber;
             this.hasMoreSubject.next(response.hasMore);
-            this.markOutgoingMessagesAsRead();
 
             if (this.newestMessageNumber) {
               this.startPolling();
@@ -132,9 +131,6 @@ public loadNewMessages(): void {
     } else {
       this.dataService.messageDS.getNewMessages(session_id, this.currentReceiverUsername, this.newestMessageNumber).pipe(
         tap((response: any) => {
-          if (response.is_last_outgoing_message_read) {
-            this.markOutgoingMessagesAsRead();
-          }
           if (response && response.messages && response.messages.length > 0) {
             this.allMessages = [...this.allMessages, ...response.messages];
             this.messagesSubject.next(this.allMessages);

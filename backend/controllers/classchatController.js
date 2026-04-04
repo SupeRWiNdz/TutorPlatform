@@ -1,5 +1,15 @@
 const pool = require('../config/database');
 
+async function markClassMessagesAsRead(class_id, sender_id, client = null) {
+    const query = `UPDATE messages SET is_read = true WHERE receiver_uuid = $1 and sender_uuid != $2`;
+    const params = [class_id, sender_id];
+    if (client) {
+        await client.query(query, params);
+    } else {
+        await pool.query(query, params);
+    }
+}
+
 const sendMessage = async (req, res) => {
     const { session_id, receiver_link, text } = req.body;
 
@@ -7,7 +17,7 @@ const sendMessage = async (req, res) => {
         if (!text || text.trim().length === 0) {
             return res.status(400).json({ message: 'Не введено сообщение' });
         }
-        
+
         const senderResult = await pool.query(
             `SELECT u.id FROM users u
             JOIN user_sessions us ON u.id = us.user_id
@@ -18,7 +28,7 @@ const sendMessage = async (req, res) => {
         if (senderResult.rows.length === 0) {
             return res.status(401).json({ message: 'Сеанс не найден' });
         }
-        
+
         const sender_id = senderResult.rows[0].id;
 
         const receiverResult = await pool.query(
@@ -29,7 +39,7 @@ const sendMessage = async (req, res) => {
         if (receiverResult.rows.length === 0) {
             return res.status(404).json({ message: 'Класс не найден' });
         }
-        
+
         const receiver_id = receiverResult.rows[0].id;
 
         const membershipResult = await pool.query(
@@ -37,11 +47,11 @@ const sendMessage = async (req, res) => {
              WHERE class_id = $1 AND user_id = $2`,
             [receiver_id, sender_id]
         );
-        
+
         if (membershipResult.rowCount === 0) {
             return res.status(403).json({ message: 'У вас нет доступа к этому классу' });
         }
-        
+
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -56,9 +66,10 @@ const sendMessage = async (req, res) => {
                  VALUES ($1, $2, $3)`,
                 [sender_id, receiver_id, text]
             );
+            await markClassMessagesAsRead(receiver_id, sender_id, client);
 
             await client.query('COMMIT');
-            
+
             res.json({
                 message: 'Сообщение отправлено'
             });
@@ -75,49 +86,51 @@ const sendMessage = async (req, res) => {
 
 const getMessages = async (req, res) => {
     const { session_id, receiver_link, before_number, message_count } = req.body;
-    
+    const client = await pool.connect();
+
     try {
-        const sessionResult = await pool.query(
+        const sessionResult = await client.query(
             'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
             [session_id]
         );
-        
+
         if (sessionResult.rows.length === 0) {
             return res.status(401).json({ message: 'Сеанс не найден' });
         }
-        
+
         const sender_uuid = sessionResult.rows[0].user_id;
-        
-        const receiverResult = await pool.query(
+
+        const receiverResult = await client.query(
             'SELECT id FROM classes WHERE link = $1',
             [receiver_link]
         );
-        
+
         if (receiverResult.rows.length === 0) {
             return res.status(404).json({ message: 'Класс не найден' });
         }
-        
+
         const receiver_uuid = receiverResult.rows[0].id;
 
-        const membershipResult = await pool.query(
+        const membershipResult = await client.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
             [receiver_uuid, sender_uuid]
         );
-        
+
         if (membershipResult.rowCount === 0) {
             return res.status(403).json({ message: 'У вас нет доступа к этому классу' });
         }
-        
+
         let query;
         let queryParams;
-        
+
         if (before_number) {
             query = `
                 SELECT 
                     m.text, 
                     m.sent_at, 
                     m.message_number,
+                    m.is_read,
                     u.username as sender_username,
                     CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages m
@@ -128,12 +141,39 @@ const getMessages = async (req, res) => {
                 LIMIT $4
             `;
             queryParams = [sender_uuid, receiver_uuid, before_number, message_count];
+
+            const result = await client.query(query, queryParams);
+            const messages = result.rows.reverse();
+
+            let hasMore = false;
+            if (messages.length > 0) {
+                const oldestMessageNumber = messages[0].message_number;
+                const checkMoreQuery = `
+                    SELECT EXISTS(
+                        SELECT 1 FROM messages 
+                        WHERE receiver_uuid = $1
+                            AND message_number < $2
+                    ) as has_more
+                `;
+                const checkResult = await client.query(checkMoreQuery, [receiver_uuid, oldestMessageNumber]);
+                hasMore = checkResult.rows[0].has_more;
+            }
+
+            res.json({
+                messages: messages,
+                hasMore: hasMore,
+                oldestMessageNumber: messages.length > 0 ? messages[0].message_number : null,
+                newestMessageNumber: messages.length > 0 ? messages[messages.length - 1].message_number : null
+            });
         } else {
+            await client.query('BEGIN');
+
             query = `
                 SELECT 
                     m.text, 
                     m.sent_at, 
                     m.message_number,
+                    m.is_read,
                     u.username as sender_username,
                     CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages m
@@ -143,82 +183,93 @@ const getMessages = async (req, res) => {
                 LIMIT $3
             `;
             queryParams = [sender_uuid, receiver_uuid, message_count];
+
+            const result = await client.query(query, queryParams);
+            const messages = result.rows.reverse();
+
+            let hasMore = false;
+            if (messages.length > 0) {
+                const oldestMessageNumber = messages[0].message_number;
+                const checkMoreQuery = `
+                    SELECT EXISTS(
+                        SELECT 1 FROM messages 
+                        WHERE receiver_uuid = $1
+                            AND message_number < $2
+                    ) as has_more
+                `;
+                const checkResult = await client.query(checkMoreQuery, [receiver_uuid, oldestMessageNumber]);
+                hasMore = checkResult.rows[0].has_more;
+            }
+
+            await markClassMessagesAsRead(receiver_uuid, sender_uuid, client);
+
+            await client.query('COMMIT');
+
+            res.json({
+                messages: messages,
+                hasMore: hasMore,
+                oldestMessageNumber: messages.length > 0 ? messages[0].message_number : null,
+                newestMessageNumber: messages.length > 0 ? messages[messages.length - 1].message_number : null
+            });
         }
-        
-        const result = await pool.query(query, queryParams);
-        
-        const messages = result.rows.reverse();
-        
-        let hasMore = false;
-        if (messages.length > 0) {
-            const oldestMessageNumber = messages[0].message_number;
-            const checkMoreQuery = `
-                SELECT EXISTS(
-                    SELECT 1 FROM messages 
-                    WHERE receiver_uuid = $1
-                        AND message_number < $2
-                ) as has_more
-            `;
-            const checkResult = await pool.query(checkMoreQuery, [receiver_uuid, oldestMessageNumber]);
-            hasMore = checkResult.rows[0].has_more;
-        }
-        
-        res.json({
-            messages: messages,
-            hasMore: hasMore,
-            oldestMessageNumber: messages.length > 0 ? messages[0].message_number : null,
-            newestMessageNumber: messages.length > 0 ? messages[messages.length - 1].message_number : null
-        });
-        
     } catch (err) {
+        if (!before_number) await client.query('ROLLBACK');
+        console.error(err);
         res.status(500).json({ message: 'Ошибка сервера' });
+    } finally {
+        client.release();
     }
 };
+
 const getNewMessages = async (req, res) => {
     const { session_id, receiver_link, after_number } = req.body;
-    
+    const client = await pool.connect();
+
     try {
-        const sessionResult = await pool.query(
+        const sessionResult = await client.query(
             'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
             [session_id]
         );
-        
+
         if (sessionResult.rows.length === 0) {
             return res.status(401).json({ message: 'Сеанс не найден' });
         }
-        
+
         const sender_uuid = sessionResult.rows[0].user_id;
-        
-        const receiverResult = await pool.query(
+
+        const receiverResult = await client.query(
             'SELECT id FROM classes WHERE link = $1',
             [receiver_link]
         );
-        
+
         if (receiverResult.rows.length === 0) {
             return res.status(404).json({ message: 'Класс не найден' });
         }
-        
+
         const receiver_uuid = receiverResult.rows[0].id;
 
-        const membershipResult = await pool.query(
+        const membershipResult = await client.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
             [receiver_uuid, sender_uuid]
         );
-        
+
         if (membershipResult.rowCount === 0) {
             return res.status(403).json({ message: 'У вас нет доступа к этому классу' });
         }
-        
+
+        await client.query('BEGIN');
+
         let query;
         let queryParams;
-        
+
         if (!after_number) {
             query = `
                 SELECT 
                     m.text, 
                     m.sent_at, 
                     m.message_number,
+                    m.is_read,
                     u.username as sender_username,
                     CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages m
@@ -234,6 +285,7 @@ const getNewMessages = async (req, res) => {
                     m.text, 
                     m.sent_at, 
                     m.message_number,
+                    m.is_read,
                     u.username as sender_username,
                     CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages m
@@ -244,22 +296,45 @@ const getNewMessages = async (req, res) => {
             `;
             queryParams = [sender_uuid, receiver_uuid, after_number];
         }
-        
-        const result = await pool.query(query, queryParams);
-        
+
+        const result = await client.query(query, queryParams);
+
         let messages = result.rows;
         if (!after_number) {
             messages = messages.reverse();
         }
-        
+
+        if (messages.length > 0) {
+            await markClassMessagesAsRead(receiver_uuid, sender_uuid, client);
+        }
+
+        const lastOutgoingResult = await client.query(`
+            SELECT is_read
+            FROM messages
+            WHERE sender_uuid = $1 AND receiver_uuid = $2
+            ORDER BY message_number DESC
+            LIMIT 1
+        `, [sender_uuid, receiver_uuid]);
+
+        let isLastOutgoingMessageRead = false;
+        if (lastOutgoingResult.rows.length > 0) {
+            isLastOutgoingMessageRead = lastOutgoingResult.rows[0].is_read;
+        }
+
+        await client.query('COMMIT');
+
         res.json({
             messages: messages,
             oldestMessageNumber: messages.length > 0 ? messages[0].message_number : null,
-            newestMessageNumber: messages.length > 0 ? messages[messages.length - 1].message_number : null
+            newestMessageNumber: messages.length > 0 ? messages[messages.length - 1].message_number : null,
+            is_last_outgoing_message_read: isLastOutgoingMessageRead
         });
-        
     } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(err);
         res.status(500).json({ message: 'Ошибка сервера', error: err.message });
+    } finally {
+        client.release();
     }
 };
 
