@@ -25,7 +25,7 @@ export class Account {
   user: any | null = null;
   editForm: FormGroup;
   passwordForm: FormGroup;
-  private _errorBar = inject(MatSnackBar);
+  //private _errorBar = inject(MatSnackBar);
   sessions$: Observable<any> = of(null);
   private _mode: string = 'none';
   public get mode(): string {
@@ -209,10 +209,11 @@ public editUser(): void {
       this.isTitleActive = 50;
   }
   openErrorBar(message: string) {
-    this._errorBar.open(message, 'Закрыть', {
-    duration: 3000,
-    horizontalPosition: 'center',
-    verticalPosition: 'bottom'
-  });
+    return;
+    //this._errorBar.open(message, 'Закрыть', {
+    //duration: 3000,
+    //horizontalPosition: 'center',
+    //verticalPosition: 'bottom'
+    //});
   }
 }
