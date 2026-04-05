@@ -2,10 +2,12 @@
   @if (user) {
   <div class="top-container">
     <div class="title">
-        <span [innerHTML]="user.full_name | truncate: isTitleActive" (click)="showTitle()"></span>
-      <button mat-mini-fab matSuffix [routerLink]="'/profile/' + user.username" [attr.aria-label]="'Профиль'">
-        <mat-icon>person</mat-icon>
-      </button>
+      <span [innerHTML]="user.full_name | truncate: isTitleActive" (click)="showTitle()"></span>
+      <button mat-icon-button [matMenuTriggerFor]="user_menu"><mat-icon>more_vert</mat-icon></button>
+      <mat-menu #user_menu>
+        <button mat-menu-item [routerLink]="'/profile/' + user.username">Профиль<mat-icon
+            matTextPrefix>person</mat-icon></button>
+      </mat-menu>
     </div>
   </div>
 
@@ -28,8 +30,8 @@
         <div class="message-meta">
           <span class="timestamp">{{ message.sent_at | dateToday }}</span>
           @if (message.type === 'outgoing') {
-            @if (message.is_read) {<mat-icon class="read-status">done_all</mat-icon>}
-            @else {<mat-icon class="read-status">check</mat-icon>}
+          @if (message.is_read) {<mat-icon class="read-status">done_all</mat-icon>}
+          @else {<mat-icon class="read-status">check</mat-icon>}
           }
         </div>
       </div>

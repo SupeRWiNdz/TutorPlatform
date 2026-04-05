@@ -3,14 +3,15 @@ import { ActivatedRoute, ActivatedRouteSnapshot, Router, RouterModule } from '@a
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthService } from '../../../services/auth.service';
-import { DataService } from '../../../services/data.service';
+import { AuthService } from '@services/auth.service';
+import { DataService } from '@services/data.service';
+import { RoleIconPipe } from "@pipes/role-icon.pipe";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: 'app-request',
   imports: [CommonModule, RouterModule,
-    MatButtonModule, MatProgressSpinnerModule
-  ],
+    MatButtonModule, MatProgressSpinnerModule, RoleIconPipe, MatIcon],
   templateUrl: './request.html',
   styleUrl: './request.scss',
 })

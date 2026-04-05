@@ -12,11 +12,12 @@ import { AdvancedFormatMessagePipe } from '@pipes/advanced-message.pipe';
 import { ClasschatService } from '@services/classchat.service';
 import { TruncatePipe } from "@pipes/truncate.pipe";
 import { DateTodayPipe } from "@pipes/date-today.pipe";
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-class',
   imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, TruncatePipe, DateTodayPipe],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, TruncatePipe, DateTodayPipe, MatMenuModule],
   templateUrl: './class-chat.html',
   styleUrl: './class-chat.scss',
 })

@@ -2,9 +2,11 @@
   @if (class.name) {
   <div class="top-container">
     <div class="title">
-      <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>
-      <button mat-mini-fab matSuffix [routerLink]="'/class/'+this.class.link+'/info/'"
-        [attr.aria-label]="'Информация'"><mat-icon>info</mat-icon></button>
+      <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>        
+        <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
+        <mat-menu #class_menu>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/info/'">Информация<mat-icon matTextPrefix>info</mat-icon></button>
+        </mat-menu>
     </div>
   </div>
 

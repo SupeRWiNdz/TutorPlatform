@@ -3,109 +3,114 @@
     Регистрация
   </div>
 </div>
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<div class="bottom-container">
+  <div class="inner-block">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-  <p class="input-box">
-    <mat-form-field appearance="outline">
-      <mat-label>Полное имя</mat-label>
-      <input matInput type="text" id="full_name" formControlName="full_name"
-        [class.is-invalid]="form.get('full_name')?.invalid && form.get('full_name')?.touched">
-      <mat-error>
-        @if (form.get('full_name')?.errors?.['required'])
-        {Введите полное имя}
-        @else if (form.get('full_name')?.errors)
-        {Введите корректное полное имя}
-      </mat-error>
-    </mat-form-field>
-  </p>
+      <p class="input-box">
+        <mat-form-field appearance="outline">
+          <mat-label>Полное имя</mat-label>
+          <input matInput type="text" id="full_name" formControlName="full_name"
+            [class.is-invalid]="form.get('full_name')?.invalid && form.get('full_name')?.touched">
+          <mat-error>
+            @if (form.get('full_name')?.errors?.['required'])
+            {Введите полное имя}
+            @else if (form.get('full_name')?.errors)
+            {Введите корректное полное имя}
+          </mat-error>
+        </mat-form-field>
+      </p>
 
-  <p class="input-box">
-    <mat-form-field appearance="outline">
-      <mat-label>Email</mat-label>
-      <input matInput type="email" id="email" formControlName="email"
-        [class.is-invalid]="form.get('email')?.invalid && form.get('email')?.touched" placeholder="example@mail.com">
-      <mat-error>
-        @if (form.get('email')?.errors?.['required'])
-        {Введите почту}
-        @if (form.get('email')?.errors?.['email'])
-        {Введите корректную почту}
-      </mat-error>
-    </mat-form-field>
-  </p>
+      <p class="input-box">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" id="email" formControlName="email"
+            [class.is-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+            placeholder="example@mail.com">
+          <mat-error>
+            @if (form.get('email')?.errors?.['required'])
+            {Введите почту}
+            @if (form.get('email')?.errors?.['email'])
+            {Введите корректную почту}
+          </mat-error>
+        </mat-form-field>
+      </p>
 
-  <p class="input-box">
-    <mat-form-field appearance="outline">
-      <mat-label>username</mat-label>
-      <input matInput type="text" id="username" formControlName="username"
-        [class.is-invalid]="form.get('username')?.invalid && form.get('username')?.touched">
-      <mat-error>
-        @if (form.get('username')?.errors?.['required'])
-        {Введите username}
-        @else if (form.get('username')?.errors)
-        {Введите корректный username}
-      </mat-error>
-    </mat-form-field>
-  </p>
+      <p class="input-box">
+        <mat-form-field appearance="outline">
+          <mat-label>username</mat-label>
+          <input matInput type="text" id="username" formControlName="username"
+            [class.is-invalid]="form.get('username')?.invalid && form.get('username')?.touched">
+          <mat-error>
+            @if (form.get('username')?.errors?.['required'])
+            {Введите username}
+            @else if (form.get('username')?.errors)
+            {Введите корректный username}
+          </mat-error>
+        </mat-form-field>
+      </p>
 
-  <div class="row-2">
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>Пароль</mat-label>
-        <input matInput [type]="hide() ? 'password' : 'text'" id="password" formControlName="password"
-          [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched">
-        <button matIconButton matSuffix (click)="clickEvent($event)" [attr.aria-label]="'Скрыть пароль'"
-          [attr.aria-pressed]="hide()">
-          <mat-icon>{{hide() ? 'visibility_off' : 'visibility'}}</mat-icon>
-        </button>
-        <mat-error>
-          @if (form.get('password')?.errors?.['required'])
-          {Введите пароль}
-          @else if (form.get('password')?.errors)
-          {Введите корректный пароль}
-        </mat-error>
-      </mat-form-field>
-    </p>
+      <div class="row-2">
+        <p class="input-box">
+          <mat-form-field appearance="outline">
+            <mat-label>Пароль</mat-label>
+            <input matInput [type]="hide() ? 'password' : 'text'" id="password" formControlName="password"
+              [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched">
+            <button matIconButton matSuffix (click)="clickEvent($event)" [attr.aria-label]="'Скрыть пароль'"
+              [attr.aria-pressed]="hide()">
+              <mat-icon>{{hide() ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error>
+              @if (form.get('password')?.errors?.['required'])
+              {Введите пароль}
+              @else if (form.get('password')?.errors)
+              {Введите корректный пароль}
+            </mat-error>
+          </mat-form-field>
+        </p>
 
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>Повторите пароль</mat-label>
-        <input matInput type="password" id="repeat_password" formControlName="repeat_password"
-          [class.is-invalid]="form.get('repeat_password')?.invalid&& form.get('repeat_password')?.touched">
-        <mat-error>
-          @if (form.get('repeat_password')?.errors?.['required'])
-          {Повторите пароль}
-          @else if (form.get('repeat_password')?.errors)
-          {Введите корректный пароль}
-        </mat-error>
-      </mat-form-field>
-    </p>
+        <p class="input-box">
+          <mat-form-field appearance="outline">
+            <mat-label>Повторите пароль</mat-label>
+            <input matInput type="password" id="repeat_password" formControlName="repeat_password"
+              [class.is-invalid]="form.get('repeat_password')?.invalid&& form.get('repeat_password')?.touched">
+            <mat-error>
+              @if (form.get('repeat_password')?.errors?.['required'])
+              {Повторите пароль}
+              @else if (form.get('repeat_password')?.errors)
+              {Введите корректный пароль}
+            </mat-error>
+          </mat-form-field>
+        </p>
+      </div>
+
+      <div class="row-2">
+        <p class="input-box">
+          <mat-form-field appearance="outline">
+            <mat-label>Телефон</mat-label>
+            <input matInput type="tel" id="phone" formControlName="phone" placeholder="89876543210">
+            <mat-error>
+              @if (form.get('phone')?.errors)
+              {Введите корректный номер телефона}
+            </mat-error>
+          </mat-form-field>
+        </p>
+
+        <p class="input-box">
+          <mat-form-field appearance="outline">
+            <mat-label>Дата рождения</mat-label>
+            <input matInput type="text" id="birth_date" formControlName="birth_date" placeholder="ДД.ММ.ГГГГ"
+              [class.is-invalid]="form.get('birth_date')?.invalid && form.get('birth_date')?.touched">
+            <mat-error>
+              @if (form.get('birth_date')?.errors)
+              {Введите корректную дату рождения}
+            </mat-error>
+          </mat-form-field>
+        </p>
+      </div>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid">Подтвердить</button>
+    </form>
   </div>
-
-  <div class="row-2">
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>Телефон</mat-label>
-        <input matInput type="tel" id="phone" formControlName="phone" placeholder="89876543210">
-        <mat-error>
-          @if (form.get('phone')?.errors)
-          {Введите корректный номер телефона}
-        </mat-error>
-      </mat-form-field>
-    </p>
-
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>Дата рождения</mat-label>
-        <input matInput type="text" id="birth_date" formControlName="birth_date" placeholder="ДД.ММ.ГГГГ"
-          [class.is-invalid]="form.get('birth_date')?.invalid && form.get('birth_date')?.touched">
-        <mat-error>
-          @if (form.get('birth_date')?.errors)
-          {Введите корректную дату рождения}
-        </mat-error>
-      </mat-form-field>
-    </p>
-  </div>
-
-  <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid">Подтвердить</button>
-</form>
-<span>Уже есть аккаунт? <a [routerLink]="'/login'">Войти</a></span>
+</div>
+<span class="account-redirect">Уже есть аккаунт? <a [routerLink]="'/login'" class="account-link">Войти</a></span>

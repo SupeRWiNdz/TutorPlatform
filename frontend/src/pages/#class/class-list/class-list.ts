@@ -13,11 +13,12 @@ import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
 import { TruncatePipe } from '@pipes/truncate.pipe';
 import { RoleNamePipe } from "@pipes/role-name.pipe";
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-class-list',
   imports: [CommonModule, ReactiveFormsModule, RoleIconPipe, TruncatePipe,
-    MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule, RoleNamePipe],
+    MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule, RoleNamePipe, MatMenuModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './class-list.html',
   styleUrl: './class-list.scss',

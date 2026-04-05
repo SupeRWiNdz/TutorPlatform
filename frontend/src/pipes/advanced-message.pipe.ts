@@ -15,7 +15,7 @@ export class AdvancedFormatMessagePipe implements PipeTransform {
         cleanUrl = attributeMatch[1];
       }
       
-      return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>`;
+      return `<a href="${cleanUrl}">${cleanUrl}</a>`;
     });
   }
 }

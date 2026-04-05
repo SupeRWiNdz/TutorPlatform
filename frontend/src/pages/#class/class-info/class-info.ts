@@ -15,10 +15,11 @@ import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
 import { MessagesService } from '@services/message.service';
 import { TruncatePipe } from "@pipes/truncate.pipe";
+import { RoleNamePipe } from '@pipes/role-name.pipe';
 
 @Component({
   selector: 'app-class',
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe, RoleIconPipe,
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe, RoleIconPipe, RoleNamePipe,
     MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, TruncatePipe],
   templateUrl: './class-info.html',
   styleUrl: './class-info.scss',

@@ -4,23 +4,24 @@
         <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>
         <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
         <mat-menu #class_menu>
-            @if (class.user_role == 'creator') {
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link">Чат класса<mat-icon matTextPrefix>message</mat-icon></button>
+            @if (class.user_role == 'creator')
+            {
             <button mat-menu-item (click)="editMode()">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
             <button mat-menu-item (click)="deleteMode()">Удалить класс<mat-icon
                     matTextPrefix>delete_forever</mat-icon></button>
             <button mat-menu-item (click)="createInvitation()">Создать общее приглашение<mat-icon
                     matTextPrefix>link</mat-icon></button>
-            } @else {<button mat-menu-item (click)="leave()">Выйти<mat-icon
-                    matTextPrefix>exit_to_app</mat-icon></button>}
+            } @else {
+            <button mat-menu-item (click)="leave()">Выйти<mat-icon matTextPrefix>exit_to_app</mat-icon></button>
+            }
         </mat-menu>
-        <button mat-mini-fab matSuffix [routerLink]="'/class/'+this.class.link"
-            [attr.aria-label]="'Чат класса'"><mat-icon>message</mat-icon></button>
     </div>
     @if (!isEditing) {
-    <div class="info">
-        {{class.description}}
-        Дата создания: {{class.created_at | date:'dd.MM.yyyy'}}
-        <mat-icon>{{class.user_role | roleIcon}}</mat-icon>
+    <div class="inner-block">
+        <p>{{class.description}}</p>
+        <p>Дата создания: {{class.created_at | date:'dd.MM.yyyy'}}</p>
+        <p>Ваша роль: {{class.user_role | roleName}}<mat-icon>{{class.user_role | roleIcon}}</mat-icon></p>
     </div>
     }
 </div>
@@ -35,29 +36,32 @@
     }
 
     @if (class.user_role == 'creator' && isEditing) {
-    <form [formGroup]="editClassForm">
-        <p class="input-box">
-            <mat-form-field appearance="outline">
-                <mat-label>Название</mat-label>
-                <input matInput formControlName="new_name" [placeholder]="class?.name || 'Загрузка...'">
-            </mat-form-field>
-        </p>
-        <p class="input-box">
-            <mat-form-field appearance="outline">
-                <mat-label>Описание</mat-label>
-                <input matInput formControlName="new_description" [placeholder]="class?.description || 'Загрузка...'">
-            </mat-form-field>
-        </p>
-        <p class="input-box">
-            <mat-form-field appearance="outline">
-                <mat-label>Ссылка</mat-label>
-                <input matInput formControlName="new_link" [placeholder]="class?.link || 'Загрузка...'">
-            </mat-form-field>
-        </p>
+    <div class="inner-block">
+        <form [formGroup]="editClassForm">
+            <p class="input-box">
+                <mat-form-field appearance="outline">
+                    <mat-label>Название</mat-label>
+                    <input matInput formControlName="new_name" [placeholder]="class?.name || 'Загрузка...'">
+                </mat-form-field>
+            </p>
+            <p class="input-box">
+                <mat-form-field appearance="outline">
+                    <mat-label>Описание</mat-label>
+                    <input matInput formControlName="new_description"
+                        [placeholder]="class?.description || 'Загрузка...'">
+                </mat-form-field>
+            </p>
+            <p class="input-box">
+                <mat-form-field appearance="outline">
+                    <mat-label>Ссылка</mat-label>
+                    <input matInput formControlName="new_link" [placeholder]="class?.link || 'Загрузка...'">
+                </mat-form-field>
+            </p>
 
-        <button mat-raised-button (click)="editClass()">Подтвердить</button>
-        <button mat-raised-button (click)="exitEditMode()">Отмена</button>
-    </form>
+            <button mat-raised-button (click)="editClass()">Подтвердить</button>
+            <button mat-raised-button (click)="exitEditMode()">Отмена</button>
+        </form>
+    </div>
     }
 
     @for (member of class.members; track member.username) {

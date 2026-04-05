@@ -1,10 +1,13 @@
 @use '@angular/material' as mat;
 
-span {
+.account-redirect {
+  margin-top: 28px;
+  display: block; 
       font-weight: 400;
-    }
-a {
+
+}
+.account-link {
     font-weight: 600;
     color: var(--mat-sys-primary);
     cursor: pointer;
-  }
+}

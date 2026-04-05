@@ -13,14 +13,12 @@
 }
 
 @mixin scrollable {
-    @include no-scrollbar;
-    max-height: calc(100vh);
-    width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
+  @include no-scrollbar;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh);
+  overflow-y: auto;
+
 }
 
 body {
@@ -38,6 +36,20 @@ button[mat-raised-button] {
   color: var(--mat-sys-primary);
 }
 
+.inner-block {
+  @include no-scrollbar;
+  flex-shrink: 0; 
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+  overflow: hidden;
+  width: 90%;
+  margin: 16px auto 0 auto;
+  box-sizing: border-box;
+  padding: 15px;
+  font: var(--mat-sys-title-medium);
+  font-weight: 400;
+}
+
 .top-container {
   @include flex-center;
   display: flex;
@@ -47,23 +59,20 @@ button[mat-raised-button] {
   font: var(--mat-sys-title-large);
   color: var(--mat-sys-on-surface);
 
-  .title {
-    font: var(--mat-sys-headline-small);
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
-
-  }
-
-  .info {
-    font: var(--mat-sys-title-medium);
-  }
+.title {
+  font: var(--mat-sys-headline-small);
+  display: inline-block;
+  padding: 16px 0 8px 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  margin-bottom: 8px;
+}
 }
 
 .bottom-container {
   @include scrollable;
   flex: 1;
   min-height: 0;
-  display: flex;
+  align-items: center;
   flex-direction: column;
 }
 
@@ -74,25 +83,30 @@ button[mat-raised-button] {
 
 .input-box {
   width: 100%;
+
   mat-form-field {
     width: 100%;
+
     .mat-mdc-text-field-wrapper {
       border-radius: 12px;
     }
+
     .mat-mdc-form-field-subscript-wrapper {
       min-height: 18px;
     }
   }
 }
+
 .row-2 {
-      grid-template-columns: 1fr 1fr;
-      display: grid;
-      gap: 14px;
-      margin-top:-16px;
-       > * {
+  grid-template-columns: 1fr 1fr;
+  display: grid;
+  gap: 14px;
+  margin-top: -16px;
+
+  >* {
     min-width: 0;
   }
-    }
+}
 
 .chat-container {
   display: flex;
@@ -188,6 +202,7 @@ button[mat-raised-button] {
     line-height: 1.4;
     white-space: pre-wrap;
   }
+
   .message-header {
     display: flex;
     justify-content: flex-start;

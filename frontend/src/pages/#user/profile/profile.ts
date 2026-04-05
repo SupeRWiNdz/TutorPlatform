@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { TruncatePipe } from "@pipes/truncate.pipe";
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-profile',
   imports: [CommonModule, RouterModule,
-    MatButtonModule, MatIconModule, TruncatePipe],
+    MatButtonModule, MatIconModule, TruncatePipe, MatMenuModule],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })

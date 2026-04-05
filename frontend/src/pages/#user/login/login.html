@@ -3,33 +3,37 @@
     Войти в систему
   </div>
 </div>
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <p class="input-box">
-    <mat-form-field appearance="outline">
-      <mat-label>Электронная почта</mat-label>
-      <input matInput formControlName="email" placeholder="example@mail.com">
-      <mat-error>
-        @if (form.get('email')?.errors?.['required'])
-        {Введите почту}
-        @else if (form.get('email')?.errors?.['email'])
-        {Введите корректную почту}
-      </mat-error>
-    </mat-form-field>
-  </p>
-  <p class="input-box">
-    <mat-form-field appearance="outline">
-      <mat-label>Пароль</mat-label>
-      <input matInput [type]="hide() ? 'password' : 'text'" formControlName="password">
-      <button type="button" matIconButton matSuffix (click)="clickEvent($event)" [attr.aria-label]="'Скрыть пароль'"
-        [attr.aria-pressed]="hide()">
-        <mat-icon>{{hide() ? 'visibility_off' : 'visibility'}}</mat-icon>
-      </button>
-      <mat-error>
-        @if (form.get('password')?.errors?.['required'])
-        {Введите пароль}
-      </mat-error>
-    </mat-form-field>
-  </p>
-  <button mat-raised-button type="submit" [disabled]="!form.valid">Подтвердить</button>
-</form>
-<span>Нет аккаунта? <a [routerLink]="'/register'">Зарегистрироваться</a></span>
+<div class="bottom-container">
+  <div class="inner-block">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <p class="input-box">
+        <mat-form-field appearance="outline">
+          <mat-label>Электронная почта</mat-label>
+          <input matInput formControlName="email" placeholder="example@mail.com">
+          <mat-error>
+            @if (form.get('email')?.errors?.['required'])
+            {Введите почту}
+            @else if (form.get('email')?.errors?.['email'])
+            {Введите корректную почту}
+          </mat-error>
+        </mat-form-field>
+      </p>
+      <p class="input-box">
+        <mat-form-field appearance="outline">
+          <mat-label>Пароль</mat-label>
+          <input matInput [type]="hide() ? 'password' : 'text'" formControlName="password">
+          <button type="button" matIconButton matSuffix (click)="clickEvent($event)" [attr.aria-label]="'Скрыть пароль'"
+            [attr.aria-pressed]="hide()">
+            <mat-icon>{{hide() ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error>
+            @if (form.get('password')?.errors?.['required'])
+            {Введите пароль}
+          </mat-error>
+        </mat-form-field>
+      </p>
+      <button mat-raised-button type="submit" [disabled]="!form.valid">Подтвердить</button>
+    </form>
+  </div>
+</div>
+<span class="account-redirect">Нет аккаунта? <a [routerLink]="'/register'" class="account-link">Зарегистрироваться</a></span>

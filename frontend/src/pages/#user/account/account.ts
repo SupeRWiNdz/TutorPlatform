@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { catchError, Observable, of } from 'rxjs';
@@ -12,12 +12,12 @@ import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { TruncatePipe } from "@pipes/truncate.pipe";
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-account',
   imports: [CommonModule, ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, MatDatepickerModule, TruncatePipe],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './account.html',
   styleUrl: './account.scss',
 })
@@ -25,7 +25,7 @@ export class Account {
   user: any | null = null;
   editForm: FormGroup;
   passwordForm: FormGroup;
-  errorMessage: string = '';
+  private _errorBar = inject(MatSnackBar);
   sessions$: Observable<any> = of(null);
   private _mode: string = 'none';
   public get mode(): string {
@@ -70,7 +70,7 @@ ngOnInit(): void {
     if (this.authService.tokenValue)
       this.sessions$ = this.dataService.sessionDS.get(this.authService.tokenValue).pipe(
       catchError(err => {
-        this.errorMessage = err?.error?.message || 'Не удалось загрузить сеансы';
+        this.openErrorBar(err?.error?.message || 'Не удалось загрузить сеансы');
         return of(null);
       })
     );
@@ -91,7 +91,7 @@ closeOtherSessions(): void {
     if (response) {
       this.sessions$ = this.dataService.sessionDS.get(token).pipe(
         catchError(err => {
-          this.errorMessage = err?.error?.message || 'Не удалось загрузить сеансы';
+          this.openErrorBar(err?.error?.message || 'Не удалось загрузить сеансы');
           return of(null);
         })
       );
@@ -108,14 +108,13 @@ closeOtherSessions(): void {
     return;
   }
   if (this.passwordForm.pending || this.passwordForm.invalid) {
-    this.errorMessage = 'Введите старый и новый пароли';
+    this.openErrorBar('Введите старый и новый пароли');
     return;
   }
   const { old_password, new_password } = this.passwordForm.value;
-  this.errorMessage = '';
   this.dataService.userDS.changePassword(sessionId, old_password, new_password).pipe(
     catchError(error => {
-      this.errorMessage = error.error?.message || 'Ошибка смены пароля';
+      this.openErrorBar(error.error?.message || 'Ошибка смены пароля');
       this.cdr.detectChanges();
       return of(null);
     })
@@ -150,7 +149,7 @@ public editUser(): void {
     .editUser(requestData)
     .pipe(
       catchError(error => {
-        this.errorMessage = error?.error?.message || 'Ошибка обновления профиля';
+        this.openErrorBar(error?.error?.message || 'Ошибка обновления профиля');
         this.cdr.detectChanges();
         return of(null);
       })
@@ -208,5 +207,12 @@ public editUser(): void {
       this.isTitleActive = -1;
     else
       this.isTitleActive = 50;
+  }
+  openErrorBar(message: string) {
+    this._errorBar.open(message, 'Закрыть', {
+    duration: 3000,
+    horizontalPosition: 'center',
+    verticalPosition: 'bottom'
+  });
   }
 }

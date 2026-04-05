@@ -2,13 +2,20 @@
 <div class="top-container">
   <div class="title">
     <span [innerHTML]="user.full_name | truncate: isTitleActive" (click)="showTitle()"></span>
-    <button mat-mini-fab matSuffix [routerLink]="'/chat/' + user.username"
-      [attr.aria-label]="'Личный чат'"><mat-icon>message</mat-icon></button>
+    <button mat-icon-button [matMenuTriggerFor]="user_menu"><mat-icon>more_vert</mat-icon></button>
+    <mat-menu #user_menu>
+      <button mat-menu-item [routerLink]="'/chat/' + user.username">Сообщения<mat-icon
+          matTextPrefix>message</mat-icon></button>
+    </mat-menu>
   </div>
-  <div class="info">
-    <span>{{ user.birth_date | date:'dd.MM.yyyy' }}</span>
-    @if (user.gender === 'M') {<mat-icon>male</mat-icon>}
-    @if (user.gender === 'F') {<mat-icon>female</mat-icon>}
+</div>
+<div class="bottom-container">
+  <div class="inner-block">
+    <p>
+      Дата рождения: {{ user.birth_date | date:'dd.MM.yyyy' }}
+      @if (user.gender === 'M') {<mat-icon>male</mat-icon>}
+      @if (user.gender === 'F') {<mat-icon>female</mat-icon>}
+    </p>
   </div>
 </div>
 }

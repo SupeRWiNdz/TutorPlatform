@@ -1,15 +1,22 @@
 @if (classes$ | async; as response) {
 <div class="top-container">
   <div class="title">
-    Всего классов: {{ response.total_classes }}<button mat-mini-fab matSuffix (click)="createMode()"
-      [attr.aria-label]="'Создать класс'"><mat-icon>add</mat-icon></button>
+    @if (!isCreating) {
+    Всего классов: {{ response.total_classes }}
+    <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
+    <mat-menu #class_menu>
+      <button mat-menu-item (click)="createMode()">Создать класс<mat-icon
+          matTextPrefix>add</mat-icon></button>
+    </mat-menu>
+  }
   </div>
 </div>
 <div class="bottom-container">
   @if (isCreating)
   {
+    <div class="inner-block">
+      Создать класс
   <form [formGroup]="createClassForm">
-
     <p class="input-box">
       <mat-form-field appearance="outline">
         <mat-label>Название</mat-label>
@@ -49,6 +56,7 @@
     <button (click)="createClass()" mat-raised-button>Подтвердить</button>
     <button (click)="exitCreateMode()" mat-raised-button>Отмена</button>
   </form>
+  </div>
   }
   @else
   {
