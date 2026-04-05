@@ -1,3 +1,4 @@
+@if (response && response.name) {
 <div class="top-container">
     <div class="title">
         Приглашение в класс:
@@ -5,10 +6,6 @@
 </div>
 <div class="bottom-container">
     <div class="inner-block">
-        @if (response)
-        {
-        @if (response.name)
-        {
         <p>{{response.name}}</p>
         <p>{{response.description}}</p>
         <p>{{response.created_at | date:'dd.MM.yyyy HH:mm'}}</p>
@@ -18,8 +15,6 @@
         }
         <button mat-raised-button (click)="accept()">Принять</button>
         <button mat-raised-button (click)="decline()">Отклонить</button>
-        }
-        @else if (response.message) { {{response.message}} }
-        }
     </div>
 </div>
+}

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { catchError } from 'rxjs/operators';
@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-login',
@@ -21,7 +22,14 @@ import { DataService } from '@services/data.service';
 })
 export class LoginComponent {
   form: FormGroup;
-
+  private _snackBar = inject(MatSnackBar);
+  openSnackBar(message: string) {
+    this._snackBar.open(message, 'Закрыть', {
+    duration: 3000,
+    horizontalPosition: 'center',
+    verticalPosition: 'bottom'
+    });
+  }
   constructor(
     private fb: FormBuilder,
     private dataService: DataService,
@@ -35,7 +43,6 @@ export class LoginComponent {
   }
 
   onSubmit(): void {
-    //console.log(this.form.get('email')?.errors);
     if (this.form.pending || this.form.invalid) {
       return;
     }
@@ -44,7 +51,7 @@ export class LoginComponent {
 
     this.dataService.sessionDS.login(email, password).pipe(
       catchError(error => {
-        //this.errorMessage = error.error?.message || 'Ошибка при входе';
+        this.openSnackBar(error.error?.message || 'Ошибка при входе');
         return of(null);
       })
     ).subscribe({

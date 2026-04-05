@@ -25,7 +25,14 @@ export class Account {
   user: any | null = null;
   editForm: FormGroup;
   passwordForm: FormGroup;
-  private _errorBar = inject(MatSnackBar);
+  private _snackBar = inject(MatSnackBar);
+  openSnackBar(message: string) {
+    this._snackBar.open(message, 'Закрыть', {
+    duration: 3000,
+    horizontalPosition: 'center',
+    verticalPosition: 'bottom'
+    });
+  }
   sessions$: Observable<any> = of(null);
   private _mode: string = 'none';
   public get mode(): string {
@@ -70,7 +77,7 @@ ngOnInit(): void {
     if (this.authService.tokenValue)
       this.sessions$ = this.dataService.sessionDS.get(this.authService.tokenValue).pipe(
       catchError(err => {
-        this.openErrorBar(err?.error?.message || 'Не удалось загрузить сеансы');
+        this.openSnackBar(err?.error?.message || 'Не удалось загрузить сеансы');
         return of(null);
       })
     );
@@ -82,6 +89,7 @@ ngOnInit(): void {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+    this.openSnackBar('Вы успешно вышли из аккаунта');
   }
 
 closeOtherSessions(): void {
@@ -91,10 +99,11 @@ closeOtherSessions(): void {
     if (response) {
       this.sessions$ = this.dataService.sessionDS.get(token).pipe(
         catchError(err => {
-          this.openErrorBar(err?.error?.message || 'Не удалось загрузить сеансы');
+          this.openSnackBar(err?.error?.message || 'Не удалось загрузить сеансы');
           return of(null);
         })
       );
+      this.openSnackBar('Вы успешно закрыли другие сеансы');
       this.cdr.detectChanges();
     }
   });
@@ -108,13 +117,13 @@ closeOtherSessions(): void {
     return;
   }
   if (this.passwordForm.pending || this.passwordForm.invalid) {
-    this.openErrorBar('Введите старый и новый пароли');
+    this.openSnackBar('Введите старый и новый пароли');
     return;
   }
   const { old_password, new_password } = this.passwordForm.value;
   this.dataService.userDS.changePassword(sessionId, old_password, new_password).pipe(
     catchError(error => {
-      this.openErrorBar(error.error?.message || 'Ошибка смены пароля');
+      this.openSnackBar(error.error?.message || 'Ошибка смены пароля');
       this.cdr.detectChanges();
       return of(null);
     })
@@ -149,7 +158,7 @@ public editUser(): void {
     .editUser(requestData)
     .pipe(
       catchError(error => {
-        this.openErrorBar(error?.error?.message || 'Ошибка обновления профиля');
+        this.openSnackBar(error?.error?.message || 'Ошибка обновления профиля');
         this.cdr.detectChanges();
         return of(null);
       })
@@ -207,12 +216,5 @@ public editUser(): void {
       this.isTitleActive = -1;
     else
       this.isTitleActive = 50;
-  }
-  openErrorBar(message: string) {
-    this._errorBar.open(message, 'Закрыть', {
-    duration: 3000,
-    horizontalPosition: 'center',
-    verticalPosition: 'bottom'
-    });
   }
 }

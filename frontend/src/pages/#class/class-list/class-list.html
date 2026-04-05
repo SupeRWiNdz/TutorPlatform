@@ -53,7 +53,7 @@
         </mat-error>
       </mat-form-field>
     </p>
-    <button (click)="createClass()" mat-raised-button>Подтвердить</button>
+    <button (click)="createClass()" [disabled]="!createClassForm.valid" mat-raised-button>Подтвердить</button>
     <button (click)="exitCreateMode()" mat-raised-button>Отмена</button>
   </form>
   </div>
