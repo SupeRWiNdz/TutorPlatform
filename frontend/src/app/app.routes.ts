@@ -24,8 +24,8 @@ import { ChatMessagesResolver } from '@resolvers/messages.resolver';
 import { ClassChatResolver } from '@resolvers/classchat.resolver';
 
 export const routes: Routes = [
-  { 
-    path: '', 
+  {
+    path: '',
     resolve: { user: UserResolver },
     children: [
       {
@@ -40,20 +40,20 @@ export const routes: Routes = [
         title: 'Список чатов'
       },
       {
-        path: 'login', 
+        path: 'login',
         component: LoginComponent,
         title: 'Войти в аккаунт'
       },
       {
-        path: 'register', 
+        path: 'register',
         component: RegisterComponent,
         title: 'Зарегистрироваться'
       },
-      { 
-        path: 'account', 
+      {
+        path: 'account',
         component: Account,
         canActivate: [AuthGuard],
-        resolve: {account: AccountResolver},
+        resolve: { account: AccountResolver },
         title: 'Настройки аккаунта'
       },
       {
@@ -66,9 +66,10 @@ export const routes: Routes = [
         path: 'chat/:username',
         component: Chat,
         canActivate: [AuthGuard],
-        resolve: { profile: ProfileResolver,
-              messages: ChatMessagesResolver
-         }
+        resolve: {
+          profile: ProfileResolver,
+          messages: ChatMessagesResolver
+        }
       },
       {
         path: 'class',
@@ -79,11 +80,13 @@ export const routes: Routes = [
       {
         path: 'class/:link',
         component: ClassChat,
-        resolve: { class: ClassResolver,
-              messages: ClassChatResolver },
+        resolve: {
+          class: ClassResolver,
+          messages: ClassChatResolver
+        },
         canActivate: [AuthGuard]
       },
-            {
+      {
         path: 'class/:link/info',
         component: ClassInfo,
         resolve: { class: ClassResolver },

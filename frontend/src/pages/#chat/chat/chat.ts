@@ -50,15 +50,24 @@ export class Chat implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.route.data.subscribe(data => {
       this.user = data['profile'];
+      if (this.user?.username) {
+        this.messagesService.loadMessagesForUser(this.user.username);
+      }
     });
 
     this.messagesSubscription = this.messages$.subscribe(messages => {
       if (messages) {
         if (!this.initialScroll) {
-          setTimeout(() => { this.scrollToBottom('instant'); this.initialScroll = true; }, 50);
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.scrollToBottom('instant');
+            this.initialScroll = true;
+          }, 0);
         }
-        else if (this.getScrollPosition() == 'down')
-          setTimeout(() => this.scrollToBottom(), 1);
+        else if (this.getScrollPosition() == 'down') {
+          this.cdr.detectChanges();
+          setTimeout(() => this.scrollToBottom(), 0);
+        }
       }
     });
   }
@@ -76,7 +85,8 @@ export class Chat implements OnInit, OnDestroy {
     this.messagesService.sendMessageForUser(this.user.username, message);
 
     this.chatForm.reset();
-    setTimeout(() => this.scrollToBottom(), 100);
+    this.cdr.detectChanges();
+    setTimeout(() => this.scrollToBottom(), 0);
   }
 
   public loadMoreMessages(): void {
@@ -96,7 +106,6 @@ export class Chat implements OnInit, OnDestroy {
     if (!container) return null;
 
     const scrollTop = container.scrollTop;
-
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
 
@@ -131,6 +140,7 @@ export class Chat implements OnInit, OnDestroy {
       el.scrollTop = top;
     }
   }
+
   public showTitle(): void {
     if (this.isTitleActive == 50)
       this.isTitleActive = -1;
