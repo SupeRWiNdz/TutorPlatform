@@ -15,7 +15,6 @@ const login = async (req, res) => {
                 full_name,
                 phone,
                 birth_date,
-                gender,
                 created_at,
                 updated_at,
                 avatar_url,

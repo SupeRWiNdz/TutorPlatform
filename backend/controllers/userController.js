@@ -24,7 +24,6 @@ const getUserData = async (req, res) => {
             u.full_name,
             u.phone,
             u.birth_date,
-            u.gender,
             u.created_at,
             u.updated_at,
             u.avatar_url,
@@ -172,7 +171,7 @@ const getUserByUsername = async (req, res) => {
     try {
         const { username } = req.params;
         const result = await pool.query(
-            'SELECT username, full_name, birth_date, gender FROM users WHERE username = $1',
+            'SELECT username, full_name, birth_date FROM users WHERE username = $1',
             [username]
         );
         
@@ -187,14 +186,14 @@ const getUserByUsername = async (req, res) => {
 };
 
 const editUser = async (req, res) => {
-    const { session_id, new_email, new_username, new_full_name, new_phone, new_birth_date, new_gender } = req.body;
+    const { session_id, new_email, new_username, new_full_name, new_phone, new_birth_date } = req.body;
     
     if (!session_id) {
         return res.status(400).json({ message: 'Не выполнен вход' });
     }
     
     // Проверяем, что хотя бы одно поле для изменения передано
-    if (!new_email && !new_username && !new_full_name && !new_phone && !new_birth_date && !new_gender) {
+    if (!new_email && !new_username && !new_full_name && !new_phone && !new_birth_date) {
         return res.status(400).json({ message: 'Не указаны данные для изменения' });
     }
 
@@ -219,7 +218,7 @@ const editUser = async (req, res) => {
         
         // 2. Получаем текущие данные пользователя
         const userResult = await client.query(
-            `SELECT id, email, username, full_name, phone, birth_date, gender 
+            `SELECT id, email, username, full_name, phone, birth_date 
              FROM users WHERE id = $1`,
             [userId]
         );
@@ -344,14 +343,6 @@ const editUser = async (req, res) => {
         }
         }
         
-        // Проверка gender, если он изменяется
-        if (new_gender !== undefined) {
-            if (new_gender !== null && !['M', 'F', 'O'].includes(new_gender)) {
-                await client.query('ROLLBACK');
-                return res.status(400).json({ message: 'Некорректное значение пола. Допустимые значения: M, F, O' });
-            }
-        }
-        
         // 4. Формируем запрос на обновление и объект с изменениями
         const updateFields = [];
         const updateValues = [];
@@ -403,16 +394,6 @@ const editUser = async (req, res) => {
             }
         }
         
-        if (new_gender !== undefined) {
-            const genderValue = new_gender || null;
-            if (genderValue !== currentUser.gender) {
-                updateFields.push(`gender = $${paramCounter}`);
-                updateValues.push(genderValue);
-                changedFields.gender = genderValue;
-                paramCounter++;
-            }
-        }
-        
         // Добавляем updated_at
         updateFields.push(`updated_at = NOW()`);
         
@@ -430,7 +411,7 @@ const editUser = async (req, res) => {
             UPDATE users 
             SET ${updateFields.join(', ')}
             WHERE id = $${paramCounter}
-            RETURNING id, email, username, full_name, phone, birth_date, gender
+            RETURNING id, email, username, full_name, phone, birth_date
         `;
         
         const updateResult = await client.query(updateQuery, updateValues);
@@ -447,8 +428,7 @@ const editUser = async (req, res) => {
                     username: 'имя пользователя',
                     full_name: 'полное имя',
                     phone: 'телефон',
-                    birth_date: 'дату рождения',
-                    gender: 'пол'
+                    birth_date: 'дату рождения'
                 };
                 return fieldNames[field] || field;
             })
@@ -467,8 +447,7 @@ const editUser = async (req, res) => {
                 phone: updateResult.rows[0].phone,
                 birth_date: updateResult.rows[0].birth_date 
                 ? formatDate(updateResult.rows[0].birth_date) 
-                : null,
-                gender: updateResult.rows[0].gender
+                : null
             }
         });
         

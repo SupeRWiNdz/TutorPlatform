@@ -173,7 +173,6 @@ public editUser(): void {
       if (cf.full_name !== undefined) this.user.full_name = cf.full_name;
       if (cf.phone !== undefined) this.user.phone = cf.phone;
       if (cf.birth_date !== undefined) this.user.birth_date = cf.birth_date;
-      if (cf.gender !== undefined) this.user.gender = cf.gender;
       
       this.exitEditMode()
       this.authService.loadUserData();

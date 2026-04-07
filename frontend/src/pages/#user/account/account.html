@@ -20,8 +20,6 @@
       {{user.email}}
       {{user.phone}}
       {{user.username}}
-      @if (user.gender === 'M') {<mat-icon>male</mat-icon>}
-      @if (user.gender === 'F') {<mat-icon>female</mat-icon>}
     </p>
     <p>Дата рождения: {{ user.birth_date }}</p>
     <p>Дата регистрации: {{user.created_at| date:'dd.MM.yyyy'}}</p>

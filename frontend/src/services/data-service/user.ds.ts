@@ -25,8 +25,7 @@ export class UserDataService {
   new_username?: string,
   new_full_name?: string,
   new_phone?: string,
-  new_birth_date?: string,
-  new_gender?: 'M' | 'F' | 'O'
+  new_birth_date?: string
 }): Observable<any> {
   const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
     if (value !== undefined && value !== '') {
