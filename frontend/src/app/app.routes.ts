@@ -20,6 +20,8 @@ import { LoginComponent } from '@pages/#user/login/login';
 import { Profile } from '@pages/#user/profile/profile';
 import { RegisterComponent } from '@pages/#user/register/register';
 import { Request } from '@pages/#class/request/request';
+import { ChatMessagesResolver } from '@resolvers/messages.resolver';
+import { ClassChatResolver } from '@resolvers/classchat.resolver';
 
 export const routes: Routes = [
   { 
@@ -64,7 +66,9 @@ export const routes: Routes = [
         path: 'chat/:username',
         component: Chat,
         canActivate: [AuthGuard],
-        resolve: { profile: ProfileResolver }
+        resolve: { profile: ProfileResolver,
+              messages: ChatMessagesResolver
+         }
       },
       {
         path: 'class',
@@ -75,7 +79,8 @@ export const routes: Routes = [
       {
         path: 'class/:link',
         component: ClassChat,
-        resolve: { class: ClassResolver },
+        resolve: { class: ClassResolver,
+              messages: ClassChatResolver },
         canActivate: [AuthGuard]
       },
             {

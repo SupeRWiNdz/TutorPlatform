@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Resolve, ActivatedRouteSnapshot, Router } from '@angular/router';
-import { Title } from '@angular/platform-browser';
-import { Observable, catchError, map, tap, of, EMPTY } from 'rxjs';
+import { Resolve, } from '@angular/router';
+import { Observable, catchError, of } from 'rxjs';
 import { DataService } from '../services/data.service';
 import { AuthService } from '../services/auth.service';
 
@@ -12,7 +11,7 @@ export class AccountResolver implements Resolve<any | null> {
     private authService: AuthService
   ) {}
 
-  resolve(route: ActivatedRouteSnapshot): Observable<any | null> {
+  resolve(): Observable<any | null> {
     const token = this.authService.tokenValue;
     
     if (!token) {

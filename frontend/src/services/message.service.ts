@@ -52,6 +52,19 @@ export class MessagesService implements OnDestroy {
       this.loadInitialMessages(receiver_username);
     }
   }
+public setInitialState(receiver: string, response: any): void {
+  this.resetState();
+  this.currentReceiverUsername = receiver;
+
+  this.allMessages = response?.messages ?? [];
+  this.messagesSubject.next(this.allMessages);
+
+  this.oldestMessageNumber = response?.oldestMessageNumber ?? null;
+  this.newestMessageNumber = response?.newestMessageNumber ?? null;
+  this.hasMoreSubject.next(!!response?.hasMore);
+
+  this.startPolling();
+}
 
   public loadMoreMessages(): void {
     if (this.currentReceiverUsername && this.oldestMessageNumber && this.newestMessageNumber && !this.isLoadingSubject.value) {

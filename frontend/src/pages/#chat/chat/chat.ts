@@ -50,9 +50,6 @@ export class Chat implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.route.data.subscribe(data => {
       this.user = data['profile'];
-      if (this.user?.username) {
-        this.messagesService.loadMessagesForUser(this.user.username);
-      }
     });
 
     this.messagesSubscription = this.messages$.subscribe(messages => {

@@ -19,7 +19,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class Request implements OnInit {
 
   response: any | null = null;
-
   private _snackBar = inject(MatSnackBar);
   openSnackBar(message: string) {
     this._snackBar.open(message, 'Закрыть', {

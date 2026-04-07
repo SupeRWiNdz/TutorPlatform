@@ -52,6 +52,20 @@ export class ClasschatService implements OnDestroy {
     }
   }
 
+  public setInitialState(receiver: string, response: any): void {
+  this.resetState();
+  this.currentReceiverLink = receiver;
+
+  this.allMessages = response?.messages ?? [];
+  this.messagesSubject.next(this.allMessages);
+
+  this.oldestMessageNumber = response?.oldestMessageNumber ?? null;
+  this.newestMessageNumber = response?.newestMessageNumber ?? null;
+  this.hasMoreSubject.next(!!response?.hasMore);
+
+  this.startPolling();
+}
+
   public loadMoreMessages(): void {
     if (this.currentReceiverLink && this.oldestMessageNumber && this.newestMessageNumber && !this.isLoadingSubject.value) {
       this.isLoadingSubject.next(true);
