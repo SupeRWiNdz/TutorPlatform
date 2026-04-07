@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, OnInit, PLATFORM_ID, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -37,8 +37,7 @@ export class ClassChat implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private classchatService: ClasschatService,
-    private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private fb: FormBuilder
   ) {
     this.messages$ = this.classchatService.messages$;
     this.hasMore$ = this.classchatService.hasMore$;
@@ -59,15 +58,13 @@ export class ClassChat implements OnInit {
       this.messagesSubscription = this.messages$.subscribe(messages => {
       if (messages) {
         if (!this.initialScroll) {
-          this.cdr.detectChanges();
-          setTimeout(() => {
+          queueMicrotask(() => {
             this.scrollToBottom('instant');
             this.initialScroll = true;
-          }, 0);
+          });
         }
         else if (this.getScrollPosition() == 'down') {
-          this.cdr.detectChanges();
-          setTimeout(() => this.scrollToBottom(), 0);
+          queueMicrotask(() => this.scrollToBottom());
         }
       }
     });
@@ -87,8 +84,7 @@ export class ClassChat implements OnInit {
     const { message } = this.chatForm.value;
     this.classchatService.sendMessageForUser(this.class.link, message);
     this.chatForm.reset();
-    this.cdr.detectChanges();
-    setTimeout(() => this.scrollToBottom(), 0);
+    queueMicrotask(() => this.scrollToBottom());
   }
   public loadMoreMessages(): void {
     this.classchatService.loadMoreMessages();

@@ -35,8 +35,7 @@ export class Chat implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private messagesService: MessagesService,
     public router: Router,
-    private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private fb: FormBuilder
   ) {
     this.messages$ = this.messagesService.messages$;
     this.hasMore$ = this.messagesService.hasMore$;
@@ -58,15 +57,13 @@ export class Chat implements OnInit, OnDestroy {
     this.messagesSubscription = this.messages$.subscribe(messages => {
       if (messages) {
         if (!this.initialScroll) {
-          this.cdr.detectChanges();
-          setTimeout(() => {
+          queueMicrotask(() => {
             this.scrollToBottom('instant');
             this.initialScroll = true;
-          }, 0);
+          });
         }
         else if (this.getScrollPosition() == 'down') {
-          this.cdr.detectChanges();
-          setTimeout(() => this.scrollToBottom(), 0);
+          queueMicrotask(() => this.scrollToBottom());
         }
       }
     });
@@ -85,8 +82,7 @@ export class Chat implements OnInit, OnDestroy {
     this.messagesService.sendMessageForUser(this.user.username, message);
 
     this.chatForm.reset();
-    this.cdr.detectChanges();
-    setTimeout(() => this.scrollToBottom(), 0);
+    queueMicrotask(() => this.scrollToBottom());
   }
 
   public loadMoreMessages(): void {
