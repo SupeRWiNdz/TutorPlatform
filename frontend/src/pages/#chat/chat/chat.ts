@@ -16,7 +16,7 @@ import { MatMenuModule } from '@angular/material/menu';
 @Component({
   selector: 'app-chat',
   imports: [CommonModule, RouterModule, ReactiveFormsModule, AdvancedFormatMessagePipe, TruncatePipe, DateTodayPipe,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule ],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule],
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
 })
@@ -35,7 +35,8 @@ export class Chat implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private messagesService: MessagesService,
     public router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {
     this.messages$ = this.messagesService.messages$;
     this.hasMore$ = this.messagesService.hasMore$;
@@ -63,7 +64,8 @@ export class Chat implements OnInit, OnDestroy {
           });
         }
         else if (this.getScrollPosition() == 'down') {
-          queueMicrotask(() => this.scrollToBottom());
+          this.cdr.detectChanges();
+          setTimeout(() => this.scrollToBottom(), 30);
         }
       }
     });
@@ -82,7 +84,8 @@ export class Chat implements OnInit, OnDestroy {
     this.messagesService.sendMessageForUser(this.user.username, message);
 
     this.chatForm.reset();
-    queueMicrotask(() => this.scrollToBottom());
+    this.cdr.detectChanges();
+    setTimeout(() => this.scrollToBottom(), 30);
   }
 
   public loadMoreMessages(): void {

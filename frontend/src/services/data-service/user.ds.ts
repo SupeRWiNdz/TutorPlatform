@@ -37,6 +37,7 @@ export class UserDataService {
   return this.http.post<any>(`${this.apiUrl}/users/edit`, filteredData);
 }
 register(userData: {
+  account_type: string,
   email: string,
   password: string,
   phone?: string,

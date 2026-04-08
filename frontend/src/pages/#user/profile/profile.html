@@ -12,6 +12,11 @@
 <div class="bottom-container">
   <div class="inner-block">
     <p>
+      @if (user.is_teacher) {Учитель}
+      @if (user.is_student) {Ученик}
+      @if (user.is_parent) {Родитель}
+    </p>
+    <p>
       Дата рождения: {{ user.birth_date | date:'dd.MM.yyyy' }}
     </p>
   </div>

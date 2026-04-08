@@ -17,6 +17,11 @@
 @if (mode=='none') {
     <div class="inner-block">
     <p>
+      @if (user.is_teacher) {Учитель}
+      @if (user.is_student) {Ученик}
+      @if (user.is_parent) {Родитель}
+    </p>
+    <p>
       {{user.email}}
       {{user.phone}}
       {{user.username}}

@@ -7,13 +7,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AuthService } from '../../../services/auth.service';
-import { DataService } from '../../../services/data.service';
+import { AuthService } from '@services/auth.service';
+import { DataService } from '@services/data.service';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 @Component({
   selector: 'app-register',
   imports: [ReactiveFormsModule, CommonModule, RouterModule,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatButtonToggleModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './register.html',
   styleUrl: '../user.scss',
@@ -29,6 +30,7 @@ export class RegisterComponent {
     private router: Router
   ) {
     this.form = this.fb.group({
+      account_type: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       repeat_password: ['', [Validators.required, Validators.minLength(6)]],
@@ -40,13 +42,14 @@ export class RegisterComponent {
   }
 
   onSubmit(): void {
-  if (this.form.invalid) {
-    return;
-  }
+    if (this.form.invalid) {
+      return;
+    }
 
     this.isLoading = true;
 
     const formData = {
+      account_type: this.form.value.account_type,
       email: this.form.value.email,
       password: this.form.value.password,
       repeat_password: this.form.value.repeat_password,
@@ -55,7 +58,8 @@ export class RegisterComponent {
       phone: this.form.value.phone || undefined,
       birth_date: this.form.value.birth_date || undefined
     };
-    if (formData.password!==formData.repeat_password) { return; }
+    console.log(formData);
+    if (formData.password !== formData.repeat_password) { return; }
 
     this.dataService.userDS.register(formData).pipe(
       catchError(error => {
@@ -63,7 +67,7 @@ export class RegisterComponent {
         return of(null);
       })
     ).subscribe({
-      next: (response:any) => {
+      next: (response: any) => {
         this.isLoading = false;
         if (response && response.session_id) {
           this.authService.setTokenToStorage(response.session_id);
