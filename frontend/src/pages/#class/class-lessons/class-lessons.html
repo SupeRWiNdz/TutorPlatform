@@ -1,0 +1,43 @@
+@if (class.name) {
+<div class="top-container">
+    <div class="title">
+        <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>
+        <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
+        <mat-menu #class_menu>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link">Чат класса<mat-icon
+                    matTextPrefix>message</mat-icon></button>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/info/'">Информация<mat-icon
+                    matTextPrefix>info</mat-icon></button>
+        </mat-menu>
+    </div>
+</div>
+<div class="bottom-container">
+    
+    <div class="single-week">
+        @if (lessons$ | async; as weekData) {
+            @for (day of getDaysArray(weekData); track day.key) {
+                <div class="single-day">
+                    <p>{{ day.label }}</p>
+                    <p>{{ day.date }}</p>
+                    @for (lesson of day.lessons; track lesson.id) {
+                        <p class="single-lesson">
+                            ЗАНЯТИЕ:
+                            @if (lesson.time && lesson.end_time) {
+                                <span>{{ lesson.time }}-{{lesson.end_time}}</span>
+                            }
+                            @if (lesson.homework) {
+                                <span>(ДЗ: {{ lesson.homework }})</span>
+                            }
+                            @if (lesson.comment) {
+                                <span>(Комментарий: {{ lesson.comment }})</span>
+                            }
+                        </p>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    @if (class.message) {{{ class.message }}}
+</div>
+}

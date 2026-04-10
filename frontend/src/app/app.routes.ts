@@ -22,6 +22,9 @@ import { RegisterComponent } from '@pages/#user/register/register';
 import { Request } from '@pages/#class/request/request';
 import { ChatMessagesResolver } from '@resolvers/messages.resolver';
 import { ClassChatResolver } from '@resolvers/classchat.resolver';
+import { WeekLessons } from '@pages/#lessons/week-lessons/week-lessons';
+import { ClassLessons } from '@pages/#class/class-lessons/class-lessons';
+import { LessonsResolver } from '@resolvers/lessons.resolver';
 
 export const routes: Routes = [
   {
@@ -93,10 +96,21 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'class/:link/lessons',
+        component: ClassLessons,
+        resolve: { class: ClassResolver, lessons: LessonsResolver },
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'request/:link',
         component: Request,
         canActivate: [AuthGuard],
         resolve: { request: RequestResolver }
+      },
+      {
+        path: 'lessons',
+        component: WeekLessons,
+        canActivate: [AuthGuard]
       },
       {
         path: '**',

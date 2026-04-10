@@ -9,6 +9,15 @@
   </button>
 
   <button mat-raised-button 
+          [routerLink]="'/lessons/'" 
+          class="nav-button"
+          routerLinkActive="active-button"
+          [routerLinkActiveOptions]="{exact: true}">
+    <mat-icon>calendar_today</mat-icon>
+    Расписание
+  </button>
+
+  <button mat-raised-button 
           [routerLink]="'/chat/'" 
           class="nav-button"
           routerLinkActive="active-button"
@@ -33,5 +42,13 @@
           [routerLinkActiveOptions]="{exact: true}">
     <mat-icon>login</mat-icon>
     Вход
+  </button>
+  <button mat-raised-button 
+          [routerLink]="'/account/'" 
+          class="nav-button"
+          routerLinkActive="active-button"
+          [routerLinkActiveOptions]="{exact: true}">
+    <mat-icon>person</mat-icon>
+    Аккаунт
   </button>
 </div>

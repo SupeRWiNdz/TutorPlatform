@@ -1,31 +1,44 @@
 @if (currentRoute)
 {
-  <button mat-raised-button class="nav-button"
+  <button mat-raised-button 
           [routerLink]="'/'" 
+          class="nav-button"
           routerLinkActive="active-button"
           [routerLinkActiveOptions]="{exact: true}">
     <mat-icon>home</mat-icon>
     Главная
   </button>
 
-  <button mat-raised-button class="nav-button"
+  <button mat-raised-button 
+          [routerLink]="'/lessons/'" 
+          class="nav-button"
+          routerLinkActive="active-button"
+          [routerLinkActiveOptions]="{exact: true}">
+    <mat-icon>calendar_today</mat-icon>
+    Расписание
+  </button>
+
+  <button mat-raised-button 
           [routerLink]="'/chat/'" 
+          class="nav-button"
           routerLinkActive="active-button"
           [routerLinkActiveOptions]="{exact: true}">
     <mat-icon>chat</mat-icon>
     Сообщения
   </button>
 
-  <button mat-raised-button class="nav-button"
+  <button mat-raised-button 
           [routerLink]="'/class/'" 
+          class="nav-button"
           routerLinkActive="active-button"
           [routerLinkActiveOptions]="{exact: true}">
     <mat-icon>class</mat-icon>
     Мои классы
   </button>
 
-  <button mat-raised-button class="nav-button"
+  <button mat-raised-button 
           [routerLink]="'/login/'" 
+          class="nav-button"
           routerLinkActive="active-button"
           [routerLinkActiveOptions]="{exact: true}">
     <mat-icon>login</mat-icon>

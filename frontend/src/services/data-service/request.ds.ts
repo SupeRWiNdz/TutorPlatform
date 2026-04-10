@@ -7,19 +7,18 @@ import { environment } from '../../../environment';
   providedIn: 'root'
 })
 export class RequestDataService {
-  private apiUrl = environment.apiUrl;
   constructor(private http: HttpClient) {  }
 
   create(session_id: string, link: string, username?: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/requests/create`, { session_id, link, username });
+    return this.http.post<any>(`${environment.apiUrl}/requests/create`, { session_id, link, username });
   }
   check(session_id: string, link: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/requests/check`, { session_id, link });
+    return this.http.post<any>(`${environment.apiUrl}/requests/check`, { session_id, link });
   }
   accept(session_id: string, link: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/requests/accept`, { session_id, link });
+    return this.http.post<any>(`${environment.apiUrl}/requests/accept`, { session_id, link });
   }
   decline(session_id: string, link: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/requests/decline`, { session_id, link });
+    return this.http.post<any>(`${environment.apiUrl}/requests/decline`, { session_id, link });
   }
 }

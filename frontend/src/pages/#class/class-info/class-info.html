@@ -4,6 +4,7 @@
         <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>
         <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
         <mat-menu #class_menu>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/lessons/'">Занятия<mat-icon matTextPrefix>calendar_today</mat-icon></button>
             <button mat-menu-item [routerLink]="'/class/'+this.class.link">Чат класса<mat-icon matTextPrefix>message</mat-icon></button>
             @if (class.user_role == 'creator')
             {

@@ -8,6 +8,7 @@ const messageRoutes = require('./routes/messageRoutes');
 const classRoutes = require('./routes/classRoutes');
 const classchatRoutes = require('./routes/classchatRoutes');
 const requestRoutes = require('./routes/requestRoutes');
+const lessonRoutes = require('./routes/lessonRoutes');
 
 const app = express();
 
@@ -21,6 +22,6 @@ app.use(cors());
 //    setTimeout(next, delay);
 //});
 
-app.use('/', [userRoutes, messageRoutes, classRoutes, sessionRoutes, classchatRoutes, requestRoutes]);
+app.use('/', [userRoutes, messageRoutes, classRoutes, sessionRoutes, classchatRoutes, requestRoutes, lessonRoutes]);
 
 module.exports = { app };

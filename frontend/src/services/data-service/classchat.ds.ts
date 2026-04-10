@@ -7,7 +7,6 @@ import { environment } from '../../../environment';
   providedIn: 'root'
 })
 export class ClasschatDataService {
-  private apiUrl = environment.apiUrl;
   constructor(private http: HttpClient) {  }
 
   getMessages(session_id: string, receiver_link: string, message_count?: number, before_number?: number): Observable<any> {
@@ -15,12 +14,12 @@ export class ClasschatDataService {
     if (before_number) {
       payload.before_number = before_number;
     }
-    return this.http.post<any>(`${this.apiUrl}/classchat/get`, payload);
+    return this.http.post<any>(`${environment.apiUrl}/classchat/get`, payload);
   }
   getNewMessages(session_id: string, receiver_link: string, after_number: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/classchat/get-new`, { session_id, receiver_link, after_number });
+    return this.http.post<any>(`${environment.apiUrl}/classchat/get-new`, { session_id, receiver_link, after_number });
   }
   sendMessage(session_id: string, receiver_link: string, text: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/classchat/send`, { session_id, receiver_link, text });
+    return this.http.post<any>(`${environment.apiUrl}/classchat/send`, { session_id, receiver_link, text });
   }
 }
