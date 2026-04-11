@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { catchError, of } from 'rxjs';
 import { Router, RouterModule } from '@angular/router';
@@ -22,13 +22,16 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 export class RegisterComponent {
   form: FormGroup;
   isLoading: boolean = false;
+  isBrowser: boolean;
 
   constructor(
     private fb: FormBuilder,
     private dataService: DataService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
     this.form = this.fb.group({
       account_type: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],

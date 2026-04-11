@@ -4,6 +4,7 @@
   </div>
 </div>
 <div class="bottom-container">
+  @if (isBrowser) {
   <div class="inner-block">
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <p class="input-box">
@@ -35,5 +36,7 @@
       <button mat-raised-button type="submit" [disabled]="!form.valid">Подтвердить</button>
     </form>
   </div>
+  <span class="account-redirect">Нет аккаунта? <a [routerLink]="'/register'"
+      class="account-link">Зарегистрироваться</a></span>
+  }
 </div>
-<span class="account-redirect">Нет аккаунта? <a [routerLink]="'/register'" class="account-link">Зарегистрироваться</a></span>

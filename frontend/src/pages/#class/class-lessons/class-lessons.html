@@ -17,8 +17,10 @@
         @if (lessons$ | async; as weekData) {
             @for (day of getDaysArray(weekData); track day.key) {
                 <div class="single-day">
-                    <p>{{ day.label }}</p>
-                    <p>{{ day.date }}</p>
+                    <div class="day-info" [ngStyle]="{ 'font-weight': (day.is_today) ? '900' : 'normal' }">
+                    {{ day.label }}
+                    {{ day.date }}
+                    </div>
                     @for (lesson of day.lessons; track lesson.id) {
                         <p class="single-lesson">
                             ЗАНЯТИЕ:

@@ -34,7 +34,7 @@ export class LessonsService {
   //}
 
 
-  getDaysArray(weekData: any): Array<{ key: string, label: string, date: string, lessons: any[] }> {
+  getDaysArray(weekData: any): Array<{ key: string, label: string, date: string, is_today: boolean, lessons: any[] }> {
     if (!weekData || !weekData.lessons) return [];
 
     return this.daysOrder
@@ -42,6 +42,7 @@ export class LessonsService {
       .map(key => ({
         key: key,
         label: weekData.lessons[key].label,
+        is_today: weekData.lessons[key].is_today,
         date: weekData.lessons[key].date,
         lessons: weekData.lessons[key].lessons || []
       }));

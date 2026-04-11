@@ -51,7 +51,7 @@ export class ClassLessons implements OnInit {
       this.class = data['class'] ?? null;
     });
   }
-  getDaysArray(weekData: any): Array<{key: string, label: string, date: string, lessons: any[]}> {
+  getDaysArray(weekData: any): Array<{key: string, label: string, date: string, is_today: boolean, lessons: any[]}> {
     return this.lessonsService.getDaysArray(weekData);
   }
   public showTitle(): void {

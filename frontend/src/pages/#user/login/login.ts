@@ -1,13 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, inject, PLATFORM_ID, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { MatInputModule} from '@angular/material/input'
-import { MatFormFieldModule} from '@angular/material/form-field'
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { MatInputModule } from '@angular/material/input'
+import { MatFormFieldModule } from '@angular/material/form-field'
 import { MatButtonModule } from '@angular/material/button';
-import {MatIconModule} from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -23,19 +23,22 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class LoginComponent {
   form: FormGroup;
   private _snackBar = inject(MatSnackBar);
+  isBrowser: boolean;
   openSnackBar(message: string) {
     this._snackBar.open(message, 'Закрыть', {
-    duration: 3000,
-    horizontalPosition: 'center',
-    verticalPosition: 'bottom'
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
     });
   }
   constructor(
     private fb: FormBuilder,
     private dataService: DataService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
