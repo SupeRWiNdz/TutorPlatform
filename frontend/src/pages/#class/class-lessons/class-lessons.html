@@ -12,33 +12,46 @@
     </div>
 </div>
 <div class="bottom-container">
-    
+    @if (isCurrentWeek) {<p>Текущая неделя</p>}
     <div class="single-week">
         @if (lessons$ | async; as weekData) {
-            @for (day of getDaysArray(weekData); track day.key) {
-                <div class="single-day">
-                    <div class="day-info" [ngStyle]="{ 'font-weight': (day.is_today) ? '900' : 'normal' }">
-                    {{ day.label }}
-                    {{ day.date }}
-                    </div>
-                    @for (lesson of day.lessons; track lesson.id) {
-                        <p class="single-lesson">
-                            ЗАНЯТИЕ:
-                            @if (lesson.time && lesson.end_time) {
-                                <span>{{ lesson.time }}-{{lesson.end_time}}</span>
-                            }
-                            @if (lesson.homework) {
-                                <span>(ДЗ: {{ lesson.homework }})</span>
-                            }
-                            @if (lesson.comment) {
-                                <span>(Комментарий: {{ lesson.comment }})</span>
-                            }
-                        </p>
-                    }
-                </div>
+        @for (day of getDaysArray(weekData); track day.key) {
+        <div class="single-day">
+            <div class="day-info" [ngStyle]="{ 'font-weight': (day.is_today) ? '900' : 'normal' }">
+                {{ day.label }}
+                {{ day.date }}
+                @if (canEdit) {<mat-icon matTextPrefix>add_box</mat-icon>}
+            </div>
+            @for (lesson of day.lessons; track lesson.id) {
+            <p class="single-lesson">
+                ЗАНЯТИЕ:
+                @if (lesson.time && lesson.end_time) {
+                <span>{{ lesson.time }}-{{lesson.end_time}}</span>
+                }
+                @if (lesson.homework) {
+                <span>(ДЗ: {{ lesson.homework }})</span>
+                }
+                @if (lesson.comment) {
+                <span>(Комментарий: {{ lesson.comment }})</span>
+                }
+                @if (canEdit) {
+                <button mat-icon-button [matMenuTriggerFor]="lesson_menu"
+                    class="mini_more"><mat-icon>more_vert</mat-icon></button>
+                <mat-menu #lesson_menu>
+                    <button mat-menu-item>Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
+                    <button mat-menu-item>Удалить<mat-icon matTextPrefix>delete</mat-icon></button>
+                </mat-menu>
             }
+            </p>
+            } @empty {
+            -
+            }
+        </div>
+        }
         }
     </div>
+    <mat-icon matTextPrefix (click)="previousWeek()">navigate_before</mat-icon>
+    <mat-icon matTextPrefix (click)="nextWeek()">navigate_next</mat-icon>
 
     @if (class.message) {{{ class.message }}}
 </div>

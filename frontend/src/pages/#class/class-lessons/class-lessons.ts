@@ -51,7 +51,7 @@ export class ClassLessons implements OnInit {
       this.class = data['class'] ?? null;
     });
   }
-  getDaysArray(weekData: any): Array<{key: string, label: string, date: string, is_today: boolean, lessons: any[]}> {
+  getDaysArray(weekData: any): Array<{ key: string, label: string, date: string, is_today: boolean, lessons: any[] }> {
     return this.lessonsService.getDaysArray(weekData);
   }
   public showTitle(): void {
@@ -59,5 +59,19 @@ export class ClassLessons implements OnInit {
       this.isTitleActive = -1;
     else
       this.isTitleActive = 50;
+  }
+  public nextWeek(): void {
+    this.lessonsService.nextWeek();
+  }
+  public previousWeek(): void {
+    this.lessonsService.previousWeek();
+  }
+  public get isCurrentWeek(): boolean {
+    return this.lessonsService.isCurrentWeek;
+  }
+  public get canEdit(): boolean {
+    if (this.class.user_role == 'creator' || this.class.user_role == 'teacher')
+      return true;
+    return false;
   }
 }

@@ -11,12 +11,15 @@ export class LessonsService {
   private lessonsSubject: BehaviorSubject<any[] | null>;
   public lessons$: Observable<any[] | null>;
   private weekNumber: number = 0;
+  public get isCurrentWeek(): boolean {
+    return this.weekNumber==0;
+  }
   private currentClassLink: string | null = null;
   private daysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
   constructor(
     private dataService: DataService,
-    private authService: AuthService,
+    private auth: AuthService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.lessonsSubject = new BehaviorSubject<any | null>(null);
@@ -54,9 +57,23 @@ export class LessonsService {
     this.lessonsSubject.next(response);
   }
 
-
   private resetState(): void {
     this.lessonsSubject.next([]);
   }
 
+  public nextWeek(): void {
+    this.changeWeek(true);
+  }
+  public previousWeek(): void {
+    this.changeWeek(false);
+  }
+  private changeWeek(isNext: boolean): void {
+    const sessionId = this.auth.tokenValue;
+    if (!this.currentClassLink || !sessionId) return;
+    (isNext)?this.weekNumber+=1:this.weekNumber-=1;
+    this.dataService.lessonsDS.getLessons(sessionId, this.currentClassLink,this.weekNumber.toString()).pipe(
+      tap(resp => this.lessonsSubject.next(resp)),
+      catchError(() => of(null))
+    ).subscribe();;
+  }
 }
