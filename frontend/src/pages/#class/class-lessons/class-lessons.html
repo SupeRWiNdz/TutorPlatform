@@ -12,15 +12,18 @@
     </div>
 </div>
 <div class="bottom-container">
-    @if (isCurrentWeek) {<p>Текущая неделя</p>}
+    @if (mode==null)
+    {
+    @if (isCurrentWeek)
+    {<p>Текущая неделя</p>}
     <div class="single-week">
         @if (lessons$ | async; as weekData) {
         @for (day of getDaysArray(weekData); track day.key) {
         <div class="single-day">
             <div class="day-info" [ngStyle]="{ 'font-weight': (day.is_today) ? '900' : 'normal' }">
                 {{ day.label }}
-                {{ day.date }}
-                @if (canEdit) {<mat-icon matTextPrefix>add_box</mat-icon>}
+                {{ day.date | dateToMonthName }}
+                @if (canEdit) {<mat-icon (click)="createMode(day.date)" matTextPrefix>add_box</mat-icon>}
             </div>
             @for (lesson of day.lessons; track lesson.id) {
             <p class="single-lesson">
@@ -31,17 +34,14 @@
                 @if (lesson.homework) {
                 <span>(ДЗ: {{ lesson.homework }})</span>
                 }
-                @if (lesson.comment) {
-                <span>(Комментарий: {{ lesson.comment }})</span>
-                }
                 @if (canEdit) {
                 <button mat-icon-button [matMenuTriggerFor]="lesson_menu"
                     class="mini_more"><mat-icon>more_vert</mat-icon></button>
                 <mat-menu #lesson_menu>
-                    <button mat-menu-item>Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
-                    <button mat-menu-item>Удалить<mat-icon matTextPrefix>delete</mat-icon></button>
+                    <button mat-menu-item (click)="editMode(lesson.id, day.date, lesson.time, lesson.duration, lesson.homework)">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
+                    <button mat-menu-item (click)="removeLesson(lesson.id)">Удалить<mat-icon matTextPrefix>delete</mat-icon></button>
                 </mat-menu>
-            }
+                }
             </p>
             } @empty {
             -
@@ -52,6 +52,71 @@
     </div>
     <mat-icon matTextPrefix (click)="previousWeek()">navigate_before</mat-icon>
     <mat-icon matTextPrefix (click)="nextWeek()">navigate_next</mat-icon>
+    } @else if (mode=='create' || mode=='edit') {
+    <div class="inner-block">
+        @if (mode=='create') { Запланировать занятие }
+        @else if (mode=='edit') { Редактировать занятие }
+        <form [formGroup]="lessonForm">
+            <div class="row-3">
+                <p class="input-box">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Дата</mat-label>
+                        <input matInput formControlName="date" placeholder="ДД.ММ.ГГГГ">
+                        <mat-error>
+                            @if (lessonForm.get('date')?.errors?.['required'])
+                            {Введите дату}
+                            @else if (lessonForm.get('date')?.errors)
+                            {Корректный формат: ДД.ММ.ГГГГ}
+                        </mat-error>
+                    </mat-form-field>
+                </p>
+
+                <p class="input-box">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Время</mat-label>
+                        <input matInput formControlName="time" placeholder="ЧЧ:ММ">
+                        <mat-error>
+                            @if (lessonForm.get('time')?.errors?.['required'])
+                            {Введите время}
+                            @else if (lessonForm.get('time')?.errors)
+                            {Корректный формат: ЧЧ:ММ}
+                        </mat-error>
+                    </mat-form-field>
+                </p>
+
+                <p class="input-box">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Продолжительность</mat-label>
+                        <input matInput formControlName="duration">
+                        <mat-error>
+                            @if (lessonForm.get('duration')?.errors?.['required'])
+                            {Введите продолжительность в минутах}
+                            @else if (lessonForm.get('duration')?.errors)
+                            {Введите целое число}
+                        </mat-error>
+                    </mat-form-field>
+                </p>
+            </div>
+
+            <p class="input-box">
+                <mat-form-field appearance="outline">
+                    <mat-label>Домашнее задание</mat-label>
+                    <input matInput formControlName="homework">
+                    <mat-error>
+                        @if (lessonForm.get('homework')?.errors?.['maxLength'])
+                        {Максимальная длина - 500 символов}
+                    </mat-error>
+                </mat-form-field>
+            </p>
+
+            <button (click)="submitLessonForm()" [disabled]="!lessonForm.valid" mat-raised-button>Подтвердить</button>
+            <button (click)="noMode()" mat-raised-button>Отмена</button>
+        </form>
+    </div>
+    }
+    @else if (mode=='edit') {
+
+    }
 
     @if (class.message) {{{ class.message }}}
 </div>

@@ -34,10 +34,8 @@ export class Account {
     });
   }
   sessions$: Observable<any> = of(null);
-  private _mode: string = 'none';
-  public get mode(): string {
-  return this._mode;
-  }
+  private _mode: 'edit' | 'password' | null = null;
+  public get mode() { return this._mode; }
   public isTitleActive: number = 50;
   constructor(
     private fb: FormBuilder,
@@ -191,11 +189,11 @@ public editUser(): void {
       new_birth_date: this.user.birth_date ?? '',
       new_full_name: this.user.full_name ?? ''
     });
-    this._mode='none';
+    this._mode=null;
   }
   public exitPasswordMode(): void {
     this.passwordForm.reset();
-    this._mode='none'
+    this._mode=null;
   };
   
   hideOldPassword = signal(true);

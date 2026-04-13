@@ -1,6 +1,6 @@
 @if (user) {
 <div class="top-container">
-@if (mode=='none') {
+@if (mode==null) {
   <div class="title">
     <span [innerHTML]="user.full_name | truncate: isTitleActive" (click)="showTitle()"></span>
 
@@ -14,7 +14,7 @@
 }
 </div>
 <div class="bottom-container">
-@if (mode=='none') {
+@if (mode==null) {
     <div class="inner-block">
     <p>
       @if (user.is_teacher) {Учитель}
@@ -109,7 +109,7 @@
 </div>
 }
 
-@if (mode=='none') {
+@if (mode==null) {
 @if (sessions$ | async; as response) {
 @if (response?.data) {
 Всего сеансов: {{ response.data.total_active_sessions }}

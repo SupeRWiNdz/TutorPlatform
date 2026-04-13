@@ -98,6 +98,17 @@ button[mat-raised-button] {
   }
 }
 
+.row-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+  display: grid;
+  gap: 14px;
+  margin-top: -16px;
+
+  >* {
+    min-width: 0;
+  }
+}
+
 .chat-container {
   @include no-scrollbar;
   display: flex;

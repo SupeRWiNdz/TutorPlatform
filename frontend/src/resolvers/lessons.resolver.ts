@@ -19,7 +19,7 @@ export class LessonsResolver implements Resolve<any[] > {
     const link = route.paramMap.get('link');
     const sessionId = this.auth.tokenValue;
     if (!link || !sessionId) return of(null);
-    return this.dataService.lessonsDS.getLessons(sessionId, link).pipe(
+    return this.dataService.lessonsDS.get(sessionId, link).pipe(
       tap(resp => this.lessonsService.setInitialState(link, resp)),
       catchError(() => of(null))
     );

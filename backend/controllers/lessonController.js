@@ -1,24 +1,31 @@
 const pool = require('../config/database');
 
 const create = async (req, res) => {
-    const { session_id, link, date_and_time, homework, length } = req.body;
+    const { session_id, link, date, time, homework, duration } = req.body;
 
     try {
-        if (!session_id || !link || !date_and_time) {
-            return res.status(400).json({ message: 'Не указаны обязательные данные' });
+        if (!session_id || !link || !date || !time) {
+            return res.status(400).json({ message: 'Не указаны обязательные данные: session_id, link, date, time' });
         }
 
-        const dateTimeRegex = /^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.(19|20)\d{2} ([01][0-9]|2[0-3]):([0-5][0-9])$/;
-
-        if (!dateTimeRegex.test(date_and_time)) {
+        const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.(19|20)\d{2}$/;
+        if (!dateRegex.test(date)) {
             return res.status(400).json({
-                message: 'Неверный формат даты и времени. Используйте формат: ДД.ММ.ГГГГ ЧЧ:ММ'
+                message: 'Неверный формат даты. Используйте ДД.ММ.ГГГГ'
             });
         }
 
-        const [day, month, year, hour, minute] = date_and_time.match(/\d+/g);
-        const testDate = new Date(year, month - 1, day, hour, minute);
+        const timeRegex = /^([01][0-9]|2[0-3]):([0-5][0-9])$/;
+        if (!timeRegex.test(time)) {
+            return res.status(400).json({
+                message: 'Неверный формат времени. Используйте ЧЧ:ММ'
+            });
+        }
 
+        const dateTimeStr = `${date} ${time}`;
+
+        const [day, month, year, hour, minute] = dateTimeStr.match(/\d+/g);
+        const testDate = new Date(year, month - 1, day, hour, minute);
         if (testDate.getFullYear() != year ||
             testDate.getMonth() != month - 1 ||
             testDate.getDate() != day ||
@@ -29,11 +36,23 @@ const create = async (req, res) => {
             });
         }
 
+        let durationMinutes;
+        if (duration !== undefined && duration !== null) {
+            const minutes = Number(duration);
+            if (!Number.isInteger(minutes) || minutes <= 0) {
+                return res.status(400).json({
+                    message: 'Параметр duration должен быть целым положительным числом (минуты)'
+                });
+            }
+            durationMinutes = minutes;
+        } else {
+            durationMinutes = 60;
+        }
+
         const sessionResult = await pool.query(
             'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
             [session_id]
         );
-
         if (sessionResult.rows.length === 0) {
             return res.status(401).json({ error: 'Сеанс не найден' });
         }
@@ -44,17 +63,16 @@ const create = async (req, res) => {
              WHERE c.link = $1 AND cm.user_id = $2 AND (cm.role = 'creator' OR cm.role = 'teacher')`,
             [link, sessionResult.rows[0].user_id]
         );
-
         if (classCheck.rows.length === 0) {
             return res.status(403).json({ message: 'Класс не существует или у пользователя недостаточно полномочий' });
         }
 
-        const duration = length ? `${length} hour` : '1 hour';
+        const durationInterval = `${durationMinutes} minutes`;
 
         await pool.query(
             `INSERT INTO lessons (teacher_id, homework, date_and_time, duration)
              VALUES ($1, $2, $3, $4::interval)`,
-            [classCheck.rows[0].id, homework, date_and_time, duration]
+            [classCheck.rows[0].id, homework, dateTimeStr, durationInterval]
         );
 
         return res.status(201).json({
@@ -95,8 +113,9 @@ const get = async (req, res) => {
         const classId = classResult.rows[0].id;
 
         const lessonsResult = await pool.query(
-            `SELECT id, homework, duration,
-                    TO_CHAR(date_and_time, 'DD.MM.YYYY HH24:MI') as date_and_time
+            `SELECT id, homework,
+                    date_and_time,
+                    (EXTRACT(EPOCH FROM duration) / 60)::int AS duration_minutes
              FROM lessons
              WHERE teacher_id = $1
              ORDER BY date_and_time`,
@@ -121,12 +140,11 @@ const get = async (req, res) => {
         targetWeekEnd.setDate(targetWeekStart.getDate() + 6);
         targetWeekEnd.setHours(23, 59, 59, 999);
 
-        const formatDateToDayMonth = (date) => {
-            const months = [
-                'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-                'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-            ];
-            return `${date.getDate()} ${months[date.getMonth()]}`;
+        const formatDateToDDMMYYYY = (date) => {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
         };
 
         const daysOfWeek = [
@@ -146,63 +164,31 @@ const get = async (req, res) => {
             const isToday = dayDate.getTime() === today.getTime();
             result[day.key] = {
                 label: day.label,
-                date: formatDateToDayMonth(dayDate),
+                date: formatDateToDDMMYYYY(dayDate),
                 is_today: isToday,
                 lessons: []
             };
         });
 
         lessonsResult.rows.forEach(lesson => {
-            let lessonDate;
-            if (typeof lesson.date_and_time === 'string') {
-                const [datePart, timePart] = lesson.date_and_time.split(' ');
-                const [day, month, year] = datePart.split('.');
-                const [hour, minute] = timePart.split(':');
-                lessonDate = new Date(year, month - 1, day, hour, minute);
-            } else if (lesson.date_and_time instanceof Date) {
-                lessonDate = new Date(lesson.date_and_time);
-            } else {
-                return;
-            }
-
-            let durationHours = 1;
-            if (lesson.duration) {
-                if (typeof lesson.duration === 'string') {
-                    if (lesson.duration.includes(':')) {
-                        const [hours] = lesson.duration.split(':');
-                        durationHours = parseInt(hours);
-                    } else {
-                        const match = lesson.duration.match(/(\d+)/);
-                        if (match) durationHours = parseInt(match[0]);
-                    }
-                } else if (typeof lesson.duration === 'object' && lesson.duration.hours) {
-                    durationHours = lesson.duration.hours;
-                }
-            }
-
-            const endDate = new Date(lessonDate);
-            endDate.setHours(lessonDate.getHours() + durationHours);
+            const lessonDate = new Date(lesson.date_and_time);
+            const durationMinutes = lesson.duration_minutes;
+            const endDate = new Date(lessonDate.getTime() + durationMinutes * 60000);
 
             if (lessonDate >= targetWeekStart && lessonDate <= targetWeekEnd) {
                 const dayOfWeek = lessonDate.getDay();
                 const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
                 const dayKey = daysOfWeek[dayIndex].key;
 
+                const timeStart = `${String(lessonDate.getHours()).padStart(2, '0')}:${String(lessonDate.getMinutes()).padStart(2, '0')}`;
+                const timeEnd = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+
                 result[dayKey].lessons.push({
                     id: lesson.id,
                     homework: lesson.homework,
-                    date_and_time: typeof lesson.date_and_time === 'string'
-                        ? lesson.date_and_time
-                        : lessonDate.toLocaleString('ru-RU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }).replace(',', ''),
-                    time: `${String(lessonDate.getHours()).padStart(2, '0')}:${String(lessonDate.getMinutes()).padStart(2, '0')}`,
-                    duration: lesson.duration,
-                    end_time: `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
+                    time: timeStart,
+                    end_time: timeEnd,
+                    duration: durationMinutes
                 });
             }
         });
@@ -223,7 +209,7 @@ const get = async (req, res) => {
 };
 
 const edit = async (req, res) => {
-    const { session_id, lesson_id, date_and_time, duration, homework } = req.body;
+    const { session_id, lesson_id, date, time, duration, homework } = req.body;
 
     try {
         if (!session_id || !lesson_id) {
@@ -257,16 +243,34 @@ const edit = async (req, res) => {
             return res.status(403).json({ message: 'Недостаточно прав для редактирования занятия' });
         }
 
-        if (date_and_time !== undefined) {
-            const dateTimeRegex = /^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.(19|20)\d{2} ([01][0-9]|2[0-3]):([0-5][0-9])$/;
-            if (!dateTimeRegex.test(date_and_time)) {
+        const fields = [];
+        const values = [];
+        let paramIndex = 1;
+
+        if (date !== undefined || time !== undefined) {
+            if (!date || !time) {
                 return res.status(400).json({
-                    message: 'Неверный формат даты и времени. Используйте формат: ДД.ММ.ГГГГ ЧЧ:ММ'
+                    message: 'Для изменения даты и времени необходимо указать оба поля: date и time'
                 });
             }
 
-            const [day, month, year, hour, minute] = date_and_time.match(/\d+/g);
+            const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.(19|20)\d{2}$/;
+            if (!dateRegex.test(date)) {
+                return res.status(400).json({
+                    message: 'Неверный формат даты. Используйте ДД.ММ.ГГГГ'
+                });
+            }
+
+            const timeRegex = /^([01][0-9]|2[0-3]):([0-5][0-9])$/;
+            if (!timeRegex.test(time)) {
+                return res.status(400).json({
+                    message: 'Неверный формат времени. Используйте ЧЧ:ММ'
+                });
+            }
+            const dateTimeStr = `${date} ${time}`;
+            const [day, month, year, hour, minute] = dateTimeStr.match(/\d+/g);
             const testDate = new Date(year, month - 1, day, hour, minute);
+
             if (testDate.getFullYear() != year ||
                 testDate.getMonth() != month - 1 ||
                 testDate.getDate() != day ||
@@ -276,21 +280,20 @@ const edit = async (req, res) => {
                     message: 'Указана несуществующая дата или время'
                 });
             }
-        }
 
-        const fields = [];
-        const values = [];
-        let paramIndex = 1;
-
-        if (date_and_time !== undefined) {
             fields.push(`date_and_time = $${paramIndex++}`);
-            values.push(date_and_time);
+            values.push(dateTimeStr);
         }
 
         if (duration !== undefined) {
-            const durationValue = `${duration} hour`;
+            const minutes = Number(duration);
+            if (!Number.isInteger(minutes) || minutes <= 0) {
+                return res.status(400).json({
+                    message: 'Длительность должна быть целым положительным числом (минуты)'
+                });
+            }
             fields.push(`duration = $${paramIndex++}::interval`);
-            values.push(durationValue);
+            values.push(`${minutes} minutes`);
         }
 
         if (homework !== undefined) {
