@@ -208,6 +208,143 @@ const get = async (req, res) => {
     }
 };
 
+const getPersonal = async (req, res) => {
+    const { session_id, week = 0 } = req.body;
+
+    try {
+        if (!session_id) {
+            return res.status(400).json({ message: 'Не указан session_id' });
+        }
+
+        const sessionResult = await pool.query(
+            'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
+            [session_id]
+        );
+        if (sessionResult.rows.length === 0) {
+            return res.status(401).json({ error: 'Сеанс не найден' });
+        }
+        const userId = sessionResult.rows[0].user_id;
+
+        const now = new Date();
+        const today = new Date(now);
+        today.setHours(0, 0, 0, 0);
+
+        const currentDayOfWeek = now.getDay();
+        const daysToMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+
+        const startOfCurrentWeek = new Date(now);
+        startOfCurrentWeek.setDate(now.getDate() - daysToMonday);
+        startOfCurrentWeek.setHours(0, 0, 0, 0);
+
+        const targetWeekStart = new Date(startOfCurrentWeek);
+        targetWeekStart.setDate(startOfCurrentWeek.getDate() + week * 7);
+
+        const targetWeekEnd = new Date(targetWeekStart);
+        targetWeekEnd.setDate(targetWeekStart.getDate() + 6);
+        targetWeekEnd.setHours(23, 59, 59, 999);
+
+        const daysOfWeek = [
+            { key: 'monday', label: 'Понедельник' },
+            { key: 'tuesday', label: 'Вторник' },
+            { key: 'wednesday', label: 'Среда' },
+            { key: 'thursday', label: 'Четверг' },
+            { key: 'friday', label: 'Пятница' },
+            { key: 'saturday', label: 'Суббота' },
+            { key: 'sunday', label: 'Воскресенье' }
+        ];
+
+        const formatDateToDDMMYYYY = (date) => {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        };
+
+        const result = {};
+        daysOfWeek.forEach((day, index) => {
+            const dayDate = new Date(targetWeekStart);
+            dayDate.setDate(targetWeekStart.getDate() + index);
+            const isToday = dayDate.getTime() === today.getTime();
+            result[day.key] = {
+                label: day.label,
+                date: formatDateToDDMMYYYY(dayDate),
+                is_today: isToday,
+                lessons: []
+            };
+        });
+
+        const classesResult = await pool.query(
+            `SELECT c.id AS class_id, c.name AS class_name, cm.role
+             FROM classes c
+             JOIN class_members cm ON c.id = cm.class_id
+             WHERE cm.user_id = $1`,
+            [userId]
+        );
+
+        if (classesResult.rows.length === 0) {
+            return res.status(200).json({
+                week_offset: week,
+                week_start: targetWeekStart.toISOString().split('T')[0],
+                week_end: targetWeekEnd.toISOString().split('T')[0],
+                lessons: result
+            });
+        }
+
+        const lessonsResult = await pool.query(
+            `SELECT l.id, l.homework,
+                    l.date_and_time,
+                    (EXTRACT(EPOCH FROM l.duration) / 60)::int AS duration_minutes,
+                    c.name AS class_name,
+                    cm.role
+             FROM lessons l
+             JOIN classes c ON l.teacher_id = c.id
+             JOIN class_members cm ON cm.class_id = c.id AND cm.user_id = $1
+             WHERE cm.user_id = $1
+               AND l.date_and_time >= $2
+               AND l.date_and_time <= $3
+             ORDER BY l.date_and_time`,
+            [userId, targetWeekStart, targetWeekEnd]
+        );
+
+        lessonsResult.rows.forEach(lesson => {
+            const lessonDate = new Date(lesson.date_and_time);
+            const durationMinutes = lesson.duration_minutes;
+            const endDate = new Date(lessonDate.getTime() + durationMinutes * 60000);
+
+            const dayOfWeek = lessonDate.getDay();
+            const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            const dayKey = daysOfWeek[dayIndex].key;
+
+            const timeStart = `${String(lessonDate.getHours()).padStart(2, '0')}:${String(lessonDate.getMinutes()).padStart(2, '0')}`;
+            const timeEnd = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+
+            result[dayKey].lessons.push({
+                id: lesson.id,
+                homework: lesson.homework,
+                time: timeStart,
+                end_time: timeEnd,
+                duration: durationMinutes,
+                class_name: lesson.class_name,
+                role: lesson.role
+            });
+        });
+
+        Object.keys(result).forEach(dayKey => {
+            result[dayKey].lessons.sort((a, b) => a.time.localeCompare(b.time));
+        });
+
+        return res.status(200).json({
+            week_offset: week,
+            week_start: targetWeekStart.toISOString().split('T')[0],
+            week_end: targetWeekEnd.toISOString().split('T')[0],
+            lessons: result
+        });
+
+    } catch (err) {
+        return res.status(500).json({ message: 'Ошибка сервера' });
+    }
+};
+
 const edit = async (req, res) => {
     const { session_id, lesson_id, date, time, duration, homework } = req.body;
 
@@ -365,6 +502,7 @@ const remove = async (req, res) => {
 module.exports = {
     create,
     get,
+    getPersonal,
     edit,
     remove
 };

@@ -29,6 +29,14 @@ import { DateToMonthNamePipe } from '@pipes/date-to-month-name.pipe';
 })
 
 export class ClassLessons implements OnInit {
+  private _snackBar = inject(MatSnackBar);
+  openSnackBar(message: string) {
+    this._snackBar.open(message, 'Закрыть', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+  }
   public class: any | null = null;
   public isTitleActive: number = 50;
   public lessons$: Observable<any | null>;
@@ -43,7 +51,7 @@ export class ClassLessons implements OnInit {
     this._mode = 'create';
   }
   public editMode(lesson_id: string, date?: string, time?: string, duration?: string, homework?: string): void {
-    this.selectedLessonID=lesson_id;
+    this.selectedLessonID = lesson_id;
     if (date) this.lessonForm.patchValue({ date: date });
     if (time) this.lessonForm.patchValue({ time: time });
     if (duration) this.lessonForm.patchValue({ duration: duration });
@@ -55,13 +63,9 @@ export class ClassLessons implements OnInit {
     this._mode = null;
   }
 
-  private _snackBar = inject(MatSnackBar);
-
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private auth: AuthService,
-    private cdr: ChangeDetectorRef,
     private lessonsService: LessonsService,
     private fb: FormBuilder
   ) {
@@ -102,37 +106,40 @@ export class ClassLessons implements OnInit {
   }
   public submitLessonForm(): void {
     const { tokenValue: sessionId } = this.auth;
-    
+
     if (this._mode == null || !sessionId || !this.lessonForm.valid) return;
     const { date, time, duration, homework } = this.lessonForm.value;
 
     if (this._mode == 'create') {
-      this.lessonsService.create(sessionId, this.class.link, date, time, homework, duration )
+      this.noMode();
+      this.lessonsService.create(sessionId, this.class.link, date, time, homework, duration)
         .subscribe({
-        next: (response) => {
-          this.lessonsService.reloadWeek();
-          this.noMode();
-        }
-      });
+          next: (response) => {
+            if (response.message) this.openSnackBar(response.message);
+            this.lessonsService.reloadWeek();
+          }
+        });
     }
     else if (this._mode == 'edit' && this.selectedLessonID) {
-      this.lessonsService.edit(sessionId, this.selectedLessonID, date, time, homework, duration )
+      this.noMode();
+      this.lessonsService.edit(sessionId, this.selectedLessonID, date, time, homework, duration)
         .subscribe({
-        next: (response) => {
-          this.lessonsService.reloadWeek();
-          this.noMode();
-        }
-      });
+          next: (response) => {
+            if (response.message) this.openSnackBar(response.message);
+            this.lessonsService.reloadWeek();
+          }
+        });
     }
   }
   public removeLesson(lesson_id: string): void {
     const { tokenValue: sessionId } = this.auth;
     if (!sessionId) return;
-    this.lessonsService.remove(sessionId, lesson_id )
-        .subscribe({
+    this.noMode();
+    this.lessonsService.remove(sessionId, lesson_id)
+      .subscribe({
         next: (response) => {
+          if (response.message) this.openSnackBar(response.message);
           this.lessonsService.reloadWeek();
-          this.noMode();
         }
       });
   }

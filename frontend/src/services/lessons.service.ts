@@ -1,5 +1,5 @@
-import { Inject, Injectable, PLATFORM_ID, OnDestroy } from '@angular/core';
-import { BehaviorSubject, catchError, Observable, of, Subscription, tap, interval, switchMap, filter } from 'rxjs';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { BehaviorSubject, catchError, Observable, of, tap } from 'rxjs';
 import { DataService } from './data.service';
 import { AuthService } from './auth.service';
 
@@ -41,8 +41,8 @@ export class LessonsService {
   }
 
 
-  public setInitialState(link: string, response: any): void {
-    this.currentClassLink = link;
+  public setInitialState(response: any, link?: string): void {
+    if (link) this.currentClassLink = link;
     this.lessonsSubject.next(response);
   }
 
@@ -61,21 +61,29 @@ export class LessonsService {
   }
   private changeWeek(mode: number): void {
     const sessionId = this.auth.tokenValue;
-    if (!this.currentClassLink || !sessionId) return;
+    if (!sessionId) return;
     this.weekNumber += mode;
-    this.dataService.lessonsDS.get(sessionId, this.currentClassLink, this.weekNumber.toString()).pipe(
-      tap(resp => this.lessonsSubject.next(resp)),
-      catchError(() => of(null))
-    ).subscribe();;
+    if (this.currentClassLink) {
+      this.dataService.lessonsDS.get(sessionId, this.currentClassLink, this.weekNumber.toString()).pipe(
+        tap(resp => this.lessonsSubject.next(resp)),
+        catchError(() => of(null))
+      ).subscribe();
+    }
+    else {
+      this.dataService.lessonsDS.getPersonal(sessionId, this.weekNumber.toString()).pipe(
+        tap(resp => this.lessonsSubject.next(resp)),
+        catchError(() => of(null))
+      ).subscribe();;
+    }
   }
 
   public create(session_id: string, link: string, date: string, time: string, homework?: string, duration?: string): Observable<any> {
-    return this.dataService.lessonsDS.create(session_id, link, date, time, homework, duration );
+    return this.dataService.lessonsDS.create(session_id, link, date, time, homework, duration);
   }
   public edit(session_id: string, lesson_id: string, date?: string, time?: string, homework?: string, duration?: string): Observable<any> {
-    return this.dataService.lessonsDS.edit(session_id, lesson_id, date, time, homework, duration );
+    return this.dataService.lessonsDS.edit(session_id, lesson_id, date, time, homework, duration);
   }
   public remove(session_id: string, lesson_id: string): Observable<any> {
-    return this.dataService.lessonsDS.remove(session_id, lesson_id );
+    return this.dataService.lessonsDS.remove(session_id, lesson_id);
   }
 }

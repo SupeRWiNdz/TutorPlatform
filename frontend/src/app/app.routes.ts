@@ -110,6 +110,7 @@ export const routes: Routes = [
       {
         path: 'lessons',
         component: WeekLessons,
+        resolve: { lessons: LessonsResolver },
         canActivate: [AuthGuard]
       },
       {
