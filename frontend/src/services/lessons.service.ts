@@ -2,6 +2,7 @@ import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, of, tap } from 'rxjs';
 import { DataService } from './data.service';
 import { AuthService } from './auth.service';
+import { FormGroup } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root'
@@ -50,40 +51,50 @@ export class LessonsService {
     this.lessonsSubject.next([]);
   }
 
-  public reloadWeek(): void {
-    this.changeWeek(0);
-  }
-  public nextWeek(): void {
-    this.changeWeek(1);
-  }
-  public previousWeek(): void {
-    this.changeWeek(-1);
-  }
-  private changeWeek(mode: number): void {
+  public reloadWeek(): Observable<any> { return this.changeWeek(0); }
+  public nextWeek(): Observable<any> { return this.changeWeek(1); }
+  public previousWeek(): Observable<any> { return this.changeWeek(-1); }
+
+  private changeWeek(delta: number): Observable<any> {
     const sessionId = this.auth.tokenValue;
-    if (!sessionId) return;
-    this.weekNumber += mode;
-    if (this.currentClassLink) {
-      this.dataService.lessonsDS.get(sessionId, this.currentClassLink, this.weekNumber.toString()).pipe(
-        tap(resp => this.lessonsSubject.next(resp)),
-        catchError(() => of(null))
-      ).subscribe();
-    }
-    else {
-      this.dataService.lessonsDS.getPersonal(sessionId, this.weekNumber.toString()).pipe(
-        tap(resp => this.lessonsSubject.next(resp)),
-        catchError(() => of(null))
-      ).subscribe();;
-    }
+    if (!sessionId) return of(null);
+
+    const targetWeek = this.weekNumber + delta;
+
+    const request$ = this.currentClassLink
+      ? this.dataService.lessonsDS.get(sessionId, this.currentClassLink, String(targetWeek))
+      : this.dataService.lessonsDS.getPersonal(sessionId, String(targetWeek));
+
+    return request$.pipe(
+      tap(response => {
+        this.weekNumber = targetWeek;
+        this.lessonsSubject.next(response);
+      }),
+      catchError(() => of(null))
+    );
   }
 
-  public create(session_id: string, link: string, date: string, time: string, homework?: string, duration?: string): Observable<any> {
-    return this.dataService.lessonsDS.create(session_id, link, date, time, homework, duration);
+
+  private create(link: string, date: string, time: string, homework?: string, duration?: string): Observable<any> {
+    const sessionId = this.auth.tokenValue;
+    if (!sessionId) return of(null);
+    return this.dataService.lessonsDS.create(sessionId, link, date, time, homework, duration);
   }
-  public edit(session_id: string, lesson_id: string, date?: string, time?: string, homework?: string, duration?: string): Observable<any> {
-    return this.dataService.lessonsDS.edit(session_id, lesson_id, date, time, homework, duration);
+  private edit(lesson_id: string, date?: string, time?: string, homework?: string, duration?: string): Observable<any> {
+    const sessionId = this.auth.tokenValue;
+    if (!sessionId) return of(null);
+    return this.dataService.lessonsDS.edit(sessionId, lesson_id, date, time, homework, duration);
   }
-  public remove(session_id: string, lesson_id: string): Observable<any> {
-    return this.dataService.lessonsDS.remove(session_id, lesson_id);
+  public remove(lesson_id: string): Observable<any> {
+    const sessionId = this.auth.tokenValue;
+    if (!sessionId) return of(null);
+    return this.dataService.lessonsDS.remove(sessionId, lesson_id);
+  }
+
+  public submitForm(formValue: FormGroup, link: string | null = null, lessonID: string | null = null, mode: string | null = null): Observable<any> {
+    const { date, time, duration, homework } = formValue.value;
+    if (mode == 'create' && link) { return this.create(link, date, time, homework, duration); }
+    else if (mode == 'edit' && lessonID) { return this.edit(lessonID, date, time, homework, duration); }
+    return of(null);
   }
 }

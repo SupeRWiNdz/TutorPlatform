@@ -17,8 +17,8 @@
     @if (isCurrentWeek)
     {<p>Текущая неделя</p>}
     <div class="single-week">
-        @if (lessons$ | async; as weekData) {
-        @for (day of getDaysArray(weekData); track day.key) {
+        @if (lessonsList) {
+        @for (day of getDaysArray(lessonsList); track day.key) {
         <div class="single-day">
             <div class="day-info" [ngStyle]="{ 'font-weight': (day.is_today) ? '900' : 'normal' }">
                 {{ day.label }}
@@ -38,7 +38,7 @@
                 <button mat-icon-button [matMenuTriggerFor]="lesson_menu"
                     class="mini_more"><mat-icon>more_vert</mat-icon></button>
                 <mat-menu #lesson_menu>
-                    <button mat-menu-item (click)="editMode(lesson.id, day.date, lesson.time, lesson.duration, lesson.homework)">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
+                    <button mat-menu-item (click)="editMode(lesson.id)">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
                     <button mat-menu-item (click)="removeLesson(lesson.id)">Удалить<mat-icon matTextPrefix>delete</mat-icon></button>
                 </mat-menu>
                 }
@@ -114,10 +114,6 @@
         </form>
     </div>
     }
-    @else if (mode=='edit') {
-
-    }
-
     @if (class.message) {{{ class.message }}}
 </div>
 }

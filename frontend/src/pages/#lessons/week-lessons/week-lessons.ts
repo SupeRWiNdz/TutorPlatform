@@ -1,14 +1,12 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { TruncatePipe } from "@pipes/truncate.pipe";
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AuthService } from '@services/auth.service';
 import { LessonsService } from '@services/lessons.service';
 import { DateToMonthNamePipe } from "@pipes/date-to-month-name.pipe";
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,7 +19,7 @@ import { MatInputModule } from '@angular/material/input';
   templateUrl: './week-lessons.html',
   styleUrl: './week-lessons.scss',
 })
-export class WeekLessons {
+export class WeekLessons implements OnInit {
   private _snackBar = inject(MatSnackBar);
   openSnackBar(message: string) {
     this._snackBar.open(message, 'Закрыть', {
@@ -30,29 +28,29 @@ export class WeekLessons {
       verticalPosition: 'bottom'
     });
   }
-  public lessons$: Observable<any | null>;
+  private lessons$: Observable<any | null>;
+  public lessonsList: any = null;
   public lessonForm: FormGroup;
   public selectedLessonID: string | null = null;
-  private _mode: 'edit' | null = null;
-  
+  private _mode: 'edit' | 'view' | null = null;
+
   public get mode() { return this._mode }
-  public editMode(lesson_id: string, date?: string, time?: string, duration?: string, homework?: string): void {
-    this.selectedLessonID = lesson_id;
-    if (date) this.lessonForm.patchValue({ date: date });
-    if (time) this.lessonForm.patchValue({ time: time });
-    if (duration) this.lessonForm.patchValue({ duration: duration });
-    if (homework) this.lessonForm.patchValue({ homework: homework });
-    this._mode = 'edit';
+  public editMode(lesson_id: string): void {
+    if (this.lessonToForm(lesson_id))
+      this._mode = 'edit';
+  }
+  public viewMode(lesson_id: string): void {
+    if (this.lessonToForm(lesson_id))
+      this._mode = 'view';
   }
   public noMode(): void {
     this.lessonForm.reset();
     this._mode = null;
   }
   constructor(
-    private route: ActivatedRoute,
-    private auth: AuthService,
     private lessonsService: LessonsService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {
     this.lessons$ = this.lessonsService.lessons$;
     this.lessonForm = this.fb.group({
@@ -63,43 +61,78 @@ export class WeekLessons {
     });
   }
 
+  ngOnInit(): void {
+    this.lessons$.subscribe(lessons => this.lessonsList = lessons);
+  }
+  private lessonToForm(lesson_id: string): boolean {
+    if (!this.lessonsList?.lessons) return false;
+    let foundLesson = null;
+    let lessonDate = null;
+    for (const dayKey of Object.keys(this.lessonsList.lessons)) {
+      const day = this.lessonsList.lessons[dayKey];
+      if (day.lessons && Array.isArray(day.lessons)) {
+        const lesson = day.lessons.find((l: any) => l.id === lesson_id);
+        if (lesson) {
+          foundLesson = lesson;
+          lessonDate = day.date;
+          break;
+        }
+      }
+    }
+    if (foundLesson) {
+      this.lessonForm.patchValue({
+        date: lessonDate,
+        time: foundLesson.time,
+        duration: foundLesson.duration,
+        homework: foundLesson.homework
+      });
+      this.selectedLessonID = lesson_id;
+      return true;
+    }
+    return false;
+  }
   getDaysArray(weekData: any): Array<{ key: string, label: string, date: string, is_today: boolean, lessons: any[] }> {
     return this.lessonsService.getDaysArray(weekData);
   }
   public nextWeek(): void {
-    this.lessonsService.nextWeek();
+    this.lessonsService.nextWeek().subscribe({
+      next: () => { this.cdr.detectChanges(); }
+    });
   }
+
   public previousWeek(): void {
-    this.lessonsService.previousWeek();
+    this.lessonsService.previousWeek().subscribe({
+      next: () => { this.cdr.detectChanges(); }
+    });
   }
   public get isCurrentWeek(): boolean { return this.lessonsService.isCurrentWeek; }
   public submitLessonForm(): void {
-    const { tokenValue: sessionId } = this.auth;
-
-    if (this._mode == null || !sessionId || !this.lessonForm.valid) return;
-    const { date, time, duration, homework } = this.lessonForm.value;
-    
-    if (this._mode == 'edit' && this.selectedLessonID) {
-      this.noMode();
-      this.lessonsService.edit(sessionId, this.selectedLessonID, date, time, homework, duration)
-        .subscribe({
-          next: (response) => {
-            if (response.message) this.openSnackBar(response.message);
-            this.lessonsService.reloadWeek();
-          }
-        });
-    }
-  }
-  public removeLesson(lesson_id: string): void {
-    const { tokenValue: sessionId } = this.auth;
-    if (!sessionId) return;
-    this.noMode();
-    this.lessonsService.remove(sessionId, lesson_id)
+    if (this._mode == null || !this.lessonForm.valid) return;
+    this.lessonsService.submitForm(this.lessonForm, null, this.selectedLessonID, this._mode)
       .subscribe({
         next: (response) => {
-          if (response.message) this.openSnackBar(response.message);
-          this.lessonsService.reloadWeek();
+          if (response.message)
+            this.openSnackBar(response.message);
+          this.reloadWeek();
         }
       });
+    this.noMode();
+  }
+
+  public removeLesson(lesson_id: string): void {
+    this.noMode();
+    this.lessonsService.remove(lesson_id)
+      .subscribe({
+        next: (response) => {
+          if (response.message)
+            this.openSnackBar(response.message);
+          this.reloadWeek();
+        }
+      });
+  }
+  private reloadWeek(): void {
+    this.lessonsService.reloadWeek().subscribe({
+      next: () => { this.cdr.detectChanges(); }
+    });
   }
 }
