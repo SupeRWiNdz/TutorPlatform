@@ -97,4 +97,18 @@ export class LessonsService {
     else if (mode == 'edit' && lessonID) { return this.edit(lessonID, date, time, homework, duration); }
     return of(null);
   }
+  getEndTime(startTime: string, durationMinutes: number): string {
+    if (!startTime || durationMinutes == null) return '';
+
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMinutes = totalMinutes % 60;
+
+    return `${this.pad(endHours)}:${this.pad(endMinutes)}`;
+  }
+
+  private pad(num: number): string {
+    return num < 10 ? '0' + num : num.toString();
+  }
 }

@@ -35,9 +35,8 @@ export class WeekLessons implements OnInit {
   private _mode: 'edit' | 'view' | null = null;
 
   public get mode() { return this._mode }
-  public editMode(lesson_id: string): void {
-    if (this.lessonToForm(lesson_id))
-      this._mode = 'edit';
+  public editMode(): void {
+    this._mode = 'edit';
   }
   public viewMode(lesson_id: string): void {
     if (this.lessonToForm(lesson_id))
@@ -106,6 +105,20 @@ export class WeekLessons implements OnInit {
     });
   }
   public get isCurrentWeek(): boolean { return this.lessonsService.isCurrentWeek; }
+  public get canEdit(): boolean {
+    if (!this.lessonsList?.lessons || !this.selectedLessonID) return false;
+    for (const dayKey of Object.keys(this.lessonsList.lessons)) {
+      const day = this.lessonsList.lessons[dayKey];
+      if (day.lessons && Array.isArray(day.lessons)) {
+        const lesson = day.lessons.find((l: any) => l.id === this.selectedLessonID);
+        if (lesson) {
+          if (lesson.role == 'creator' || lesson.role == 'teacher')
+            return true;
+        }
+      }
+    }
+    return false;
+  }
   public submitLessonForm(): void {
     if (this._mode == null || !this.lessonForm.valid) return;
     this.lessonsService.submitForm(this.lessonForm, null, this.selectedLessonID, this._mode)
@@ -119,9 +132,10 @@ export class WeekLessons implements OnInit {
     this.noMode();
   }
 
-  public removeLesson(lesson_id: string): void {
+  public removeLesson(): void {
+    if (!this.selectedLessonID) return;
     this.noMode();
-    this.lessonsService.remove(lesson_id)
+    this.lessonsService.remove(this.selectedLessonID)
       .subscribe({
         next: (response) => {
           if (response.message)
@@ -134,5 +148,8 @@ export class WeekLessons implements OnInit {
     this.lessonsService.reloadWeek().subscribe({
       next: () => { this.cdr.detectChanges(); }
     });
+  }
+  public getEndTime(startTime: string, durationMinutes: number): string {
+    return this.lessonsService.getEndTime(startTime,durationMinutes);
   }
 }

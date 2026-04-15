@@ -1,7 +1,24 @@
 <div class="top-container">
-  <div class="title">
-    Личное расписание
-  </div>
+<div class="top-container">
+    <div class="title">
+        @if (mode==null) {
+        Личное расписание
+        }
+        @else if (mode=='edit') { Редактировать занятие }
+        @else if (mode=='view') {
+        <mat-icon (click)="noMode()">close</mat-icon>
+        Занятие
+        @if (canEdit) {
+        <button mat-icon-button [matMenuTriggerFor]="lesson_menu"
+            class="mini_more"><mat-icon>more_vert</mat-icon></button>
+        <mat-menu #lesson_menu>
+            <button mat-menu-item (click)="editMode()">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
+            <button mat-menu-item (click)="removeLesson()">Удалить<mat-icon matTextPrefix>delete</mat-icon></button>
+        </mat-menu>
+        }
+        }
+    </div>
+</div>
 </div>
 <div class="bottom-container">
     @if (mode==null)
@@ -23,15 +40,7 @@
                 <span>{{ lesson.time }}-{{lesson.end_time}}</span>
                 }
                 @if (lesson.homework) {
-                <span>(ДЗ: {{ lesson.homework }})</span>
-                }
-                @if (lesson.role=='creator' || lesson.role=='teacher') {
-                <button mat-icon-button [matMenuTriggerFor]="lesson_menu"
-                    class="mini_more"><mat-icon>more_vert</mat-icon></button>
-                <mat-menu #lesson_menu>
-                    <button mat-menu-item (click)="editMode(lesson.id)">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
-                    <button mat-menu-item (click)="removeLesson(lesson.id)">Удалить<mat-icon matTextPrefix>delete</mat-icon></button>
-                </mat-menu>
+                <span> (Д/з)</span>
                 }
             </p>
             } @empty {
@@ -45,7 +54,6 @@
     <mat-icon matTextPrefix (click)="nextWeek()">navigate_next</mat-icon>
     } @else if (mode=='edit') {
     <div class="inner-block">
-        Редактировать занятие 
         <form [formGroup]="lessonForm">
             <div class="row-3">
                 <p class="input-box">
@@ -102,6 +110,17 @@
             <button (click)="submitLessonForm()" [disabled]="!lessonForm.valid" mat-raised-button>Подтвердить</button>
             <button (click)="noMode()" mat-raised-button>Отмена</button>
         </form>
+    </div>
+    } @else if (mode=='view') {
+    <div class="inner-block">
+        @if (lessonForm.value) {
+        <p>
+            {{ lessonForm.value.date }}
+            {{ lessonForm.value.time }}-{{ getEndTime(lessonForm.value.time, lessonForm.value.duration) }}
+        </p>
+        @if (lessonForm.value.homework)
+        {<p>Домашнее задание: {{ lessonForm.value.homework }}</p>}
+        }
     </div>
     }
 </div>

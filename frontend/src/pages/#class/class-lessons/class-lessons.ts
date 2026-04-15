@@ -44,9 +44,8 @@ export class ClassLessons implements OnInit {
     this.lessonForm.patchValue({ duration: '60' });
     this._mode = 'create';
   }
-  public editMode(lesson_id: string): void {
-    if (this.lessonToForm(lesson_id))
-      this._mode = 'edit';
+  public editMode(): void {
+    this._mode = 'edit';
   }
   public viewMode(lesson_id: string): void {
     if (this.lessonToForm(lesson_id))
@@ -135,18 +134,21 @@ export class ClassLessons implements OnInit {
   }
   public submitLessonForm(): void {
     if (this._mode == null || !this.lessonForm.valid) return;
-    this.lessonsService.submitForm( this.lessonForm, this.class.link, this.selectedLessonID, this._mode)
-      .subscribe({ next: (response) => {
+    this.lessonsService.submitForm(this.lessonForm, this.class.link, this.selectedLessonID, this._mode)
+      .subscribe({
+        next: (response) => {
           if (response.message)
             this.openSnackBar(response.message);
           this.reloadWeek();
-        } });
+        }
+      });
     this.noMode();
   }
 
-  public removeLesson(lesson_id: string): void {
+  public removeLesson(): void {
+    if (!this.selectedLessonID) return;
     this.noMode();
-    this.lessonsService.remove(lesson_id)
+    this.lessonsService.remove(this.selectedLessonID)
       .subscribe({
         next: (response) => {
           if (response.message)
@@ -160,5 +162,7 @@ export class ClassLessons implements OnInit {
       next: () => { this.cdr.detectChanges(); }
     });
   }
-
+  public getEndTime(startTime: string, durationMinutes: number): string {
+    return this.lessonsService.getEndTime(startTime,durationMinutes);
+  }
 }
