@@ -76,6 +76,9 @@ export class ClassLessons implements OnInit {
       this.class = data['class'] ?? null;
     });
     this.lessons$.subscribe(lessons => this.lessonsList = lessons);
+    if (history.state.lesson_id) {
+      this.viewMode(history.state.lesson_id);
+    }
   }
 
   private lessonToForm(lesson_id: string): boolean {
@@ -163,6 +166,6 @@ export class ClassLessons implements OnInit {
     });
   }
   public getEndTime(startTime: string, durationMinutes: number): string {
-    return this.lessonsService.getEndTime(startTime,durationMinutes);
+    return this.lessonsService.getEndTime(startTime, durationMinutes);
   }
 }

@@ -1,5 +1,5 @@
 @if (lesson) {
-<div>
+<div [routerLink]="'/class/'+ lesson.class_link+ '/lessons/'" [state]="{ lesson_id: lesson.id }">
 <p>Следующее занятие через
     {{lesson.minutes_until_start | minutesToReadable}}:</p>
 <p>{{lesson.class_name | truncate:35}}</p>

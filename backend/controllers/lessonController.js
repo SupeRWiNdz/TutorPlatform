@@ -526,6 +526,7 @@ const getNearest = async (req, res) => {
                 l.date_and_time,
                 (EXTRACT(EPOCH FROM l.duration) / 60)::int AS duration_minutes,
                 c.name AS class_name,
+                c.link AS class_link,
                 cm.role
              FROM lessons l
              JOIN classes c ON l.teacher_id = c.id
@@ -570,6 +571,7 @@ const getNearest = async (req, res) => {
             time_end: formatTime(endDate),
             duration: durationMinutes,
             class_name: lesson.class_name,
+            class_link: lesson.class_link,
             role: lesson.role,
             date: formatDate(lessonDate),
             minutes_until_start: minutesUntilStart
