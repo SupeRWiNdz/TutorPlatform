@@ -63,6 +63,7 @@ export class WeekLessons implements OnInit {
   ngOnInit(): void {
     this.lessons$.subscribe(lessons => this.lessonsList = lessons);
   }
+  
   private lessonToForm(lesson_id: string): boolean {
     if (!this.lessonsList?.lessons) return false;
     let foundLesson = null;

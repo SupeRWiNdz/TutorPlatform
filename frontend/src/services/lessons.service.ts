@@ -43,12 +43,15 @@ export class LessonsService {
 
 
   public setInitialState(response: any, link?: string): void {
+    this.clearState();
     if (link) this.currentClassLink = link;
     this.lessonsSubject.next(response);
   }
 
-  private resetState(): void {
-    this.lessonsSubject.next([]);
+  public clearState(): void {
+    this.lessonsSubject.next(null);
+    this.weekNumber = 0;
+    this.currentClassLink = null;
   }
 
   public reloadWeek(): Observable<any> { return this.changeWeek(0); }

@@ -25,6 +25,7 @@ import { ClassChatResolver } from '@resolvers/classchat.resolver';
 import { WeekLessons } from '@pages/#lessons/week-lessons/week-lessons';
 import { ClassLessons } from '@pages/#class/class-lessons/class-lessons';
 import { LessonsResolver } from '@resolvers/lessons.resolver';
+import { LessonsService } from '@services/lessons.service';
 
 export const routes: Routes = [
   {
