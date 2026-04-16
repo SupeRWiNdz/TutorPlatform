@@ -43,13 +43,13 @@
             </div>
             @for (lesson of day.lessons; track lesson.id) {
             <div class="single-lesson" (click)="viewMode(lesson.id)">
-                <p>Занятие</p>
-                @if (lesson.time && lesson.end_time) {
-                <span>{{ lesson.time }}-{{lesson.end_time}}</span>
-                }
-                @if (lesson.homework) {
-                <span> (Д/з)</span>
-                }
+                <div>Занятие:</div>
+                <div>
+                    @if (lesson.time && lesson.end_time) {
+                    {{ lesson.time }}-{{lesson.end_time}}
+                    }
+                    @if (lesson.homework) { (Д/з) }
+                </div>
             </div>
             } @empty {
             -
