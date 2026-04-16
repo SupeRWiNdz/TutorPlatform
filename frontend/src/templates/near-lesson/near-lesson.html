@@ -1,0 +1,10 @@
+@if (lesson) {
+<div>
+<p>Следующее занятие через
+    {{lesson.minutes_until_start | minutesToReadable}}:</p>
+<p>{{lesson.class_name | truncate:35}}</p>
+@if (lesson.homework)
+{ <p>(ДЗ: {{lesson.homework}})</p>} 
+<p>{{lesson.date}} {{lesson.time_start}}-{{lesson.time_end}}</p>
+</div>
+}

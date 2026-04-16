@@ -499,10 +499,95 @@ const remove = async (req, res) => {
         return res.status(500).json({ message: 'Ошибка сервера' });
     }
 };
+
+const getNearest = async (req, res) => {
+    const { session_id } = req.body;
+
+    try {
+        if (!session_id) {
+            return res.status(400).json({ message: 'Не указан session_id' });
+        }
+
+        const sessionResult = await pool.query(
+            'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
+            [session_id]
+        );
+        if (sessionResult.rows.length === 0) {
+            return res.status(401).json({ error: 'Сеанс не найден' });
+        }
+        const userId = sessionResult.rows[0].user_id;
+
+        const now = new Date();
+
+        const lessonResult = await pool.query(
+            `SELECT 
+                l.id,
+                l.homework,
+                l.date_and_time,
+                (EXTRACT(EPOCH FROM l.duration) / 60)::int AS duration_minutes,
+                c.name AS class_name,
+                cm.role
+             FROM lessons l
+             JOIN classes c ON l.teacher_id = c.id
+             JOIN class_members cm ON cm.class_id = c.id AND cm.user_id = $1
+             WHERE cm.user_id = $1
+               AND l.date_and_time > $2
+             ORDER BY l.date_and_time ASC
+             LIMIT 1`,
+            [userId, now]
+        );
+
+        if (lessonResult.rows.length === 0) {
+            return res.status(200).json({
+                message: 'Нет предстоящих занятий',
+                lesson: null
+            });
+        }
+
+        const lesson = lessonResult.rows[0];
+        const lessonDate = new Date(lesson.date_and_time);
+        const durationMinutes = lesson.duration_minutes;
+        const endDate = new Date(lessonDate.getTime() + durationMinutes * 60000);
+
+        const formatDate = (date) => {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        };
+
+        const formatTime = (date) => {
+            return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        };
+
+        const diffMs = lessonDate - now;
+        const minutesUntilStart = Math.floor(diffMs / 60000);
+
+        const response = {
+            id: lesson.id,
+            homework: lesson.homework,
+            time_start: formatTime(lessonDate),
+            time_end: formatTime(endDate),
+            duration: durationMinutes,
+            class_name: lesson.class_name,
+            role: lesson.role,
+            date: formatDate(lessonDate),
+            minutes_until_start: minutesUntilStart
+        };
+
+        return res.status(200).json({ lesson: response });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Ошибка сервера' });
+    }
+};
+
 module.exports = {
     create,
     get,
     getPersonal,
+    getNearest,
     edit,
     remove
 };

@@ -18,6 +18,9 @@ export class LessonsDataService {
   getPersonal(session_id: string, week?: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/lessons/get-personal`, { session_id, week });
   }
+  getNearest(session_id: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/lessons/get-near`, { session_id });
+  }
   edit(session_id: string, lesson_id: string, date?: string, time?: string, homework?: string, duration?: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/lessons/edit`, { session_id, lesson_id, date, time, homework, duration });
   }

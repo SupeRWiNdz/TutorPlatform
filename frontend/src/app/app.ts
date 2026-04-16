@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { NavButtons } from "src/templates/nav-buttons/nav-buttons";
 import { UserInfo } from '@templates/user-info/user-info';
 import { NavBottom } from '@templates/nav-bottom/nav-bottom';
-import { NextLesson } from "@templates/next-lesson/next-lesson";
+import { NearLesson } from "@templates/near-lesson/near-lesson";
 import { AuthService } from '@services/auth.service';
 
 @Component({
@@ -13,7 +13,7 @@ import { AuthService } from '@services/auth.service';
   imports: [
     RouterOutlet, UserInfo, RouterModule, MatButtonModule,
     NavButtons, NavBottom,
-    NextLesson
+    NearLesson
 ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
