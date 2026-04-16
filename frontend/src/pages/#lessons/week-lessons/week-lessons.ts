@@ -11,11 +11,12 @@ import { LessonsService } from '@services/lessons.service';
 import { DateToMonthNamePipe } from "@pipes/date-to-month-name.pipe";
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { TruncatePipe } from "../../../pipes/truncate.pipe";
 
 @Component({
   selector: 'app-week-lessons',
   imports: [CommonModule, RouterModule, ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, DateToMonthNamePipe],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, DateToMonthNamePipe, TruncatePipe],
   templateUrl: './week-lessons.html',
   styleUrl: './week-lessons.scss',
 })
@@ -32,6 +33,7 @@ export class WeekLessons implements OnInit {
   public lessonsList: any = null;
   public lessonForm: FormGroup;
   public selectedLessonID: string | null = null;
+  public selectedLessonClassName: string | null = null;
   private _mode: 'edit' | 'view' | null = null;
 
   public get mode() { return this._mode }
@@ -87,6 +89,7 @@ export class WeekLessons implements OnInit {
         homework: foundLesson.homework
       });
       this.selectedLessonID = lesson_id;
+      this.selectedLessonClassName = foundLesson.class_name;
       return true;
     }
     return false;

@@ -42,15 +42,15 @@
                 @if (canEdit) {<mat-icon (click)="createMode(day.date)" matTextPrefix>add_box</mat-icon>}
             </div>
             @for (lesson of day.lessons; track lesson.id) {
-            <p class="single-lesson" (click)="viewMode(lesson.id)">
-                ЗАНЯТИЕ:
+            <div class="single-lesson" (click)="viewMode(lesson.id)">
+                <p>Занятие</p>
                 @if (lesson.time && lesson.end_time) {
                 <span>{{ lesson.time }}-{{lesson.end_time}}</span>
                 }
                 @if (lesson.homework) {
-                <span>(Д/з)</span>
+                <span> (Д/з)</span>
                 }
-            </p>
+            </div>
             } @empty {
             -
             }
@@ -122,6 +122,7 @@
     } @else if (mode=='view') {
     <div class="inner-block">
         @if (lessonForm.value) {
+        <p>{{ class.name }}</p>
         <p>
             {{ lessonForm.value.date }}
             {{ lessonForm.value.time }}-{{ getEndTime(lessonForm.value.time, lessonForm.value.duration) }}
