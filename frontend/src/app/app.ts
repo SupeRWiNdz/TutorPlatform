@@ -1,6 +1,6 @@
 import { Component, signal, ViewEncapsulation } from '@angular/core';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
-import { Location } from '@angular/common';
+import { Location, NgStyle } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { NavButtons } from "src/templates/nav-buttons/nav-buttons";
 import { UserInfo } from '@templates/user-info/user-info';

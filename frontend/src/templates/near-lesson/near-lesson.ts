@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
 import { MinutesToReadablePipe } from "@pipes/minutes-to-readable.pipe";
-import { TruncatePipe } from "../../pipes/truncate.pipe";
+import { TruncatePipe } from "@pipes/truncate.pipe";
 
 @Component({
   selector: 'near-lesson',

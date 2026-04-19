@@ -1,11 +1,11 @@
 <div class="app">
     <div class="container side left">
         <user-info class="block" [hidden]="auth.tokenValue==null"></user-info>
-        <nav-buttons class="block" [hidden]="auth.tokenValue==null"></nav-buttons>
+        <nav-buttons class="block"></nav-buttons>
     </div>
     <div class="container middle">
         <div class="router"><router-outlet></router-outlet></div>
-        <div class="bottom" [hidden]="auth.tokenValue==null"><nav-bottom></nav-bottom></div>
+        <div class="bottom"><nav-bottom></nav-bottom></div>
     </div>
     <div class="container side right" >
         <div class="block" [hidden]="auth.tokenValue==null"><near-lesson></near-lesson></div>

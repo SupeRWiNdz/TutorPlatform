@@ -1,4 +1,5 @@
-<div class="button-container">
+@if (isBrowser) {
+    <div class="button-container">
   <button mat-raised-button 
           [routerLink]="'/'" 
           class="nav-button"
@@ -7,48 +8,60 @@
     <mat-icon>home</mat-icon>
     Главная
   </button>
+  
+  @if (isAuth$ | async) {
+    <button mat-raised-button 
+            [routerLink]="'/lessons/'" 
+            class="nav-button"
+            routerLinkActive="active-button"
+            [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon>calendar_today</mat-icon>
+      Расписание
+    </button>
 
-  <button mat-raised-button 
-          [routerLink]="'/lessons/'" 
-          class="nav-button"
-          routerLinkActive="active-button"
-          [routerLinkActiveOptions]="{exact: true}">
-    <mat-icon>calendar_today</mat-icon>
-    Расписание
-  </button>
+    <button mat-raised-button 
+            [routerLink]="'/chat/'" 
+            class="nav-button"
+            routerLinkActive="active-button"
+            [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon>chat</mat-icon>
+      Сообщения
+    </button>
 
-  <button mat-raised-button 
-          [routerLink]="'/chat/'" 
-          class="nav-button"
-          routerLinkActive="active-button"
-          [routerLinkActiveOptions]="{exact: true}">
-    <mat-icon>chat</mat-icon>
-    Сообщения
-  </button>
-
-  <button mat-raised-button 
-          [routerLink]="'/class/'" 
-          class="nav-button"
-          routerLinkActive="active-button"
-          [routerLinkActiveOptions]="{exact: true}">
-    <mat-icon>class</mat-icon>
-    Мои классы
-  </button>
-
-  <button mat-raised-button 
-          [routerLink]="'/login/'" 
-          class="nav-button"
-          routerLinkActive="active-button"
-          [routerLinkActiveOptions]="{exact: true}">
-    <mat-icon>login</mat-icon>
-    Вход
-  </button>
-  <button mat-raised-button 
-          [routerLink]="'/account/'" 
-          class="nav-button"
-          routerLinkActive="active-button"
-          [routerLinkActiveOptions]="{exact: true}">
-    <mat-icon>person</mat-icon>
-    Аккаунт
-  </button>
+    <button mat-raised-button 
+            [routerLink]="'/class/'" 
+            class="nav-button"
+            routerLinkActive="active-button"
+            [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon>class</mat-icon>
+      Мои классы
+    </button>
+    
+    <button mat-raised-button 
+            [routerLink]="'/account/'" 
+            class="nav-button"
+            routerLinkActive="active-button"
+            [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon>person</mat-icon>
+      Аккаунт
+    </button>
+  } @else {
+    <button mat-raised-button 
+            [routerLink]="'/login/'" 
+            class="nav-button"
+            routerLinkActive="active-button"
+            [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon>login</mat-icon>
+      Вход
+    </button>
+    <button mat-raised-button 
+            [routerLink]="'/register/'" 
+            class="nav-button"
+            routerLinkActive="active-button"
+            [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon>person_add</mat-icon>
+      Регистрация
+    </button>
+  }
 </div>
+}

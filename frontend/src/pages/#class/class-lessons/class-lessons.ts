@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -60,7 +60,8 @@ export class ClassLessons implements OnInit {
     private route: ActivatedRoute,
     private lessonsService: LessonsService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.lessons$ = this.lessonsService.lessons$;
     this.lessonForm = this.fb.group({
@@ -76,7 +77,7 @@ export class ClassLessons implements OnInit {
       this.class = data['class'] ?? null;
     });
     this.lessons$.subscribe(lessons => this.lessonsList = lessons);
-    if (history.state.lesson_id) {
+    if (isPlatformBrowser(this.platformId) && history?.state?.lesson_id) {
       this.viewMode(history.state.lesson_id);
     }
   }
