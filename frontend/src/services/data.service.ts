@@ -6,6 +6,7 @@ import { SessionDataService } from './data-service/session.ds';
 import { UserDataService } from './data-service/user.ds';
 import { RequestDataService } from './data-service/request.ds';
 import { LessonsDataService } from './data-service/lessons.ds';
+import { AdvertisementsDataService } from './data-service/advertisements.ds';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,7 @@ export class DataService {
     public requestDS: RequestDataService,
     public lessonsDS: LessonsDataService,
     public sessionDS: SessionDataService,
-    public userDS: UserDataService
+    public userDS: UserDataService,
+    public advertisementDS: AdvertisementsDataService
   ) {}
 }

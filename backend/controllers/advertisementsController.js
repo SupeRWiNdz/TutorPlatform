@@ -205,21 +205,10 @@ const archive = async (req, res) => {
     }
 };
 const get = async (req, res) => {
-    const { session_id, before_number, search, ads_count } = req.body;
+    const { before_number, search, ads_count } = req.body;
 
     try {
-        if (!session_id) {
-            return res.status(400).json({ message: 'Не указан session_id' });
-        }
-
-        const sessionResult = await pool.query(
-            'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
-            [session_id]
-        );
-        if (sessionResult.rows.length === 0) {
-            return res.status(401).json({ message: 'Сеанс не найден' });
-        }
-
+        // Валидация параметров пагинации
         let limit = 10;
         if (ads_count !== undefined && ads_count !== null) {
             const limitNum = Number(ads_count);
@@ -238,34 +227,49 @@ const get = async (req, res) => {
             offset = offsetNum;
         }
 
-        let query = `
-            SELECT a.id, a.name, a.description, a.price, a.created_at, a.is_active,
-                   COALESCE(u.full_name, u.username) AS creator_name,
-                   c.name AS class_name, c.link AS class_link
+        // Базовые части запросов (общие для выборки и подсчёта)
+        const baseFrom = `
             FROM advertisements a
             JOIN users u ON a.creator_id = u.id
             JOIN classes c ON a.class_id = c.id
             WHERE a.is_active = true
         `;
+        let whereClause = '';
         const values = [];
         let paramIndex = 1;
 
+        // Условие поиска, если задано
         if (search && search.trim() !== '') {
-            query += ` AND (u.username ILIKE $${paramIndex} OR u.full_name ILIKE $${paramIndex} OR a.description ILIKE $${paramIndex} OR c.name ILIKE $${paramIndex})`;
+            whereClause = ` AND (u.username ILIKE $${paramIndex} OR u.full_name ILIKE $${paramIndex} OR a.description ILIKE $${paramIndex} OR c.name ILIKE $${paramIndex})`;
             values.push(`%${search.trim()}%`);
             paramIndex++;
         }
 
-        query += ` ORDER BY a.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-        values.push(limit, offset);
+        // Запрос для получения общего количества записей
+        const countQuery = `SELECT COUNT(*) AS total ${baseFrom} ${whereClause}`;
+        const countResult = await pool.query(countQuery, values);
+        const totalCount = parseInt(countResult.rows[0].total, 10);
 
-        const result = await pool.query(query, values);
-        return res.status(200).json({ advertisements: result.rows });
+        // Основной запрос с пагинацией
+        const dataQuery = `
+            SELECT a.id, a.name, a.description, a.price, a.created_at,
+                   COALESCE(u.full_name, u.username) AS creator_name
+            ${baseFrom}
+            ${whereClause}
+            ORDER BY a.created_at DESC
+            LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+        `;
+        values.push(limit, offset);
+        const result = await pool.query(dataQuery, values);
+
+        return res.status(200).json({
+            advertisements: result.rows,
+            total_count: totalCount
+        });
     } catch (err) {
         return res.status(500).json({ message: 'Ошибка сервера' });
     }
 };
-
 const getMy = async (req, res) => {
     const { session_id } = req.body;
 
@@ -296,7 +300,118 @@ const getMy = async (req, res) => {
         return res.status(500).json({ message: 'Ошибка сервера' });
     }
 };
+const getClass = async (req, res) => {
+    const { session_id, advertisement_id } = req.body;
+    
+    if (!session_id) {
+        return res.status(400).json({ message: 'Не выполнен вход' });
+    }
+    
+    if (!advertisement_id) {
+        return res.status(400).json({ message: 'Не указан ID объявления' });
+    }
+    
+    try {
+        await pool.query('BEGIN');
+        
+        const sessionResult = await pool.query(
+            `SELECT user_id FROM user_sessions 
+             WHERE session_id = $1 AND is_active = true`,
+            [session_id]
+        );
+        
+        if (sessionResult.rowCount === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(401).json({ message: 'Сессия недействительна или истекла' });
+        }
+        
+        const userId = sessionResult.rows[0].user_id;
+        
+        const adResult = await pool.query(
+            `SELECT class_id, creator_id FROM advertisements WHERE id = $1`,
+            [advertisement_id]
+        );
+        
+        if (adResult.rowCount === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ message: 'Объявление не найдено' });
+        }
+        
+        const classId = adResult.rows[0].class_id;
+        const adCreatorId = adResult.rows[0].creator_id;
+        
+        const classCreatorResult = await pool.query(
+            `SELECT role FROM class_members 
+             WHERE class_id = $1 AND user_id = $2 AND role = 'creator'`,
+            [classId, userId]
+        );
+        
+        const isClassCreator = classCreatorResult.rowCount > 0;
+        const isAdCreator = (adCreatorId === userId);
+        
+        if (!isClassCreator && !isAdCreator) {
+            await pool.query('ROLLBACK');
+            return res.status(403).json({ message: 'Доступ запрещён. Только создатель класса или создатель объявления может просматривать эту информацию' });
+        }
+        
+        const classResult = await pool.query(
+            `SELECT name, link, description, created_at 
+             FROM classes 
+             WHERE id = $1`,
+            [classId]
+        );
+        
+        if (classResult.rowCount === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ message: 'Класс не найден' });
+        }
+        
+        const classData = classResult.rows[0];
+        
+        const membersResult = await pool.query(
+            `SELECT 
+                u.username,
+                u.full_name,
+                u.avatar_url,
+                u.is_student,
+                u.is_teacher,
+                u.is_parent,
+                cm.role as member_role,
+                cm.joined_at
+             FROM class_members cm
+             JOIN users u ON u.id = cm.user_id
+             WHERE cm.class_id = $1
+             ORDER BY cm.joined_at ASC, u.full_name`,
+            [classId]
+        );
+        
+        const response = {
+            name: classData.name,
+            link: classData.link,
+            description: classData.description,
+            created_at: classData.created_at,
+            members: membersResult.rows.map(member => ({
+                username: member.username,
+                full_name: member.full_name,
+                avatar_url: member.avatar_url,
+                is_student: member.is_student,
+                is_teacher: member.is_teacher,
+                is_parent: member.is_parent,
+                member_role: member.member_role,
+                joined_at: member.joined_at
+            })),
+            total_members: membersResult.rowCount
+        };
+        
+        await pool.query('COMMIT');
+        res.json(response);
+        
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+};
 
 module.exports = {
-    create, edit, remove, archive, get, getMy
+    create, edit, remove, archive, get, getMy, getClass
 };

@@ -1,0 +1,30 @@
+@mixin border {
+    border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+}
+
+.advertisement-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    margin: 10px;
+    gap: 10px;
+}
+
+.advertisement {
+    @include border;
+    text-align: left;
+    overflow: hidden;
+    padding: 22px 20px 18px 20px;
+    border-radius: 8px;
+
+    &:hover {
+        background-color: var(--mat-sys-surface-container-high);
+    }
+
+    .name {
+        font: var(--mat-sys-body-medium);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+}

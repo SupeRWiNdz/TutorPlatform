@@ -12,6 +12,10 @@
   }
 }
 
+@mixin border {
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+}
+
 body {
   margin: 0;
   height: 100vh;
@@ -29,9 +33,9 @@ button[mat-raised-button] {
 
 .inner-block {
   @include no-scrollbar;
+  @include border;
   flex-shrink: 0;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
   overflow: hidden;
   width: 90%;
   margin: 16px auto 0 auto;
@@ -70,7 +74,13 @@ button[mat-raised-button] {
   transform: scale(0.8);
   margin-left: -4px;
 }
+.select {
+  width: 100%;
 
+  mat-form-field {
+    width: 100%;
+  }
+}
 .input-box {
   width: 100%;
 
@@ -286,9 +296,9 @@ button[mat-raised-button] {
 
 .single-day {
   @include no-scrollbar;
+  @include border;
   flex-shrink: 0;
   border-radius: 5px;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
   overflow: hidden;
   width: 32%;
   margin: 8px auto 0 auto;
@@ -296,7 +306,7 @@ button[mat-raised-button] {
 }
 
 .single-lesson {
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+  @include border;
   border-radius: 4px;
   padding: 3px 6px;
   margin: 0 6px 6px 6px;

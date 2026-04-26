@@ -2,10 +2,10 @@ import { Component, signal, ViewEncapsulation } from '@angular/core';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { Location, NgStyle } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { NavButtons } from "src/templates/nav-buttons/nav-buttons";
-import { UserInfo } from '@templates/user-info/user-info';
-import { NavBottom } from '@templates/nav-bottom/nav-bottom';
-import { NearLesson } from "@templates/near-lesson/near-lesson";
+import { NavButtons } from "@pages/#sideblocks/nav-buttons/nav-buttons";
+import { UserInfo } from '@pages/#sideblocks/user-info/user-info';
+import { NavBottom } from '@pages/#sideblocks/nav-bottom/nav-bottom';
+import { NearLesson } from '@pages/#sideblocks/near-lesson/near-lesson';
 import { AuthService } from '@services/auth.service';
 
 @Component({

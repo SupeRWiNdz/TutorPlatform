@@ -24,6 +24,9 @@ export class ClassDataService {
   myClasses(session_id: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/class/list`, { session_id });
   }
+  myCreatedClasses(session_id: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/class/created-list`, { session_id });
+  }
   deleteMember(session_id: string, link: string, username: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/class/delete-member`, { session_id, link, username });
   }

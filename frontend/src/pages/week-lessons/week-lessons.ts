@@ -11,7 +11,7 @@ import { LessonsService } from '@services/lessons.service';
 import { DateToMonthNamePipe } from "@pipes/date-to-month-name.pipe";
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { TruncatePipe } from "../../../pipes/truncate.pipe";
+import { TruncatePipe } from "@pipes/truncate.pipe";
 
 @Component({
   selector: 'app-week-lessons',

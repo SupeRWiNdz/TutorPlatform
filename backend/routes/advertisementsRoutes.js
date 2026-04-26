@@ -8,5 +8,6 @@ router.post('/advertisements/remove', advertisementsController.remove);
 router.post('/advertisements/archive', advertisementsController.archive);
 router.post('/advertisements/get', advertisementsController.get);
 router.post('/advertisements/get-my', advertisementsController.getMy);
+router.post('/advertisements/get-class', advertisementsController.getClass);
 
 module.exports = router;

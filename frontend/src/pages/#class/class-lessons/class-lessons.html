@@ -107,7 +107,7 @@
             <p class="input-box">
                 <mat-form-field appearance="outline">
                     <mat-label>Домашнее задание</mat-label>
-                    <input matInput formControlName="homework">
+                    <textarea matInput formControlName="homework"></textarea>
                     <mat-error>
                         @if (lessonForm.get('homework')?.errors?.['maxLength'])
                         {Максимальная длина - 500 символов}

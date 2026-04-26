@@ -22,10 +22,10 @@ import { RegisterComponent } from '@pages/#user/register/register';
 import { Request } from '@pages/#class/request/request';
 import { ChatMessagesResolver } from '@resolvers/messages.resolver';
 import { ClassChatResolver } from '@resolvers/classchat.resolver';
-import { WeekLessons } from '@pages/#lessons/week-lessons/week-lessons';
+import { WeekLessons } from '@pages/week-lessons/week-lessons';
 import { ClassLessons } from '@pages/#class/class-lessons/class-lessons';
 import { LessonsResolver } from '@resolvers/lessons.resolver';
-import { LessonsService } from '@services/lessons.service';
+import { Advertisements } from '@pages/advertisements/advertisements';
 
 export const routes: Routes = [
   {
@@ -47,6 +47,11 @@ export const routes: Routes = [
         path: 'login',
         component: LoginComponent,
         title: 'Войти в аккаунт'
+      },
+      {
+        path: 'advertisements',
+        component: Advertisements,
+        title: 'Объявления'
       },
       {
         path: 'register',

@@ -514,6 +514,113 @@ const myClasses = async (req, res) => {
     }
 };
 
+const myCreatedClasses = async (req, res) => {
+    const { session_id } = req.body;
+    
+    if (!session_id) {
+        return res.status(400).json({ message: 'Не выполнен вход' });
+    }
+    
+    try {
+        await pool.query('BEGIN');
+        
+        const sessionResult = await pool.query(
+            `SELECT user_id FROM user_sessions 
+             WHERE session_id = $1 AND is_active = true`,
+            [session_id]
+        );
+        
+        if (sessionResult.rowCount === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(401).json({ message: 'Сессия недействительна или истекла' });
+        }
+        
+        const userId = sessionResult.rows[0].user_id;
+        
+        const classesResult = await pool.query(
+            `SELECT 
+                c.name,
+                c.link,
+                c.description,
+                c.created_at,
+                cm.role as user_role,
+                cm.joined_at as user_joined_at,
+                (SELECT COUNT(*) FROM class_members WHERE class_id = c.id) as total_members
+             FROM classes c
+             JOIN class_members cm ON c.id = cm.class_id
+             WHERE cm.user_id = $1 AND cm.role = 'creator'
+             ORDER BY c.created_at DESC`,
+            [userId]
+        );
+        
+        const classesWithMembers = await Promise.all(
+            classesResult.rows.map(async (classItem) => {
+                const classIdResult = await pool.query(
+                    `SELECT id FROM classes WHERE link = $1`,
+                    [classItem.link]
+                );
+                const classId = classIdResult.rows[0].id;
+                
+                const membersResult = await pool.query(
+                    `SELECT 
+                        u.username,
+                        u.full_name,
+                        u.avatar_url,
+                        u.is_student,
+                        u.is_teacher,
+                        u.is_parent,
+                        cm.role as member_role,
+                        cm.joined_at
+                     FROM class_members cm
+                     JOIN users u ON u.id = cm.user_id
+                     WHERE cm.class_id = $1
+                     ORDER BY 
+                        CASE cm.role
+                            WHEN 'creator' THEN 1
+                            WHEN 'teacher' THEN 2
+                            WHEN 'student' THEN 3
+                            ELSE 4
+                        END,
+                        u.full_name`,
+                    [classId]
+                );
+                
+                return {
+                    name: classItem.name,
+                    link: classItem.link,
+                    description: classItem.description,
+                    created_at: classItem.created_at,
+                    user_role: classItem.user_role,
+                    user_joined_at: classItem.user_joined_at,
+                    total_members: parseInt(classItem.total_members),
+                    members: membersResult.rows.map(member => ({
+                        username: member.username,
+                        full_name: member.full_name,
+                        avatar_url: member.avatar_url,
+                        is_student: member.is_student,
+                        is_teacher: member.is_teacher,
+                        is_parent: member.is_parent,
+                        member_role: member.member_role,
+                        joined_at: member.joined_at
+                    }))
+                };
+            })
+        );
+        
+        await pool.query('COMMIT');
+        
+        res.json({
+            total_classes: classesWithMembers.length,
+            classes: classesWithMembers
+        });
+        
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+};
+
+
 const getClass = async (req, res) => {
     const { session_id } = req.body;
         const { link } = req.params;
@@ -964,5 +1071,5 @@ const editRole = async (req, res) => {
 };
 
 module.exports = {
-    createClass, deleteClass, editClass, getClass, myClasses, deleteMember, leave, editRole
+    createClass, deleteClass, editClass, getClass, myClasses, myCreatedClasses, deleteMember, leave, editRole
 };
