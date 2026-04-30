@@ -28,11 +28,14 @@
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
+  background-color: var(--mat-sys-surface-container-lowest);
 }
 
 .router {
   @include shadow;
   @include scrollable;
+  border-radius: 0;
+  border-width: 0 1px;
 }
 
 
@@ -59,11 +62,11 @@
 
   height: 100%;
   flex: 1 1 0%;
+  background-color: var(--mat-sys-surface-container-lowest);
 }
 
 .bottom {
-  visibility: hidden;
-  height: 0px;
+  display: none;
   flex-shrink: 0;
 }
 
@@ -119,7 +122,7 @@ app-header {
   }
 
   .bottom {
-    visibility: visible;
+    display: block;
     height: 45px;
   }
 

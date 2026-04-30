@@ -9,5 +9,6 @@ router.post('/advertisements/archive', advertisementsController.archive);
 router.post('/advertisements/get', advertisementsController.get);
 router.post('/advertisements/get-my', advertisementsController.getMy);
 router.post('/advertisements/get-class', advertisementsController.getClass);
+router.get('/advertisements/get-by-username/:username', advertisementsController.getByUsername);
 
 module.exports = router;

@@ -1,26 +1,37 @@
 @if (user) {
 <div class="top-container">
-@if (mode==null) {
   <div class="title">
+    @if (mode==null) {
     <span [innerHTML]="user.full_name | truncate: isTitleActive" (click)="showTitle()"></span>
 
     <button mat-icon-button [matMenuTriggerFor]="user_menu"><mat-icon>more_vert</mat-icon></button>
     <mat-menu #user_menu>
       <button mat-menu-item (click)="editMode()">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
       <button mat-menu-item (click)="passwordMode()">Сменить пароль<mat-icon matTextPrefix>password</mat-icon></button>
+      <button mat-menu-item (click)="sessionsMode()">Сеансы<mat-icon matTextPrefix>people_alt</mat-icon></button>
       <button mat-menu-item (click)="logout()">Выход<mat-icon matTextPrefix>exit_to_app</mat-icon></button>
     </mat-menu>
+    } @else if (mode=='edit') {Редактировать}
+    @else if (mode=='password') {Сменить пароль}
+    @else if (mode=='sessions') {
+    @if (sessions$ | async; as response) {
+    <mat-icon (click)="noMode()">close</mat-icon>
+    @if (response?.data) { Всего сеансов: {{ response.data.total_active_sessions }} }
+
+    <button mat-icon-button [matMenuTriggerFor]="user_menu"><mat-icon>more_vert</mat-icon></button>
+    <mat-menu #user_menu>
+      <button mat-menu-item (click)="noMode()">Пользователь<mat-icon matTextPrefix>person</mat-icon></button>
+      <button mat-menu-item (click)="editMode()">Редактировать<mat-icon matTextPrefix>edit</mat-icon></button>
+      <button mat-menu-item (click)="passwordMode()">Сменить пароль<mat-icon matTextPrefix>password</mat-icon></button>
+      <button mat-menu-item (click)="logout()">Выход<mat-icon matTextPrefix>exit_to_app</mat-icon></button>
+    </mat-menu>
+    }
+    }
   </div>
-}
 </div>
 <div class="bottom-container">
-@if (mode==null) {
-    <div class="inner-block">
-    <p>
-      @if (user.is_teacher) {Учитель}
-      @if (user.is_student) {Ученик}
-      @if (user.is_parent) {Родитель}
-    </p>
+  @if (mode==null) {
+  <div class="inner-block">
     <p>
       {{user.email}}
       {{user.phone}}
@@ -30,110 +41,108 @@
     <p>Дата регистрации: {{user.created_at| date:'dd.MM.yyyy'}}</p>
     <p>Последнее обновление: {{user.updated_at| date:'dd.MM.yyyy HH:mm'}}</p>
   </div>
-}
-@else if (mode=='password'){
-<div class="inner-block">
-  <form [formGroup]="passwordForm">
-    Сменить пароль
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>Старый пароль</mat-label>
-        <input matInput [type]="hideOldPassword() ? 'password' : 'text'" formControlName="old_password">
-        <button matIconButton matSuffix (click)="toggleOldPassword($event)" [attr.aria-label]="'Скрыть пароль'"
-          [attr.aria-pressed]="hideOldPassword()">
-          <mat-icon>{{hideOldPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
-        </button>
-        <mat-error>
-          @if (passwordForm.get('old_password')?.errors?.['required'])
-          {Введите старый пароль}
-        </mat-error>
-      </mat-form-field>
-    </p>
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>Новый пароль</mat-label>
-        <input matInput [type]="hideNewPassword() ? 'password' : 'text'" formControlName="new_password">
-        <button matIconButton matSuffix (click)="toggleNewPassword($event)" [attr.aria-label]="'Скрыть пароль'"
-          [attr.aria-pressed]="hideNewPassword()">
-          <mat-icon>{{hideNewPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
-        </button>
-        <mat-error>
-          @if (passwordForm.get('new_password')?.errors?.['required'])
-          {Введите новый пароль}
-        </mat-error>
-      </mat-form-field>
-    </p>
-    <button mat-raised-button (click)="changePassword()" [disabled]="!passwordForm.valid">Изменить пароль</button>
-    <button mat-raised-button (click)="exitPasswordMode()">Отмена</button>
-  </form>
-</div>
-} @else if (mode=='edit') {
-<div class="inner-block">
-  <form [formGroup]="editForm">
-    Редактировать
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>Полное имя</mat-label>
-        <input matInput formControlName="new_full_name">
-      </mat-form-field>
-    </p>
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
-        <input matInput formControlName="new_email" placeholder="example@mail.com">
-      </mat-form-field>
-    </p>
-    <p class="input-box">
-      <mat-form-field appearance="outline">
-        <mat-label>username</mat-label>
-        <input matInput formControlName="new_username">
-      </mat-form-field>
-    </p>
-    <div class="row-2">
+  }
+  @else if (mode=='password'){
+  <div class="inner-block">
+    <form [formGroup]="passwordForm">
       <p class="input-box">
         <mat-form-field appearance="outline">
-          <mat-label>Телефон</mat-label>
-          <input matInput formControlName="new_phone" placeholder="89876543210">
+          <mat-label>Старый пароль</mat-label>
+          <input matInput [type]="hideOldPassword() ? 'password' : 'text'" formControlName="old_password">
+          <button matIconButton matSuffix (click)="toggleOldPassword($event)" [attr.aria-label]="'Скрыть пароль'"
+            [attr.aria-pressed]="hideOldPassword()">
+            <mat-icon>{{hideOldPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error>
+            @if (passwordForm.get('old_password')?.errors?.['required'])
+            {Введите старый пароль}
+          </mat-error>
         </mat-form-field>
       </p>
       <p class="input-box">
         <mat-form-field appearance="outline">
-          <mat-label>Дата рождения</mat-label>
-          <input matInput formControlName="new_birth_date" placeholder="ДД.ММ.ГГГГ">
+          <mat-label>Новый пароль</mat-label>
+          <input matInput [type]="hideNewPassword() ? 'password' : 'text'" formControlName="new_password">
+          <button matIconButton matSuffix (click)="toggleNewPassword($event)" [attr.aria-label]="'Скрыть пароль'"
+            [attr.aria-pressed]="hideNewPassword()">
+            <mat-icon>{{hideNewPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error>
+            @if (passwordForm.get('new_password')?.errors?.['required'])
+            {Введите новый пароль}
+          </mat-error>
         </mat-form-field>
       </p>
-    </div>
-    <button mat-raised-button color="primary" type="submit" (click)="editUser()">Подтвердить</button>
-    <button mat-raised-button (click)="exitEditMode()">Отмена</button>
-  </form>
+      <button mat-raised-button (click)="changePassword()" [disabled]="!passwordForm.valid">Изменить пароль</button>
+      <button mat-raised-button (click)="noMode()">Отмена</button>
+    </form>
+  </div>
+  } @else if (mode=='edit') {
+  <div class="inner-block">
+    <form [formGroup]="editForm">
+      <p class="input-box">
+        <mat-form-field appearance="outline">
+          <mat-label>Полное имя</mat-label>
+          <input matInput formControlName="new_full_name">
+        </mat-form-field>
+      </p>
+      <p class="input-box">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="new_email" placeholder="example@mail.com">
+        </mat-form-field>
+      </p>
+      <p class="input-box">
+        <mat-form-field appearance="outline">
+          <mat-label>username</mat-label>
+          <input matInput formControlName="new_username">
+        </mat-form-field>
+      </p>
+      <div class="row-2">
+        <p class="input-box">
+          <mat-form-field appearance="outline">
+            <mat-label>Телефон</mat-label>
+            <input matInput formControlName="new_phone" placeholder="89876543210">
+          </mat-form-field>
+        </p>
+        <p class="input-box">
+          <mat-form-field appearance="outline">
+            <mat-label>Дата рождения</mat-label>
+            <input matInput formControlName="new_birth_date" placeholder="ДД.ММ.ГГГГ">
+          </mat-form-field>
+        </p>
+      </div>
+      <button mat-raised-button color="primary" type="submit" (click)="editUser()">Подтвердить</button>
+      <button mat-raised-button (click)="noMode()">Отмена</button>
+    </form>
+  </div>
+  } @else if (mode=='sessions') {
+  @if (sessions$ | async; as response) {
+  <div class="inner-block">
+    @if (response?.data) {
+    @if (response.data.current_session) {
+      <p>Текущий сеанс:</p>
+    <p class="description">
+      Клиент: {{ response.data.current_session.user_agent }} |
+      IP: {{ response.data.current_session.ip_address }} |
+      Дата входа: {{ response.data.current_session.created_at | date:'dd.MM.yyyy HH:mm' }}
+    </p>
+
+    }
+    @if (response.data.total_active_sessions!=1) {
+      <p>Другие сеансы:</p>
+    @for (session of response.data.other_sessions; track $index) {
+    <p class="description">
+      Клиент: {{ session.user_agent }} |
+      IP: {{ session.ip_address }} |
+      Дата входа: {{ session.created_at | date:'dd.MM.yyyy HH:mm' }}
+    </p>
+    }
+    <button mat-raised-button (click)="closeOtherSessions()">Закрыть другие сеансы</button>
+    }
+    }
+  </div>
+  }
+  }
 </div>
 }
-
-@if (mode==null) {
-@if (sessions$ | async; as response) {
-@if (response?.data) {
-Всего сеансов: {{ response.data.total_active_sessions }}
-@if (response.data.current_session) {
-<p>
-  {{ response.data.current_session.user_agent }}
-  {{ response.data.current_session.ip_address }}
-  {{ response.data.current_session.created_at | date:'dd.MM.yyyy HH:mm' }}
-</p>
-
-}
-@if (response.data.total_active_sessions!=1) {
-@for (session of response.data.other_sessions; track $index) {
-<p>
-  {{ session.user_agent }}
-  {{ session.ip_address }}
-  {{ session.created_at | date:'dd.MM.yyyy HH:mm' }}
-</p>
-}
-<button mat-raised-button (click)="closeOtherSessions()">Закрыть другие сеансы</button>
-}
-}
-}
-}
-</div>
-}
-

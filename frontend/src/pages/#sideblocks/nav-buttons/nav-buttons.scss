@@ -6,6 +6,7 @@
   align-items: center;
   transition: all 0.3s ease;
   border-radius: 0;
+  background-color: var(--mat-sys-surface-container-lowest);
   
   &.active-button {
     background-color: var(--mat-sys-primary);

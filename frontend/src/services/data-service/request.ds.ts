@@ -21,4 +21,7 @@ export class RequestDataService {
   decline(session_id: string, link: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/requests/decline`, { session_id, link });
   }
+  getUsersToInvite(session_id: string, link: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/requests/users-to-invite`, { session_id, link });
+  }
 }

@@ -2,13 +2,16 @@
     <div class="title">
         @if (mode=='search') {
         Поиск объявлений
+        @if (isAuth$ | async) {
         <button mat-icon-button [matMenuTriggerFor]="search_menu"><mat-icon>more_vert</mat-icon></button>
         <mat-menu #search_menu>
             <button mat-menu-item (click)="myMode()">Мои объявления<mat-icon
                     matTextPrefix>assignment_ind</mat-icon></button>
             <button mat-menu-item (click)="createMode()">Создать объявление<mat-icon
                     matTextPrefix>add</mat-icon></button>
-        </mat-menu> }
+        </mat-menu>
+        }
+        }
         @else if (mode=='my') {
         Мои объявления
         <button mat-icon-button [matMenuTriggerFor]="my_menu"><mat-icon>more_vert</mat-icon></button>
@@ -32,70 +35,103 @@
     </div>
 </div>
 <div class="bottom-container">
+    @if (isBrowser) {
     @if (mode=='search') {
-    <mat-form-field appearance="outline" class="input-box">
-        <mat-label>Найти объявления</mat-label>
-        <input matInput type="text" [(ngModel)]="searchValue">
-        <button matSuffix matIconButton aria-label="Поиск" (click)="search()">
-            <mat-icon>search</mat-icon>
-        </button>
-    </mat-form-field>
+    <form [formGroup]="searchForm">
+        <p class="input-box">
+            <mat-form-field appearance="outline">
+                <mat-label>Найти объявления</mat-label>
+                <input matInput formControlName="value">
+                <button matSuffix matIconButton aria-label="Поиск" (click)="search()">
+                    <mat-icon>search</mat-icon>
+                </button>
+            </mat-form-field>
+        </p>
+    </form>
     @if ((advertisements$ | async)?.advertisements?.length) {
     <div class="advertisement-list">
         @for (item of (advertisements$ | async)?.advertisements; track item.id) {
         <div class="advertisement" (click)="viewMode(item.id)">
-            <div class="name">{{ item.name }}</div>
-            <div class="creator">{{ item.creator_name }}</div>
-            <div class="price">
+            <div class="name">{{ item.name |truncate:50}}</div>
+            @if (item.description) { <div class="description">{{ item.description | truncate:50 }}</div> }
+            <div>{{ item.creator_name |truncate:30}}</div>
+            <div>
                 @if (item.price) { Цена: {{ item.price }} рублей }
                 @else { Цена не указана }
+                | Создано: {{ item.created_at | date:'dd.MM.yyyy' }}
             </div>
-            <div class="date">Создано: {{ item.created_at | date:'dd.MM.yyyy' }}</div>
         </div>
-        }
-        <mat-paginator #paginator (page)="handlePageEvent($event)" [length]="this.advertisementsList.total_count"
-            [pageSize]="PAGE_SIZE" [showFirstLastButtons]="true" [hidePageSize]="true" [pageIndex]="pageIndex">
-        </mat-paginator>
-    </div>} @else { <div class="no-data">Нет объявлений</div> }
-    } @else if (mode=='my') {
-    <div class="advertisement-list">
-        @if ((myAdvertisements$ | async)?.advertisements?.length) {
-        @for (item of (myAdvertisements$ | async)?.advertisements; track item.id) {
-        <div class="advertisement" (click)="editMode(item.id)">
-            <div class="name">{{ item.name }}</div>
-            <div class="creator">{{ item.creator_name }}</div>
-            <div class="price">
-                @if (item.price) { Цена: {{ item.price }} }
-                @else { Цена не указана }
-            </div>
-            <div class="date">Создано: {{ item.created_at | date:'dd.MM.yyyy' }}</div>
-        </div>
-        }
-        } @else {
-        <div class="no-data">Нет моих объявлений</div>
         }
     </div>
+    <mat-paginator #paginator (page)="handlePageEvent($event)" [length]="this.advertisementsList.total_count"
+        [pageSize]="PAGE_SIZE" [showFirstLastButtons]="true" [hidePageSize]="true" [pageIndex]="pageIndex">
+    </mat-paginator>} @else { <div class="no-data">Нет объявлений</div> }
+    } @else if (mode=='my') {
+    @if ((myAdvertisements$ | async)?.advertisements?.length || (myAdvertisements$ | async)?.archive?.length)
+    {
+    @if ((myAdvertisements$ | async)?.advertisements?.length) {
+    <div class="advertisement-list">
+        @for (item of (myAdvertisements$ | async)?.advertisements; track item.id)
+        {
+        <div class="advertisement" (click)="editMode(item.id)">
+            <div class="name">{{ item.name |truncate:50 }}</div>
+            @if (item.description) { <div class="description">{{ item.description | truncate:50 }}</div> }
+            <div>{{ item.creator_name }}</div>
+            <div>
+                @if (item.price) { Цена: {{ item.price }} рублей }
+                @else { Цена не указана }
+                | Создано: {{ item.created_at | date:'dd.MM.yyyy' }}
+            </div>
+        </div>
+        }
+    </div>
+    }
+    @if ((myAdvertisements$ | async)?.archive?.length) {
+    АРХИВ
+    <div class="advertisement-list">
+        @for (item of (myAdvertisements$ | async)?.archive; track item.id)
+        {
+        <div class="advertisement" (click)="editMode(item.id)">
+            <div class="name">{{ item.name |truncate:50 }}</div>
+            @if (item.description) { <div class="description">{{ item.description | truncate:50 }}</div> }
+            <div>{{ item.creator_name }}</div>
+            <div>
+                @if (item.price) { Цена: {{ item.price }} рублей }
+                @else { Цена не указана }
+                | Создано: {{ item.created_at | date:'dd.MM.yyyy' }}
+            </div>
+        </div>
+        }
+    </div>
+    }
+
+    } @else {
+    <div class="no-data">Нет моих объявлений</div>
+    }
     }
     @else if (mode=='view') {
     <div class="inner-block">
         @if (advertisementForm.value) {
         <p>{{ advertisementForm.value.name }}</p>
+        @if (advertisementForm.value.description)
+        {<p class="description">{{ advertisementForm.value.description }}</p>}
+        }
         <p>
             @if (advertisementForm.value.price) {
-            {{ advertisementForm.value.price }} }
+            {{ advertisementForm.value.price }} рублей за занятие}
             @else { Цена не указана }
         </p>
-        @if (advertisementForm.value.description)
-        {<p>{{ advertisementForm.value.description }}</p>}
-        }
+        <button mat-raised-button color="primary"
+            [routerLink]="'/chat/'+selectedAdvertisementUsername"><mat-icon>message</mat-icon>Написать
+            репетитору</button>
     </div>
 
     } @else if (mode=='edit' || mode=='create') {
     <div class="inner-block">
+        @if (mode === 'edit') {
         @if (classInfo$ | async; as classInfo) {
-        <div class="class-info">
-            Класс: {{ classInfo.name }}
-        </div>
+        <div class="class-info"> Класс: {{ classInfo.name }} </div>
+        }
         }
         @if (mode=='create') {
         <form [formGroup]="selectClassForm">
@@ -117,11 +153,11 @@
         <form [formGroup]="advertisementForm">
             <p class="input-box">
                 <mat-form-field appearance="outline">
-                    <mat-label>Название</mat-label>
+                    <mat-label>Заголовок</mat-label>
                     <input matInput formControlName="name">
                     <mat-error>
                         @if (advertisementForm.get('name')?.errors?.['required'])
-                        {Введите название}
+                        {Введите заголовок}
                         @else if (advertisementForm.get('name')?.errors?.['maxLength'])
                         {Максимальная длина - 100 символов}
                     </mat-error>
@@ -130,7 +166,7 @@
 
             <p class="input-box">
                 <mat-form-field appearance="outline">
-                    <mat-label>Цена</mat-label>
+                    <mat-label>Стоимость занятия (в рублях)</mat-label>
                     <input matInput formControlName="price">
                     <mat-error>
                         @if (advertisementForm.get('price')?.errors)
@@ -159,5 +195,6 @@
             <button (click)="myMode()" mat-raised-button>Отмена</button>
         </form>
     </div>
+    }
     }
 </div>

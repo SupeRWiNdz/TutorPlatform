@@ -1,0 +1,63 @@
+.user-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.mini_more {
+  margin-left: auto;
+}
+
+.users-block {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    width: 0px;
+  }
+
+  align-items: left;
+  display: grid;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 90%;
+  margin: 16px auto 0 auto;
+  padding: 15px;
+  font: var(--mat-sys-title-medium);
+  font-weight: 400;
+}
+.invite {
+  margin: 16px auto 0 auto;
+  width:93%;
+  
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.add-member {
+  margin: 16px auto 0 auto;
+  width: 93%;
+
+  form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  mat-form-field {
+    flex: 1;
+  }
+
+  button {
+    flex-shrink: 0;
+    margin-bottom: 20px;
+
+    mat-icon {
+      transform: scale(1.1);
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,18 +16,31 @@ import { TruncatePipe } from "@pipes/truncate.pipe";
   styleUrl: './near-lesson.scss',
 })
 export class NearLesson implements OnInit {
-  lesson: any | null = null;
+  @Output() hasLessonChange = new EventEmitter<boolean>();
+  public lesson: any | null = null;
   constructor(
     public auth: AuthService,
-    public dataService: DataService
+    public dataService: DataService,
+    private cdr: ChangeDetectorRef
   ) {
   }
   ngOnInit(): void {
     const token = this.auth.tokenValue;
-    if (!token) { return; }
+    if (!token) {
+      this.hasLessonChange.emit(false);
+      this.cdr.detectChanges();
+      return;
+    }
     this.dataService.lessonsDS.getNearest(token).subscribe({
       next: (response) => {
         this.lesson = response.lesson;
+        this.hasLessonChange.emit(!!this.lesson);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.lesson = null;
+        this.hasLessonChange.emit(false);
+        this.cdr.detectChanges();
       }
     });
   }

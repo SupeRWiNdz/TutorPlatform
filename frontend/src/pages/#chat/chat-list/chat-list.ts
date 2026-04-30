@@ -2,16 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
 import { TruncatePipe } from '@pipes/truncate.pipe';
-import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-chat-list',
-  imports: [CommonModule, TruncatePipe,
-    MatButtonModule, MatIconModule
+  imports: [CommonModule, TruncatePipe
   ],
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss',

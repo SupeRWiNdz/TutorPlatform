@@ -1,0 +1,86 @@
+@if (class.name) {
+<div class="top-container">
+    <div class="title">
+        <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>
+        <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
+        <mat-menu #class_menu>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/lessons/'">Занятия<mat-icon
+                    matTextPrefix>calendar_today</mat-icon></button>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/info/'">Информация<mat-icon
+                    matTextPrefix>info</mat-icon></button>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link">Чат<mat-icon
+                    matTextPrefix>message</mat-icon></button>
+            @if (class.user_role == 'creator')
+            {
+            <button mat-menu-item (click)="createInvitation()">Создать общее приглашение<mat-icon
+                    matTextPrefix>link</mat-icon></button>
+            } @else {
+            <button mat-menu-item (click)="leave()">Выйти<mat-icon matTextPrefix>exit_to_app</mat-icon></button>
+            }
+        </mat-menu>
+    </div>
+</div>
+<div class="bottom-container">
+    @if (invitation) {
+    <div class="invite">
+        <mat-form-field appearance="outline">
+            <mat-label>Приглашение в класс</mat-label>
+            <input matInput #textToCopy [value]="invitation" readonly>
+            <button matSuffix mat-icon-button (click)="copyText(invitation)">
+                <mat-icon>content_copy</mat-icon>
+            </button>
+        </mat-form-field>
+    </div>
+
+    }
+
+    @if (class.user_role == 'creator')
+    {
+    <div class="add-member">
+        <form [formGroup]="addMemberForm">
+            <mat-form-field appearance="outline">
+                <mat-label>Пригласить в класс</mat-label>
+                <mat-select formControlName="username">
+                    @if ((usersToInvite$ | async)?.length) {
+                    @for (item of (usersToInvite$ | async); track item.username) {
+                    <mat-option value="{{item.username}}">{{item.full_name}}</mat-option>
+                    }
+                    } @else {
+                    <mat-option>Вам некого приглашать</mat-option>
+                    }
+
+                </mat-select>
+            </mat-form-field>
+            <button matIconButton matSuffix (click)="addMember()"
+                [attr.aria-label]="'Отправить'"><mat-icon>person_add</mat-icon></button>
+        </form>
+    </div>
+    }
+    <div class="users-block">
+        @for (member of class.members; track member.username) {
+        <div class="user-info">
+            <mat-icon>{{member.member_role | roleIcon}}</mat-icon> {{member.full_name |truncate: 32}}
+            <button mat-icon-button [matMenuTriggerFor]="member_menu"
+                class="mini_more"><mat-icon>more_vert</mat-icon></button>
+            <mat-menu #member_menu>
+                <button mat-menu-item route [routerLink]="'/chat/'+member.username">Перейти в чат<mat-icon
+                        matTextPrefix>messenger</mat-icon></button>
+                <button mat-menu-item route [routerLink]="'/profile/'+member.username">Перейти в профиль<mat-icon
+                        matTextPrefix>person</mat-icon></button>
+                @if (class.user_role == 'creator' && member.member_role !== 'creator')
+                {
+                @if (member.member_role == 'student')
+                {<button mat-menu-item (click)="editRole(member.username, member.member_role)">Сделать учителем<mat-icon
+                        matTextPrefix>self_improvement</mat-icon></button>}
+                @else if (member.member_role == 'teacher')
+                {<button mat-menu-item (click)="editRole(member.username, member.member_role)">Сделать учеником<mat-icon
+                        matTextPrefix>man</mat-icon></button>}
+                <button mat-menu-item (click)="deleteMember(member.username)">Удалить из класса<mat-icon
+                        matTextPrefix>person_remove</mat-icon></button>
+                }
+            </mat-menu>
+        </div>
+        }
+    </div>
+</div>
+} @else if (class.message) {{{ class.message }}}

@@ -1,5 +1,5 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { AsyncPipe, DatePipe, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectorRef, Component, Inject, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
 import { AdvertisementsService } from '@services/advertisements.service';
@@ -12,15 +12,18 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
+import { AuthService } from '@services/auth.service';
+import { TruncatePipe } from "@pipes/truncate.pipe";
+import { RouterLink } from "@angular/router";
 
 @Component({
   selector: 'advertisements',
   imports: [AsyncPipe, DatePipe, ReactiveFormsModule, MatFormField, MatLabel, MatError, MatInputModule,
-    MatButtonModule, MatIconModule, MatMenuModule, MatSelectModule, MatPaginatorModule, FormsModule],
+    MatButtonModule, MatIconModule, MatMenuModule, MatSelectModule, MatPaginatorModule, FormsModule, TruncatePipe, RouterLink],
   templateUrl: './advertisements.html',
   styleUrl: './advertisements.scss',
 })
-export class Advertisements implements OnInit {
+export class Advertisements implements OnInit, OnDestroy {
   private _snackBar = inject(MatSnackBar);
   openSnackBar(message: string) {
     this._snackBar.open(message, 'Закрыть', {
@@ -38,7 +41,11 @@ export class Advertisements implements OnInit {
   public myCreatedClassesList: any = null;
   public advertisementForm: FormGroup;
   public selectClassForm: FormGroup;
+  public searchForm: FormGroup;
   public selectedAdvertisementID: string | null = null;
+  public selectedAdvertisementUsername: string | null = null;
+  public isAuth$: Observable<boolean>;
+  public isBrowser: boolean;
 
   private _mode: 'search' | 'my' | 'view' | 'create' | 'edit' = 'search';
   public get mode() { return this._mode }
@@ -67,11 +74,12 @@ export class Advertisements implements OnInit {
   private advertisementToForm(id: string, type: 'search' | 'my'): boolean {
     const list = type === 'search' ? this.advertisementsList : this.myAdvertisementsList;
 
-    if (!list?.advertisements || !Array.isArray(list.advertisements)) {
+    if ((!list?.advertisements || !Array.isArray(list.advertisements))
+      && (!list?.archive || !Array.isArray(list.archive))) {
       return false;
     }
 
-    const found = list.advertisements.find((ad: any) => ad.id === id);
+    const found = list.advertisements.find((ad: any) => ad.id === id) || list.archive.find((ad: any) => ad.id === id);
 
     if (found) {
       this.advertisementForm.patchValue({
@@ -80,6 +88,7 @@ export class Advertisements implements OnInit {
         description: found.description || ''
       });
       this.selectedAdvertisementID = id;
+      this.selectedAdvertisementUsername = found.username;
       return true;
     }
 
@@ -87,10 +96,14 @@ export class Advertisements implements OnInit {
   }
 
   constructor(
+    public auth: AuthService,
     private advertisementsService: AdvertisementsService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    this.isAuth$ = this.auth.token$.pipe(map(t => !!t));
+    this.isBrowser = isPlatformBrowser(this.platformId);
 
     this.advertisements$ = this.advertisementsService.advertisements$;
     this.myAdvertisements$ = this.advertisementsService.myAdvertisements$;
@@ -105,6 +118,9 @@ export class Advertisements implements OnInit {
     this.selectClassForm = this.fb.group({
       link: ['', [Validators.required]]
     });
+    this.searchForm = this.fb.group({
+      value: ['', []]
+    });
   }
 
 
@@ -112,6 +128,11 @@ export class Advertisements implements OnInit {
     this.advertisements$.subscribe(response => this.advertisementsList = response);
     this.myAdvertisements$.subscribe(response => this.myAdvertisementsList = response);
     this.myCreatedClasses$.subscribe(response => this.myCreatedClassesList = response);
+  }
+  ngOnDestroy(): void {
+    this.searchForm.reset();
+    this.advertisementsService.pageIndex = 0;
+    this.advertisementsService.loadAdvertisements('').subscribe();
   }
   public submitAdvertisementForm(): void {
     const chosenLink = this.selectClassForm.get('link')?.value;
@@ -153,16 +174,15 @@ export class Advertisements implements OnInit {
   public get PAGE_SIZE(): number { return this.advertisementsService.PAGE_SIZE }
   handlePageEvent(e: PageEvent) {
     this.advertisementsService.pageIndex = e.pageIndex;
-    this.advertisementsService.loadAdvertisements(this.searchValue).subscribe({
+    this.advertisementsService.loadAdvertisements(this.searchForm.value.value).subscribe({
       next: (response) => {
         this.cdr.detectChanges();
       }
     });
   }
-  public searchValue: string = '';
   public search(): void {
     this.advertisementsService.pageIndex = 0;
-    this.advertisementsService.loadAdvertisements(this.searchValue).subscribe({
+    this.advertisementsService.loadAdvertisements(this.searchForm.value.value).subscribe({
       next: (response) => {
         this.cdr.detectChanges();
       }

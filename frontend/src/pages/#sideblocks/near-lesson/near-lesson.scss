@@ -1,0 +1,16 @@
+@mixin shadow {
+  box-shadow:
+    0 0px 5px color-mix(in srgb, var(--mat-sys-primary) 10%, transparent),
+    0 1px 0 color-mix(in srgb, var(--mat-sys-outline-variant) 25%, transparent);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.block {
+  @include shadow;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--mat-sys-surface-container-lowest);
+}

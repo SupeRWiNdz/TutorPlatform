@@ -15,6 +15,7 @@ import { TruncatePipe } from '@pipes/truncate.pipe';
 import { RoleNamePipe } from "@pipes/role-name.pipe";
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DateTodayPipe } from "@pipes/date-today.pipe";
 
 @Component({
   selector: 'app-class-list',

@@ -26,6 +26,7 @@ import { WeekLessons } from '@pages/week-lessons/week-lessons';
 import { ClassLessons } from '@pages/#class/class-lessons/class-lessons';
 import { LessonsResolver } from '@resolvers/lessons.resolver';
 import { Advertisements } from '@pages/advertisements/advertisements';
+import { ClassMembers } from '@pages/#class/class-members/class-members';
 
 export const routes: Routes = [
   {
@@ -105,6 +106,12 @@ export const routes: Routes = [
         path: 'class/:link/lessons',
         component: ClassLessons,
         resolve: { class: ClassResolver, lessons: LessonsResolver },
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'class/:link/members',
+        component: ClassMembers,
+        resolve: { class: ClassResolver },
         canActivate: [AuthGuard]
       },
       {

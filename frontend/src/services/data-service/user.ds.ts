@@ -7,7 +7,7 @@ import { environment } from '../../../environment';
   providedIn: 'root'
 })
 export class UserDataService {
-  constructor(private http: HttpClient) {  }
+  constructor(private http: HttpClient) { }
 
   getUserData(sessionId: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/users/get-user-data`, { session_id: sessionId });
@@ -19,32 +19,32 @@ export class UserDataService {
     return this.http.get<any>(`${environment.apiUrl}/users/info/${username}`);
   }
   editUser(data: {
-  session_id: string,
-  new_email?: string,
-  new_username?: string,
-  new_full_name?: string,
-  new_phone?: string,
-  new_birth_date?: string
-}): Observable<any> {
-  const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
-    if (value !== undefined && value !== '') {
-      acc[key] = value;
-    }
-    return acc;
-  }, {} as any);
+    session_id: string,
+    new_email?: string,
+    new_username?: string,
+    new_full_name?: string,
+    new_phone?: string,
+    new_birth_date?: string
+  }): Observable<any> {
+    const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
+      if (value !== undefined && value !== '') {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as any);
 
-  return this.http.post<any>(`${environment.apiUrl}/users/edit`, filteredData);
-}
-register(userData: {
-  account_type: string,
-  email: string,
-  password: string,
-  phone?: string,
-  username: string,
-  birth_date?: string,
-  full_name: string
-}): Observable<any> {
-  return this.http.post<any>(`${environment.apiUrl}/users/register`, userData);
-}
+    return this.http.post<any>(`${environment.apiUrl}/users/edit`, filteredData);
+  }
+  register(userData: {
+    account_type: string,
+    email: string,
+    password: string,
+    phone?: string,
+    username: string,
+    birth_date?: string,
+    full_name: string
+  }): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/users/register`, userData);
+  }
 
 }

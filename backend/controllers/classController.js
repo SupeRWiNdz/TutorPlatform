@@ -441,7 +441,7 @@ const myClasses = async (req, res) => {
             [userId]
         );
         
-        // 3. Для каждого класса получаем информацию об участниках (без ID)
+        // 3. Для каждого класса получаем информацию об участниках и последние сообщения
         const classesWithMembers = await Promise.all(
             classesResult.rows.map(async (classItem) => {
                 // Получаем id класса для запроса участников (не возвращаем его)
@@ -459,7 +459,6 @@ const myClasses = async (req, res) => {
                         u.avatar_url,
                         u.is_student,
                         u.is_teacher,
-                        u.is_parent,
                         cm.role as member_role,
                         cm.joined_at
                      FROM class_members cm
@@ -476,6 +475,24 @@ const myClasses = async (req, res) => {
                     [classId]
                 );
                 
+                const messagesResult = await pool.query(
+                    `SELECT 
+                        u.username,
+                        u.full_name,
+                        m.text,
+                        m.sent_at,
+                        CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                     FROM messages m
+                     JOIN users u ON m.sender_uuid = u.id
+                     WHERE m.receiver_uuid = $2
+                     ORDER BY m.sent_at DESC
+                     LIMIT 8`,
+                    [userId, classId]
+                );
+                
+                // Переворачиваем сообщения в хронологическом порядке (от старых к новым)
+                const latestMessages = messagesResult.rows.reverse();
+                
                 // Формируем объект класса без ID
                 return {
                     name: classItem.name,
@@ -491,10 +508,15 @@ const myClasses = async (req, res) => {
                         avatar_url: member.avatar_url,
                         is_student: member.is_student,
                         is_teacher: member.is_teacher,
-                        is_parent: member.is_parent,
                         member_role: member.member_role,
                         joined_at: member.joined_at
-                        // email и id исключены для приватности
+                    })),
+                    latest_messages: latestMessages.map(msg => ({
+                        username: msg.username,
+                        full_name: msg.full_name,
+                        text: msg.text,
+                        sent_at: msg.sent_at,
+                        type: msg.type
                     }))
                 };
             })
@@ -568,7 +590,6 @@ const myCreatedClasses = async (req, res) => {
                         u.avatar_url,
                         u.is_student,
                         u.is_teacher,
-                        u.is_parent,
                         cm.role as member_role,
                         cm.joined_at
                      FROM class_members cm
@@ -599,7 +620,6 @@ const myCreatedClasses = async (req, res) => {
                         avatar_url: member.avatar_url,
                         is_student: member.is_student,
                         is_teacher: member.is_teacher,
-                        is_parent: member.is_parent,
                         member_role: member.member_role,
                         joined_at: member.joined_at
                     }))
@@ -689,7 +709,6 @@ const getClass = async (req, res) => {
                 u.avatar_url,
                 u.is_student,
                 u.is_teacher,
-                u.is_parent,
                 cm.role as member_role,
                 cm.joined_at
              FROM class_members cm
@@ -715,7 +734,6 @@ const getClass = async (req, res) => {
                 avatar_url: member.avatar_url,
                 is_student: member.is_student,
                 is_teacher: member.is_teacher,
-                is_parent: member.is_parent,
                 member_role: member.member_role,
                 joined_at: member.joined_at
             })),

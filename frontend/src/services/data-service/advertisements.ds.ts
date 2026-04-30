@@ -30,4 +30,7 @@ export class AdvertisementsDataService {
   getClass(session_id: string, advertisement_id: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/advertisements/get-class`, { session_id, advertisement_id});
   }
+  getByUsername(username: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/advertisements/get-by-username/${username}`);
+  }
 }

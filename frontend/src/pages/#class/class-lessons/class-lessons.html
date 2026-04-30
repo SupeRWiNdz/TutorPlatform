@@ -2,13 +2,18 @@
 <div class="top-container">
     <div class="title">
         @if (mode==null) {
-        <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()"></span>
+        <span [innerHTML]="class.name | truncate: isTitleActive" (click)="showTitle()">
+        </span>
+        @if (isCurrentWeek)
+        { (текущая неделя)}
         <button mat-icon-button [matMenuTriggerFor]="class_menu"><mat-icon>more_vert</mat-icon></button>
         <mat-menu #class_menu>
-            <button mat-menu-item [routerLink]="'/class/'+this.class.link">Чат класса<mat-icon
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link">Чат<mat-icon
                     matTextPrefix>message</mat-icon></button>
             <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/info/'">Информация<mat-icon
                     matTextPrefix>info</mat-icon></button>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/members/'">Участники<mat-icon
+                    matTextPrefix>people</mat-icon></button>
         </mat-menu>
         }
         @else if (mode=='create') { Запланировать занятие }
@@ -30,36 +35,38 @@
 <div class="bottom-container">
     @if (mode==null)
     {
-    @if (isCurrentWeek)
-    {<p>Текущая неделя</p>}
     <div class="single-week">
         @if (lessonsList) {
         @for (day of getDaysArray(lessonsList); track day.key) {
         <div class="single-day">
             <div class="day-info" [ngStyle]="{ 'font-weight': (day.is_today) ? '900' : 'normal' }">
-                {{ day.label }}
-                {{ day.date | dateToMonthName }}
-                @if (canEdit) {<mat-icon (click)="createMode(day.date)" matTextPrefix>add_box</mat-icon>}
+                {{ day.label }} {{ day.date | dateToMonthName }}
+                @if (canEdit) {<button (click)="createMode(day.date)"
+                    mat-icon-button><mat-icon>add_box</mat-icon></button>}
             </div>
-            @for (lesson of day.lessons; track lesson.id) {
-            <div class="single-lesson" (click)="viewMode(lesson.id)">
-                <div>Занятие:</div>
-                <div>
-                    @if (lesson.time && lesson.end_time) {
-                    {{ lesson.time }}-{{lesson.end_time}}
-                    }
-                    @if (lesson.homework) { (Д/з) }
+            <div class="lessons" [ngClass]="{ 'lessons-today': day.is_today }">
+                @for (lesson of day.lessons; track lesson.id) {
+                <div class="single-lesson" (click)="viewMode(lesson.id)">
+                    <div>Занятие:</div>
+                    <div>
+                        @if (lesson.time && lesson.end_time) {
+                        {{ lesson.time }}-{{lesson.end_time}}
+                        }
+                        @if (lesson.homework) { (Д/з) }
+                    </div>
                 </div>
+                } @empty {
+                -
+                }
             </div>
-            } @empty {
-            -
-            }
         </div>
         }
         }
     </div>
-    <mat-icon matTextPrefix (click)="previousWeek()">navigate_before</mat-icon>
-    <mat-icon matTextPrefix (click)="nextWeek()">navigate_next</mat-icon>
+    <div class="week-navigation">
+        <button (click)="previousWeek()" mat-icon-button><mat-icon>navigate_before</mat-icon></button>
+        <button (click)="nextWeek()" mat-icon-button><mat-icon>navigate_next</mat-icon></button>
+    </div>
     } @else if (mode=='create' || mode=='edit') {
     <div class="inner-block">
         <form [formGroup]="lessonForm">
@@ -92,11 +99,11 @@
 
                 <p class="input-box">
                     <mat-form-field appearance="outline">
-                        <mat-label>Продолжительность</mat-label>
+                        <mat-label>Минуты</mat-label>
                         <input matInput formControlName="duration">
                         <mat-error>
                             @if (lessonForm.get('duration')?.errors?.['required'])
-                            {Введите продолжительность в минутах}
+                            {Введите длительность в минутах}
                             @else if (lessonForm.get('duration')?.errors)
                             {Введите целое число}
                         </mat-error>

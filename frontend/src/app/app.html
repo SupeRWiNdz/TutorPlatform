@@ -7,7 +7,9 @@
         <div class="router"><router-outlet></router-outlet></div>
         <div class="bottom"><nav-bottom></nav-bottom></div>
     </div>
-    <div class="container side right" >
-        <div class="block" [hidden]="auth.tokenValue==null"><near-lesson></near-lesson></div>
+    <div class="container side right">
+        @if (auth.tokenValue != null) {
+        <near-lesson></near-lesson>
+        }
     </div>
 </div>

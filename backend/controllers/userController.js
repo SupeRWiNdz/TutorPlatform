@@ -29,8 +29,7 @@ const getUserData = async (req, res) => {
             u.avatar_url,
             u.last_login,
             u.is_student,
-            u.is_teacher,
-            u.is_parent
+            u.is_teacher
             FROM users u
             JOIN user_sessions us ON u.id = us.user_id
             WHERE us.session_id = $1 AND us.is_active = true`,
@@ -152,7 +151,7 @@ const checkRoles = async (req, res) => {
     }
     try {
         const result = await pool.query(
-            `SELECT is_student, is_teacher, is_parent
+            `SELECT is_student, is_teacher
                 FROM users WHERE id = (
                 SELECT user_id
                 FROM user_sessions 
@@ -171,7 +170,7 @@ const getUserByUsername = async (req, res) => {
     try {
         const { username } = req.params;
         const result = await pool.query(
-            'SELECT username, full_name, birth_date, is_student, is_teacher, is_parent FROM users WHERE username = $1',
+            'SELECT username, full_name, birth_date, is_student, is_teacher FROM users WHERE username = $1',
             [username]
         );
 
@@ -495,9 +494,9 @@ const register = async (req, res) => {
         });
     }
 
-    const validAccountTypes = ['teacher', 'student', 'parent'];
+    const validAccountTypes = ['teacher', 'student'];
     if (!validAccountTypes.includes(account_type)) {
-        return res.status(400).json({ message: 'Тип акканта может быть только teacher, student или parent' });
+        return res.status(400).json({ message: 'Тип акканта может быть только teacher, student' });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -607,7 +606,6 @@ const register = async (req, res) => {
                 phone, 
                 birth_date, 
                 password_hash,
-                is_parent,
                 is_teacher,
                 is_student
             ) VALUES (
@@ -617,7 +615,6 @@ const register = async (req, res) => {
                     ELSE NULL 
                 END,
                 double_hash_password($6),
-                $7 = 'parent',
                 $7 = 'teacher',
                 $7 = 'student'
             ) RETURNING id`,

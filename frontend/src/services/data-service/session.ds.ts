@@ -12,13 +12,13 @@ export class SessionDataService {
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/sessions/login`, { email, password });
   }
-  logout(session_id: string) {
+  logout(session_id: string): Observable<any> {
     return this.http.post(`${environment.apiUrl}/sessions/logout`, { session_id });
   }
-  closeAll(session_id: string) {
+  closeAll(session_id: string): Observable<any> {
     return this.http.post(`${environment.apiUrl}/sessions/close-all`, { session_id });
   }
-  closeOther(session_id: string) {
+  closeOther(session_id: string): Observable<any> {
     return this.http.post(`${environment.apiUrl}/sessions/close-other`, { session_id });
   }
   checkActive(session_id: string): Observable<boolean> {

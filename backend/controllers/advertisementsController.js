@@ -208,7 +208,6 @@ const get = async (req, res) => {
     const { before_number, search, ads_count } = req.body;
 
     try {
-        // Валидация параметров пагинации
         let limit = 10;
         if (ads_count !== undefined && ads_count !== null) {
             const limitNum = Number(ads_count);
@@ -227,7 +226,6 @@ const get = async (req, res) => {
             offset = offsetNum;
         }
 
-        // Базовые части запросов (общие для выборки и подсчёта)
         const baseFrom = `
             FROM advertisements a
             JOIN users u ON a.creator_id = u.id
@@ -238,22 +236,19 @@ const get = async (req, res) => {
         const values = [];
         let paramIndex = 1;
 
-        // Условие поиска, если задано
         if (search && search.trim() !== '') {
             whereClause = ` AND (u.username ILIKE $${paramIndex} OR u.full_name ILIKE $${paramIndex} OR a.description ILIKE $${paramIndex} OR c.name ILIKE $${paramIndex})`;
             values.push(`%${search.trim()}%`);
             paramIndex++;
         }
 
-        // Запрос для получения общего количества записей
         const countQuery = `SELECT COUNT(*) AS total ${baseFrom} ${whereClause}`;
         const countResult = await pool.query(countQuery, values);
         const totalCount = parseInt(countResult.rows[0].total, 10);
 
-        // Основной запрос с пагинацией
         const dataQuery = `
             SELECT a.id, a.name, a.description, a.price, a.created_at,
-                   COALESCE(u.full_name, u.username) AS creator_name
+                   u.username, COALESCE(u.full_name, u.username) AS creator_name
             ${baseFrom}
             ${whereClause}
             ORDER BY a.created_at DESC
@@ -295,7 +290,14 @@ const getMy = async (req, res) => {
             [userId]
         );
 
-        return res.status(200).json({ advertisements: result.rows });
+        const advertisements = result.rows
+            .filter(ad => ad.is_active === true)
+            .map(({ is_active, ...rest }) => rest);
+        const archive = result.rows
+            .filter(ad => ad.is_active === false)
+            .map(({ is_active, ...rest }) => rest);
+
+        return res.status(200).json({ advertisements, archive });
     } catch (err) {
         return res.status(500).json({ message: 'Ошибка сервера' });
     }
@@ -375,7 +377,6 @@ const getClass = async (req, res) => {
                 u.avatar_url,
                 u.is_student,
                 u.is_teacher,
-                u.is_parent,
                 cm.role as member_role,
                 cm.joined_at
              FROM class_members cm
@@ -396,7 +397,6 @@ const getClass = async (req, res) => {
                 avatar_url: member.avatar_url,
                 is_student: member.is_student,
                 is_teacher: member.is_teacher,
-                is_parent: member.is_parent,
                 member_role: member.member_role,
                 joined_at: member.joined_at
             })),
@@ -412,6 +412,41 @@ const getClass = async (req, res) => {
     }
 };
 
+const getByUsername = async (req, res) => {
+    const { username } = req.params;
+
+    try {
+        if (!username || username.trim() === '') {
+            return res.status(400).json({ message: 'Не указан username пользователя' });
+        }
+
+        // Находим пользователя по username
+        const userResult = await pool.query(
+            'SELECT id FROM users WHERE username = $1',
+            [username.trim()]
+        );
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Пользователь с таким username не найден' });
+        }
+        const userId = userResult.rows[0].id;
+
+        // Получаем активные объявления пользователя
+        const result = await pool.query(
+            `SELECT a.id, a.name, a.description, a.price, a.created_at, c.name AS class_name
+             FROM advertisements a
+             JOIN classes c ON a.class_id = c.id
+             WHERE a.creator_id = $1 AND a.is_active = true
+             ORDER BY a.created_at DESC`,
+            [userId]
+        );
+
+        return res.status(200).json({ advertisements: result.rows });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Ошибка сервера' });
+    }
+};
+
 module.exports = {
-    create, edit, remove, archive, get, getMy, getClass
+    create, edit, remove, archive, get, getMy, getClass, getByUsername
 };

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { catchError, of, tap } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, of, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,30 +9,27 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { environment } from '../../../../environment';
-import { AdvancedFormatMessagePipe } from '@pipes/advanced-message.pipe';
 import { RoleIconPipe } from '@pipes/role-icon.pipe';
 import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
 import { MessagesService } from '@services/message.service';
 import { TruncatePipe } from "@pipes/truncate.pipe";
-import { RoleNamePipe } from '@pipes/role-name.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSelectModule } from "@angular/material/select";
 
 @Component({
-  selector: 'app-class',
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, RoleIconPipe, RoleNamePipe,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, TruncatePipe],
-  templateUrl: './class-info.html',
-  styleUrl: './class-info.scss',
+  selector: 'app-class-members',
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, RoleIconPipe,
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, TruncatePipe, MatSelectModule],
+  templateUrl: './class-members.html',
+  styleUrl: './class-members.scss',
 })
 
-export class ClassInfo implements OnInit {
-  private _mode: 'edit' | 'delete' | null = null;
-  public get mode(): 'edit' | 'delete' | null {
-    return this._mode;
-  }
+export class ClassMembers implements OnInit {
+  private usersToInviteSubject: BehaviorSubject<any[] | null>;
+  public usersToInvite$: Observable<any[] | null>;
   public class: any | null = null;
-  public editClassForm: FormGroup;
+  public addMemberForm: FormGroup;
   public invitation: string = '';
   public isTitleActive: number = 50;
   private _snackBar = inject(MatSnackBar);
@@ -53,26 +50,34 @@ export class ClassInfo implements OnInit {
     private messagesService: MessagesService,
     private fb: FormBuilder
   ) {
-    this.editClassForm = new FormGroup({
-      new_name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(100)]),
-      new_description: new FormControl('', [Validators.maxLength(1000)]),
-      new_link: new FormControl('', [Validators.required, Validators.pattern(/^[a-zA-Z0-9-]+$/), Validators.minLength(3), Validators.maxLength(20)])
+    this.usersToInviteSubject = new BehaviorSubject<any | null>(null);
+    this.usersToInvite$ = this.usersToInviteSubject.asObservable();
+
+    this.addMemberForm = this.fb.group({
+      username: ['', [Validators.required]]
     });
   }
 
   ngOnInit(): void {
     this.route.data.subscribe(data => {
       this.class = data['class'] ?? null;
-
-      if (this.class?.name) {
-
-        this.editClassForm.patchValue({
-          new_name: this.class.name ?? '',
-          new_description: this.class.description ?? '',
-          new_link: this.class.link ?? ''
-        });
+      if (this.class?.link) {
+        this.usersToInvite().subscribe();
       }
     });
+  }
+
+  private usersToInvite(): Observable<any> {
+    const sessionId = this.authService.tokenValue;
+    const link = this.class?.link;
+    if (!link || !sessionId) return of(null);
+    return this.dataService.requestDS.getUsersToInvite(sessionId, link).pipe(
+      tap(response => {
+        if (response.users)
+          this.usersToInviteSubject.next(response.users)
+      }),
+      catchError(() => of(null))
+    );
   }
 
   public leave(): void {
@@ -154,53 +159,26 @@ export class ClassInfo implements OnInit {
       }
     });
   }
-
-  public editClass(): void {
-    const { tokenValue: sessionId } = this.authService;
-    const { link } = this.class;
-    if (!link || !sessionId) return;
-    if (!this.editClassForm.valid)
-      {
-        this.openSnackBar(`Вы ввели некорректные данные`);
-        return;
+  public addMember(): void {
+    const sessionId = this.authService.tokenValue;
+    const link = this.class.link;
+    const { username } = this.addMemberForm.value;
+    if (!username)
+      this.openSnackBar(`Выберите пользователя, которого хотите добавить`);
+    if (!link || !sessionId || !username) return;
+    this.dataService.requestDS.create(sessionId, link, username).pipe(catchError(err => {
+      this.openSnackBar(err?.error?.message);
+      return of(null);
+    })).subscribe({
+      next: (response) => {
+        if (response) {
+          this.addMemberForm.reset();
+          const message = 'Приглашаю вас присоединиться в класс: "' + this.class.name + '" по ссылке: ' + environment.Url + '/request/' + response.link;
+          this.messagesService.sendMessageForUser(username, message);
+          this.openSnackBar(`Вы успешно пригласили ${username} присоединиться в класс`);
+        }
       }
-    const { new_name, new_link, new_description } = this.editClassForm.value;
-    this.dataService.classDS.editClass(sessionId, link, new_name, new_link, new_description)
-      .subscribe(({ changed_fields: { name, description, link } }) => {
-        if (link) this.router.navigate(['/class', link, 'info']);
-        if (name) this.class.name = name;
-        if (description) this.class.description = description;
-        this.noMode();
-        this.cdr.detectChanges();
-        this.openSnackBar(`Вы успешно изменили данные класса`);
-      });
-  }
-  public noMode(): void {
-    this._mode=null;
-  }
-  public editMode(): void {
-    if (this.class.user_role != 'creator') return;
-    this.editClassForm.patchValue({
-      new_name: this.class.name ?? '',
-      new_description: this.class.description ?? '',
-      new_link: this.class.link ?? ''
     });
-    this._mode='edit';
-  }
-  public deleteMode(): void {
-    this._mode='delete';
-  }
-
-  public deleteClass(): void {
-    const { tokenValue: sessionId } = this.authService;
-    if (!sessionId) return;
-    this.dataService.classDS.deleteClass(sessionId, this.class.link).subscribe((response: any) => {
-      if (response) {
-        this.openSnackBar(`Вы успешно удалили класс`);
-        this.router.navigate(['/class']);
-      }
-    }
-    )
   }
 
   public createInvitation(): void {
@@ -223,5 +201,10 @@ export class ClassInfo implements OnInit {
       this.isTitleActive = -1;
     else
       this.isTitleActive = 50;
+  }
+
+  copyText(text: string) {
+    navigator.clipboard.writeText(text);
+    this.openSnackBar(`Вы скопировали ссылку на приглашение в класс`);
   }
 }

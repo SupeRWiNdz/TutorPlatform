@@ -7,12 +7,8 @@
 <div class="bottom-container">
     <div class="inner-block">
         <p>{{response.name}}</p>
-        <p>{{response.description}}</p>
-        <p>{{response.created_at | date:'dd.MM.yyyy HH:mm'}}</p>
-        @for (member of response.members; track member.username)
-        {
-        <div> {{member.full_name}} <mat-icon>{{member.member_role | roleIcon}}</mat-icon> </div>
-        }
+        <p class="description">{{response.description}}</p>
+        <p>Дата создания класса: {{response.created_at | date:'dd.MM.yyyy HH:mm'}}</p>
         <button mat-raised-button (click)="accept()">Принять</button>
         <button mat-raised-button (click)="decline()">Отклонить</button>
     </div>

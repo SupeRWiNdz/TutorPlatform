@@ -5,14 +5,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
-import { RoleIconPipe } from "@pipes/role-icon.pipe";
-import { MatIcon } from "@angular/material/icon";
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-request',
   imports: [CommonModule, RouterModule,
-    MatButtonModule, MatProgressSpinnerModule, RoleIconPipe, MatIcon],
+    MatButtonModule, MatProgressSpinnerModule],
   templateUrl: './request.html',
   styleUrl: './request.scss',
 })

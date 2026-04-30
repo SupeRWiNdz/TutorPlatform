@@ -7,6 +7,8 @@
         <mat-menu #class_menu>
             <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/lessons/'">Занятия<mat-icon matTextPrefix>calendar_today</mat-icon></button>
             <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/info/'">Информация<mat-icon matTextPrefix>info</mat-icon></button>
+            <button mat-menu-item [routerLink]="'/class/'+this.class.link+'/members/'">Участники<mat-icon
+                    matTextPrefix>people</mat-icon></button>
         </mat-menu>
     </div>
   </div>
@@ -29,7 +31,6 @@
         @if (message.type === 'incoming') { <div class="message-header" [routerLink]="'/chat/'+message.sender_username">
           {{message.sender_username | truncate:message.text.length+4}}
         </div>}
-        <div></div>
         <div class="message-text" [innerHTML]="message.text | advancedFormatMessage"></div>
         <div class="message-meta">
           <span class="timestamp">{{ message.sent_at | dateToday }}</span>

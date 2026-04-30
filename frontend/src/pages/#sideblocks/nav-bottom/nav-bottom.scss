@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   transition: all 0.3s ease;
-  
+
   .nav-button {
     flex: 1;
     justify-content: center;
@@ -13,18 +13,19 @@
     line-height: 1;
     border-radius: 0;
     border-top: 1px solid var(--mat-sys-outline-variant);
-    
+    background-color: var(--mat-sys-surface-container-lowest);
+
     mat-icon {
       margin: 0;
     }
-    
-  &.active-button {
-    background-color: var(--mat-sys-primary);
-    color: var(--mat-sys-surface-container-high);
-    
-    &:hover {
-      background-color: var(--mat-sys-tertiary);
+
+    &.active-button {
+      background-color: var(--mat-sys-primary);
+      color: var(--mat-sys-surface-container-high);
+
+      &:hover {
+        background-color: var(--mat-sys-tertiary);
+      }
     }
-  }
   }
 }

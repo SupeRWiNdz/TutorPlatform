@@ -74,6 +74,7 @@ button[mat-raised-button] {
   transform: scale(0.8);
   margin-left: -4px;
 }
+
 .select {
   width: 100%;
 
@@ -81,6 +82,11 @@ button[mat-raised-button] {
     width: 100%;
   }
 }
+
+.description {
+  text-align: left;
+}
+
 .input-box {
   width: 100%;
 
@@ -204,6 +210,7 @@ button[mat-raised-button] {
     background-color: var(--mat-sys-primary);
     color: var(--mat-sys-on-primary);
     border-bottom-right-radius: 2px;
+
   }
 
   .incoming .message-bubble {
@@ -295,19 +302,94 @@ button[mat-raised-button] {
 }
 
 .single-day {
-  @include no-scrollbar;
-  @include border;
+  display: flex;
+  flex-direction: column;
   flex-shrink: 0;
-  border-radius: 5px;
   overflow: hidden;
   width: 32%;
   margin: 8px auto 0 auto;
   box-sizing: border-box;
+  height: 220px;
+
+  .day-info {
+    font-size: 1.1rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .lessons {
+    @include border;
+    @include no-scrollbar;
+    overflow-y: auto;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    flex: 7;
+    box-sizing: border-box;
+  }
+
+  .lessons-today {
+    border: 3px solid color-mix(in srgb, var(--mat-sys-outline-variant) 100%, transparent);
+    font-size: 0.85rem;
+    border-radius: 5px;
+    flex: 7;
+    box-sizing: border-box;
+  }
+
 }
+
+
 
 .single-lesson {
   @include border;
   border-radius: 4px;
   padding: 3px 6px;
   margin: 0 6px 6px 6px;
+}
+
+.week-navigation {
+  width: 100%;
+  gap: 8px;
+}
+
+.advertisement-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  margin: 10px;
+  gap: 10px;
+}
+
+.advertisement {
+  @include border;
+  text-align: center;
+  overflow: hidden;
+  padding: 22px 20px 18px 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  height: 165px;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-high);
+  }
+
+  .name {
+    font: var(--mat-sys-body-medium);
+    text-align: center;
+  }
+
+  .description {
+    padding: 12px 0;
+    flex: 1;
+  }
+
+}
+
+a,
+a:visited,
+a:hover,
+a:active {
+  color: #5861ac;
 }

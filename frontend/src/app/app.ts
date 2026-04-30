@@ -22,10 +22,6 @@ export class App {
   protected readonly title = signal('frontend');
   constructor(
     public router: Router,
-    private location: Location,
     public auth: AuthService
   ) {}
-  goBack(): void {
-    this.location.back();
-  }
 }

@@ -126,6 +126,6 @@ export class AdvertisementsService {
     return this.dataService.advertisementDS.getClass(sessionId, ad_id);
   }
 
-  public readonly PAGE_SIZE: number = 10; 
+  public readonly PAGE_SIZE: number = 12;
   public pageIndex: number = 0;
 }
