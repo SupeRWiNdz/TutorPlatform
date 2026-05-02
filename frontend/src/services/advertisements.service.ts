@@ -26,8 +26,11 @@ export class AdvertisementsService {
     this.myAdvertisements$ = this.myAdvertisementsSubject.asObservable();
     this.myCreatedClassesSubject = new BehaviorSubject<any | null>(null);
     this.myCreatedClasses$ = this.myCreatedClassesSubject.asObservable();
+  }
 
-    this.getAdvertisements().subscribe();
+  public refresh(searchValue: string = ''): void {
+    this.pageIndex = 0;
+    this.getAdvertisements(searchValue).subscribe();
     this.getMyAdvertisements().subscribe();
     this.myCreatedClasses().subscribe();
   }
@@ -35,12 +38,13 @@ export class AdvertisementsService {
   public clearState(): void {
     this.advertisementsSubject.next(null);
     this.myAdvertisementsSubject.next(null);
+    this.myCreatedClassesSubject.next(null);
   }
 
   public loadAdvertisements(searchValue?: string): Observable<any> { return this.getAdvertisements(searchValue); }
 
   private getAdvertisements(searchValue?: string): Observable<any> {
-    return this.dataService.advertisementDS.get((this.pageIndex*this.PAGE_SIZE).toString(), this.PAGE_SIZE.toString(), searchValue).pipe(
+    return this.dataService.advertisementDS.get((this.pageIndex * this.PAGE_SIZE).toString(), this.PAGE_SIZE.toString(), searchValue).pipe(
       tap(response => {
         this.advertisementsSubject.next(response);
       }),

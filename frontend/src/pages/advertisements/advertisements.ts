@@ -125,6 +125,9 @@ export class Advertisements implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
+    this.advertisementsService.clearState();
+    this.advertisementsService.refresh(this.searchForm.value.value ?? '');
+
     this.advertisements$.subscribe(response => this.advertisementsList = response);
     this.myAdvertisements$.subscribe(response => this.myAdvertisementsList = response);
     this.myCreatedClasses$.subscribe(response => this.myCreatedClassesList = response);
