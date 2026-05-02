@@ -101,7 +101,7 @@ const get = async (req, res) => {
         const userId = sessionResult.rows[0].user_id;
 
         const classResult = await pool.query(
-            `SELECT c.id 
+            `SELECT c.id, cm.role 
              FROM classes c
              JOIN class_members cm ON c.id = cm.class_id
              WHERE c.link = $1 AND cm.user_id = $2`,
@@ -111,16 +111,32 @@ const get = async (req, res) => {
             return res.status(403).json({ message: 'Класс не найден или доступ запрещён' });
         }
         const classId = classResult.rows[0].id;
+        const userRole = classResult.rows[0].role;
 
-        const lessonsResult = await pool.query(
-            `SELECT id, homework,
-                    date_and_time,
-                    (EXTRACT(EPOCH FROM duration) / 60)::int AS duration_minutes
-             FROM lessons
-             WHERE teacher_id = $1
-             ORDER BY date_and_time`,
-            [classId]
-        );
+        let lessonsQuery = `
+            SELECT id, homework, date_and_time,
+                   (EXTRACT(EPOCH FROM duration) / 60)::int AS duration_minutes
+            FROM lessons
+            WHERE teacher_id = $1
+            ORDER BY date_and_time
+        `;
+        let lessonsParams = [classId];
+        
+        let studentLessonsMap = new Map();
+        if (userRole === 'student') {
+            const lessonsWithStudent = await pool.query(`
+                SELECT l.id, l.homework, l.date_and_time,
+                       (EXTRACT(EPOCH FROM l.duration) / 60)::int AS duration_minutes,
+                       sl.homework AS personal_homework, sl.comment
+                FROM lessons l
+                LEFT JOIN student_lessons sl ON l.id = sl.lesson_id AND sl.student_id = $2
+                WHERE l.teacher_id = $1
+                ORDER BY l.date_and_time
+            `, [classId, userId]);
+            lessonsResult = lessonsWithStudent;
+        } else {
+            lessonsResult = await pool.query(lessonsQuery, lessonsParams);
+        }
 
         const now = new Date();
         const today = new Date(now);
@@ -183,13 +199,18 @@ const get = async (req, res) => {
                 const timeStart = `${String(lessonDate.getHours()).padStart(2, '0')}:${String(lessonDate.getMinutes()).padStart(2, '0')}`;
                 const timeEnd = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
 
-                result[dayKey].lessons.push({
+                const lessonData = {
                     id: lesson.id,
                     homework: lesson.homework,
                     time: timeStart,
                     end_time: timeEnd,
                     duration: durationMinutes
-                });
+                };
+                if (userRole === 'student') {
+                    lessonData.personal_homework = lesson.personal_homework || null;
+                    lessonData.comment = lesson.comment || null;
+                }
+                result[dayKey].lessons.push(lessonData);
             }
         });
 
@@ -197,13 +218,32 @@ const get = async (req, res) => {
             result[dayKey].lessons.sort((a, b) => a.time.localeCompare(b.time));
         });
 
-        return res.status(200).json({
+        let students = null;
+        if (userRole === 'creator' || userRole === 'teacher') {
+            const studentsResult = await pool.query(
+                `SELECT u.username, u.full_name
+                 FROM class_members cm
+                 JOIN users u ON cm.user_id = u.id
+                 WHERE cm.class_id = $1 AND cm.role = 'student'
+                 ORDER BY u.full_name`,
+                [classId]
+            );
+            students = studentsResult.rows;
+        }
+
+        const response = {
             week_offset: week,
             week_start: targetWeekStart.toISOString().split('T')[0],
             week_end: targetWeekEnd.toISOString().split('T')[0],
             lessons: result
-        });
+        };
+        if (students !== null) {
+            response.students = students;
+        }
+
+        return res.status(200).json(response);
     } catch (err) {
+        console.error(err);
         return res.status(500).json({ message: 'Ошибка сервера' });
     }
 };
@@ -273,32 +313,18 @@ const getPersonal = async (req, res) => {
             };
         });
 
-        const classesResult = await pool.query(
-            `SELECT c.id AS class_id, c.name AS class_name, cm.role
-             FROM classes c
-             JOIN class_members cm ON c.id = cm.class_id
-             WHERE cm.user_id = $1`,
-            [userId]
-        );
-
-        if (classesResult.rows.length === 0) {
-            return res.status(200).json({
-                week_offset: week,
-                week_start: targetWeekStart.toISOString().split('T')[0],
-                week_end: targetWeekEnd.toISOString().split('T')[0],
-                lessons: result
-            });
-        }
-
         const lessonsResult = await pool.query(
             `SELECT l.id, l.homework,
                     l.date_and_time,
                     (EXTRACT(EPOCH FROM l.duration) / 60)::int AS duration_minutes,
                     c.name AS class_name,
-                    cm.role
+                    cm.role,
+                    sl.homework AS personal_homework,
+                    sl.comment
              FROM lessons l
              JOIN classes c ON l.teacher_id = c.id
              JOIN class_members cm ON cm.class_id = c.id AND cm.user_id = $1
+             LEFT JOIN student_lessons sl ON l.id = sl.lesson_id AND sl.student_id = $1
              WHERE cm.user_id = $1
                AND l.date_and_time >= $2
                AND l.date_and_time <= $3
@@ -325,7 +351,9 @@ const getPersonal = async (req, res) => {
                 end_time: timeEnd,
                 duration: durationMinutes,
                 class_name: lesson.class_name,
-                role: lesson.role
+                role: lesson.role,
+                personal_homework: lesson.personal_homework || null,
+                comment: lesson.comment || null
             });
         });
 
@@ -341,10 +369,10 @@ const getPersonal = async (req, res) => {
         });
 
     } catch (err) {
+        console.error(err);
         return res.status(500).json({ message: 'Ошибка сервера' });
     }
 };
-
 const edit = async (req, res) => {
     const { session_id, lesson_id, date, time, duration, homework } = req.body;
 
@@ -585,11 +613,203 @@ const getNearest = async (req, res) => {
     }
 };
 
+const getStudentLesson = async (req, res) => {
+    const { session_id, lesson_id, username } = req.body;
+
+    try {
+        if (!session_id || !lesson_id) {
+            return res.status(400).json({ message: 'Не указаны session_id или lesson_id' });
+        }
+
+        const sessionResult = await pool.query(
+            'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
+            [session_id]
+        );
+        if (sessionResult.rows.length === 0) {
+            return res.status(401).json({ error: 'Сеанс не найден' });
+        }
+        const userId = sessionResult.rows[0].user_id;
+
+        const lessonResult = await pool.query(
+            `SELECT l.teacher_id AS class_id, c.id AS class_id_confirm
+             FROM lessons l
+             JOIN classes c ON l.teacher_id = c.id
+             WHERE l.id = $1`,
+            [lesson_id]
+        );
+        if (lessonResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Занятие не найдено' });
+        }
+        const classId = lessonResult.rows[0].class_id;
+
+        const memberResult = await pool.query(
+            `SELECT role FROM class_members WHERE class_id = $1 AND user_id = $2`,
+            [classId, userId]
+        );
+        if (memberResult.rows.length === 0) {
+            return res.status(403).json({ message: 'Доступ запрещён: вы не состоите в этом классе' });
+        }
+        const userRole = memberResult.rows[0].role;
+
+        if (userRole === 'student') {
+            const studentLessonResult = await pool.query(
+                `SELECT homework, comment FROM student_lessons
+                 WHERE lesson_id = $1 AND student_id = $2`,
+                [lesson_id, userId]
+            );
+            if (studentLessonResult.rows.length === 0) {
+                return res.status(200).json({ homework: null, comment: null });
+            }
+            return res.status(200).json({
+                homework: studentLessonResult.rows[0].homework,
+                comment: studentLessonResult.rows[0].comment
+            });
+        }
+
+        if (userRole === 'creator' || userRole === 'teacher') {
+            if (!username) {
+                return res.status(400).json({ message: 'Для репетитора необходимо указать username ученика' });
+            }
+
+            const studentResult = await pool.query(
+                `SELECT id FROM users WHERE username = $1`,
+                [username]
+            );
+            if (studentResult.rows.length === 0) {
+                return res.status(404).json({ message: 'Пользователь с таким username не найден' });
+            }
+            const studentId = studentResult.rows[0].id;
+
+            const studentMemberResult = await pool.query(
+                `SELECT role FROM class_members
+                 WHERE class_id = $1 AND user_id = $2 AND role = 'student'`,
+                [classId, studentId]
+            );
+            if (studentMemberResult.rows.length === 0) {
+                return res.status(403).json({ message: 'Указанный пользователь не является учеником этого класса' });
+            }
+
+            const studentLessonResult = await pool.query(
+                `SELECT homework, comment FROM student_lessons
+                 WHERE lesson_id = $1 AND student_id = $2`,
+                [lesson_id, studentId]
+            );
+            if (studentLessonResult.rows.length === 0) {
+                return res.status(200).json({ homework: null, comment: null });
+            }
+            return res.status(200).json({
+                homework: studentLessonResult.rows[0].homework,
+                comment: studentLessonResult.rows[0].comment
+            });
+        }
+
+        return res.status(403).json({ message: 'Недостаточно прав для просмотра индивидуального задания' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Ошибка сервера' });
+    }
+};
+
+const editStudentLesson = async (req, res) => {
+    const { session_id, lesson_id, username, homework, comment } = req.body;
+
+    try {
+        if (!session_id || !lesson_id || !username) {
+            return res.status(400).json({ message: 'Не указаны session_id, lesson_id или username' });
+        }
+
+        const sessionResult = await pool.query(
+            'SELECT user_id FROM user_sessions WHERE session_id = $1 AND is_active = true',
+            [session_id]
+        );
+        if (sessionResult.rows.length === 0) {
+            return res.status(401).json({ error: 'Сеанс не найден' });
+        }
+        const userId = sessionResult.rows[0].user_id;
+
+        const lessonResult = await pool.query(
+            `SELECT teacher_id AS class_id FROM lessons WHERE id = $1`,
+            [lesson_id]
+        );
+        if (lessonResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Занятие не найдено' });
+        }
+        const classId = lessonResult.rows[0].class_id;
+
+        const memberResult = await pool.query(
+            `SELECT role FROM class_members
+             WHERE class_id = $1 AND user_id = $2 AND role IN ('creator', 'teacher')`,
+            [classId, userId]
+        );
+        if (memberResult.rows.length === 0) {
+            return res.status(403).json({ message: 'Недостаточно прав для редактирования индивидуального задания' });
+        }
+
+        const studentResult = await pool.query(
+            `SELECT id FROM users WHERE username = $1`,
+            [username]
+        );
+        if (studentResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Ученик с таким username не найден' });
+        }
+        const studentId = studentResult.rows[0].id;
+
+        const studentMemberResult = await pool.query(
+            `SELECT role FROM class_members
+             WHERE class_id = $1 AND user_id = $2 AND role = 'student'`,
+            [classId, studentId]
+        );
+        if (studentMemberResult.rows.length === 0) {
+            return res.status(403).json({ message: 'Указанный пользователь не является учеником этого класса' });
+        }
+
+        const existing = await pool.query(
+            `SELECT id FROM student_lessons WHERE lesson_id = $1 AND student_id = $2`,
+            [lesson_id, studentId]
+        );
+
+        if (existing.rows.length === 0) {
+            await pool.query(
+                `INSERT INTO student_lessons (lesson_id, student_id, homework, comment)
+                 VALUES ($1, $2, $3, $4)`,
+                [lesson_id, studentId, homework || null, comment || null]
+            );
+        } else {
+            const updates = [];
+            const values = [];
+            let idx = 1;
+
+            if (homework !== undefined) {
+                updates.push(`homework = $${idx++}`);
+                values.push(homework);
+            }
+            if (comment !== undefined) {
+                updates.push(`comment = $${idx++}`);
+                values.push(comment);
+            }
+
+            if (updates.length === 0) {
+                return res.status(400).json({ message: 'Нет данных для обновления (homework или comment)' });
+            }
+
+            values.push(existing.rows[0].id);
+            const query = `UPDATE student_lessons SET ${updates.join(', ')} WHERE id = $${idx}`;
+            await pool.query(query, values);
+        }
+
+        return res.status(200).json({ message: 'Индивидуальное задание успешно сохранено' });
+    } catch (err) {
+        return res.status(500).json({ message: 'Ошибка сервера' });
+    }
+};
+
 module.exports = {
     create,
     get,
     getPersonal,
     getNearest,
     edit,
-    remove
+    remove,
+    getStudentLesson,
+    editStudentLesson
 };

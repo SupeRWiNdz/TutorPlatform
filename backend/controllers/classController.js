@@ -7,37 +7,30 @@ const createClass = async (req, res) => {
         return res.status(400).json({ message: 'Не выполнен вход' });
     }
     
-    // Проверка наличия обязательных полей
     if (!name || !link) {
         return res.status(400).json({ message: 'Название класса и ссылка обязательны для заполнения' });
     }
     
-    // Валидация ссылки: только латинские буквы и нижнее подчеркивание
     const linkRegex = /^[a-zA-Z_]+$/;
     if (!linkRegex.test(link)) {
         return res.status(400).json({ message: 'Некорректная ссылка. Разрешены только латинские буквы и символ подчеркивания' });
     }
     
-    // Проверка длины ссылки (ограничение из схемы БД - 20 символов)
     if (link.length > 20) {
         return res.status(400).json({ message: 'Ссылка должна быть не длиннее 20 символов' });
     }
     
-    // Проверка длины названия (ограничение из схемы БД - 100 символов)
     if (name.length > 100) {
         return res.status(400).json({ message: 'Название класса должно быть не длиннее 100 символов' });
     }
     
-    // Проверка длины описания (ограничение из схемы БД - 1000 символов)
     if (description && description.length > 1000) {
         return res.status(400).json({ message: 'Описание должно быть не длиннее 1000 символов' });
     }
     
     try {
-        // Начинаем транзакцию
         await pool.query('BEGIN');
         
-        // 1. Получаем user_id по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -51,7 +44,6 @@ const createClass = async (req, res) => {
         
         const userId = sessionResult.rows[0].user_id;
         
-        // 2. Проверяем, не занята ли ссылка
         const existingClass = await pool.query(
             `SELECT id FROM classes WHERE link = $1`,
             [link]
@@ -62,7 +54,6 @@ const createClass = async (req, res) => {
             return res.status(400).json({ message: 'Класс с такой ссылкой уже существует' });
         }
         
-        // 3. Создаем новый класс
         const newClassResult = await pool.query(
             `INSERT INTO classes (name, link, description)
              VALUES ($1, $2, $3)
@@ -72,17 +63,14 @@ const createClass = async (req, res) => {
         
         const classId = newClassResult.rows[0].id;
         
-        // 4. Добавляем пользователя как создателя класса
         await pool.query(
             `INSERT INTO class_members (class_id, user_id, role)
              VALUES ($1, $2, 'creator')`,
             [classId, userId]
         );
         
-        // Подтверждаем транзакцию
         await pool.query('COMMIT');
         
-        // Возвращаем сообщение об успехе
         res.json({ 
             success: true,
             message: 'Класс успешно создан',
@@ -96,8 +84,7 @@ const createClass = async (req, res) => {
     } catch (err) {
         await pool.query('ROLLBACK');
         
-        // Обработка специфических ошибок PostgreSQL
-        if (err.code === '23505') { // Нарушение уникальности
+        if (err.code === '23505') {
             if (err.constraint === 'classes_link_key') {
                 return res.status(400).json({ message: 'Класс с такой ссылкой уже существует' });
             }
@@ -119,10 +106,8 @@ const deleteClass = async (req, res) => {
     }
     
     try {
-        // Начинаем транзакцию
         await pool.query('BEGIN');
         
-        // 1. Получаем user_id по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -136,7 +121,6 @@ const deleteClass = async (req, res) => {
         
         const userId = sessionResult.rows[0].user_id;
         
-        // 2. Получаем id класса по ссылке
         const classResult = await pool.query(
             `SELECT id FROM classes WHERE link = $1`,
             [link]
@@ -149,7 +133,6 @@ const deleteClass = async (req, res) => {
         
         const classId = classResult.rows[0].id;
         
-        // 3. Проверяем, является ли пользователь создателем этого класса
         const creatorResult = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2 AND role = 'creator'`,
@@ -161,7 +144,6 @@ const deleteClass = async (req, res) => {
             return res.status(403).json({ message: 'Только создатель класса может удалить его' });
         }
         
-        // 4. Удаляем класс (записи в class_members удалятся автоматически благодаря ON DELETE CASCADE)
         const deleteResult = await pool.query(
             `DELETE FROM classes WHERE id = $1 AND link = $2`,
             [classId, link]
@@ -177,17 +159,14 @@ const deleteClass = async (req, res) => {
             [classId]
         );
         
-        // Подтверждаем транзакцию
         await pool.query('COMMIT');
         
-        // Возвращаем сообщение об успехе
         res.json({ message: 'Класс успешно удален' });
         
     } catch (err) {
         await pool.query('ROLLBACK');
         
-        // Обработка специфических ошибок базы данных
-        if (err.code === '23503') { // Foreign key violation
+        if (err.code === '23503') {
             return res.status(400).json({ message: 'Невозможно удалить класс из-за связанных данных' });
         }
         
@@ -206,16 +185,13 @@ const editClass = async (req, res) => {
         return res.status(400).json({ message: 'Не указана ссылка на класс' });
     }
     
-    // Проверяем, что хотя бы одно поле для изменения передано
     if (!new_name && !new_link && !new_description) {
         return res.status(400).json({ message: 'Не указаны данные для изменения' });
     }
     
     try {
-        // Начинаем транзакцию
         await pool.query('BEGIN');
         
-        // 1. Получаем user_id по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -229,7 +205,6 @@ const editClass = async (req, res) => {
         
         const userId = sessionResult.rows[0].user_id;
         
-        // 2. Получаем id класса по ссылке и текущие значения
         const classResult = await pool.query(
             `SELECT id, name, link, description FROM classes WHERE link = $1`,
             [link]
@@ -243,7 +218,6 @@ const editClass = async (req, res) => {
         const classId = classResult.rows[0].id;
         const currentClass = classResult.rows[0];
         
-        // 3. Проверяем, является ли пользователь создателем класса
         const membershipResult = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
@@ -260,9 +234,7 @@ const editClass = async (req, res) => {
             return res.status(403).json({ message: 'Только создатель класса может изменять его данные' });
         }
         
-        // 4. Проверяем уникальность новой ссылки, если она изменяется
         if (new_link && new_link !== link) {
-            // Проверяем формат ссылки (только буквы, цифры и дефисы, длина до 20 символов)
             const linkRegex = /^[a-zA-Z0-9-]+$/;
             if (!linkRegex.test(new_link)) {
                 await pool.query('ROLLBACK');
@@ -274,7 +246,6 @@ const editClass = async (req, res) => {
                 return res.status(400).json({ message: 'Длина ссылки должна быть от 3 до 20 символов' });
             }
             
-            // Проверяем, что новая ссылка не занята
             const linkCheckResult = await pool.query(
                 `SELECT id FROM classes WHERE link = $1 AND id != $2`,
                 [new_link, classId]
@@ -286,25 +257,21 @@ const editClass = async (req, res) => {
             }
         }
         
-        // 5. Проверяем длину названия, если оно изменяется
         if (new_name && (new_name.length < 1 || new_name.length > 100)) {
             await pool.query('ROLLBACK');
             return res.status(400).json({ message: 'Название класса должно быть от 1 до 100 символов' });
         }
         
-        // 6. Проверяем длину описания, если оно изменяется
         if (new_description && new_description.length > 1000) {
             await pool.query('ROLLBACK');
             return res.status(400).json({ message: 'Описание класса не может превышать 1000 символов' });
         }
         
-        // 7. Формируем запрос на обновление и объект с изменениями
         const updateFields = [];
         const updateValues = [];
         const changedFields = {};
         let paramCounter = 1;
         
-        // Отслеживаем изменения
         if (new_name && new_name !== currentClass.name) {
             updateFields.push(`name = $${paramCounter}`);
             updateValues.push(new_name);
@@ -329,16 +296,13 @@ const editClass = async (req, res) => {
             }
         }
         
-        // Проверяем, есть ли что обновлять
         if (updateFields.length === 0) {
             await pool.query('ROLLBACK');
             return res.status(400).json({ message: 'Нет изменений для сохранения' });
         }
         
-        // Добавляем id класса в конец параметров
         updateValues.push(classId);
         
-        // 8. Выполняем обновление
         const updateQuery = `
             UPDATE classes 
             SET ${updateFields.join(', ')}
@@ -348,10 +312,8 @@ const editClass = async (req, res) => {
         
         const updateResult = await pool.query(updateQuery, updateValues);
         
-        // Фиксируем транзакцию
         await pool.query('COMMIT');
         
-        // Формируем сообщение об успехе с измененными полями
         const changedFieldsList = Object.keys(changedFields);
         const changedFieldsText = changedFieldsList
             .map(field => {
@@ -364,7 +326,6 @@ const editClass = async (req, res) => {
             })
             .join(', ');
         
-        // Возвращаем измененные поля и их значения
         res.json({ 
             success: true,
             message: `Класс успешно обновлен. Изменено: ${changedFieldsText}.`,
@@ -380,11 +341,10 @@ const editClass = async (req, res) => {
     } catch (err) {
         await pool.query('ROLLBACK');
         
-        // Обработка специфических ошибок базы данных
-        if (err.code === '23505') { // Unique violation
+        if (err.code === '23505') {
             return res.status(400).json({ message: 'Класс с такой ссылкой уже существует' });
         }
-        if (err.code === '23514') { // Check violation
+        if (err.code === '23514') {
             return res.status(400).json({ message: 'Некорректный формат данных' });
         }
         
@@ -400,10 +360,8 @@ const myClasses = async (req, res) => {
     }
     
     try {
-        // Начинаем транзакцию
         await pool.query('BEGIN');
         
-        // 1. Получаем user_id по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -417,7 +375,6 @@ const myClasses = async (req, res) => {
         
         const userId = sessionResult.rows[0].user_id;
         
-        // 2. Получаем все классы, в которых состоит пользователь
         const classesResult = await pool.query(
             `SELECT 
                 c.name,
@@ -441,17 +398,14 @@ const myClasses = async (req, res) => {
             [userId]
         );
         
-        // 3. Для каждого класса получаем информацию об участниках и последние сообщения
         const classesWithMembers = await Promise.all(
             classesResult.rows.map(async (classItem) => {
-                // Получаем id класса для запроса участников (не возвращаем его)
                 const classIdResult = await pool.query(
                     `SELECT id FROM classes WHERE link = $1`,
                     [classItem.link]
                 );
                 const classId = classIdResult.rows[0].id;
                 
-                // Получаем участников класса (без ID пользователей)
                 const membersResult = await pool.query(
                     `SELECT 
                         u.username,
@@ -490,10 +444,8 @@ const myClasses = async (req, res) => {
                     [userId, classId]
                 );
                 
-                // Переворачиваем сообщения в хронологическом порядке (от старых к новым)
                 const latestMessages = messagesResult.rows.reverse();
                 
-                // Формируем объект класса без ID
                 return {
                     name: classItem.name,
                     link: classItem.link,
@@ -524,7 +476,6 @@ const myClasses = async (req, res) => {
         
         await pool.query('COMMIT');
         
-        // 4. Возвращаем результат
         res.json({
             total_classes: classesWithMembers.length,
             classes: classesWithMembers
@@ -650,10 +601,8 @@ const getClass = async (req, res) => {
     }
     
     try {
-        // Начинаем транзакцию для обеспечения целостности данных
         await pool.query('BEGIN');
         
-        // 1. Получаем user_id по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -667,7 +616,6 @@ const getClass = async (req, res) => {
         
         const userId = sessionResult.rows[0].user_id;
         
-        // 2. Получаем информацию о классе по ссылке (без id)
         const classResult = await pool.query(
             `SELECT name, link, description, created_at 
              FROM classes 
@@ -682,14 +630,12 @@ const getClass = async (req, res) => {
         
         const classData = classResult.rows[0];
         
-        // 3. Получаем id класса для проверки членства (но не возвращаем его)
         const classIdResult = await pool.query(
             `SELECT id FROM classes WHERE link = $1`,
             [link]
         );
         const classId = classIdResult.rows[0].id;
         
-        // 4. Проверяем, состоит ли пользователь в этом классе
         const membershipResult = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
@@ -701,7 +647,6 @@ const getClass = async (req, res) => {
             return res.status(403).json({ message: 'У вас нет доступа к этому классу' });
         }
         
-        // 5. Получаем всех участников класса (без id пользователей)
         const membersResult = await pool.query(
             `SELECT 
                 u.username,
@@ -718,10 +663,8 @@ const getClass = async (req, res) => {
             [classId]
         );
         
-        // 6. Добавляем роль текущего пользователя к данным класса
         classData.user_role = membershipResult.rows[0].role;
         
-        // 7. Формируем итоговый ответ (без id)
         const response = {
             name: classData.name,
             link: classData.link,
@@ -761,10 +704,8 @@ const deleteMember = async (req, res) => {
     }
     
     try {
-        // Начинаем транзакцию
         await pool.query('BEGIN');
         
-        // 1. Получаем user_id создателя по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -778,7 +719,6 @@ const deleteMember = async (req, res) => {
         
         const creatorId = sessionResult.rows[0].user_id;
         
-        // 2. Получаем id класса по ссылке и проверяем существование класса
         const classResult = await pool.query(
             `SELECT id FROM classes WHERE link = $1`,
             [link]
@@ -791,7 +731,6 @@ const deleteMember = async (req, res) => {
         
         const classId = classResult.rows[0].id;
         
-        // 3. Проверяем, что текущий пользователь является создателем класса
         const creatorCheckResult = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
@@ -808,7 +747,6 @@ const deleteMember = async (req, res) => {
             return res.status(403).json({ message: 'Только создатель класса может удалять участников' });
         }
         
-        // 4. Получаем id пользователя, которого хотим удалить, по username
         const userResult = await pool.query(
             `SELECT id FROM users WHERE username = $1`,
             [username]
@@ -821,13 +759,11 @@ const deleteMember = async (req, res) => {
         
         const targetUserId = userResult.rows[0].id;
         
-        // 5. Проверяем, что не пытаемся удалить создателя
         if (targetUserId === creatorId) {
             await pool.query('ROLLBACK');
             return res.status(400).json({ message: 'Нельзя удалить создателя класса' });
         }
         
-        // 6. Проверяем, состоит ли пользователь в этом классе
         const memberCheckResult = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
@@ -839,7 +775,6 @@ const deleteMember = async (req, res) => {
             return res.status(400).json({ message: 'Пользователь не состоит в этом классе' });
         }
         
-        // 7. Удаляем участника из класса
         const deleteResult = await pool.query(
             `DELETE FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
@@ -851,18 +786,15 @@ const deleteMember = async (req, res) => {
             return res.status(500).json({ message: 'Не удалось удалить пользователя' });
         }
         
-        // Подтверждаем транзакцию
         await pool.query('COMMIT');
         
-        // Возвращаем сообщение об успехе
         return res.status(200).json({ 
             message: `Пользователь ${username} успешно удален из класса` 
         });
         
     } catch (err) {
         await pool.query('ROLLBACK');
-        // Обработка специфических ошибок базы данных
-        if (err.code === '23503') { // Нарушение внешнего ключа
+        if (err.code === '23503') {
             return res.status(400).json({ message: 'Некорректные данные для удаления' });
         }
         
@@ -882,10 +814,8 @@ const leave = async (req, res) => {
     }
     
     try {
-        // Начинаем транзакцию
         await pool.query('BEGIN');
         
-        // 1. Получаем user_id по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -899,7 +829,6 @@ const leave = async (req, res) => {
         
         const userId = sessionResult.rows[0].user_id;
         
-        // 2. Получаем id класса по ссылке
         const classResult = await pool.query(
             `SELECT id FROM classes WHERE link = $1`,
             [link]
@@ -912,7 +841,6 @@ const leave = async (req, res) => {
         
         const classId = classResult.rows[0].id;
         
-        // 3. Проверяем, является ли пользователь участником класса
         const membershipResult = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
@@ -924,13 +852,11 @@ const leave = async (req, res) => {
             return res.status(404).json({ message: 'Вы не являетесь участником этого класса' });
         }
         
-        // 4. Проверяем, не является ли пользователь создателем класса
         if (membershipResult.rows[0].role === 'creator') {
             await pool.query('ROLLBACK');
             return res.status(403).json({ message: 'Создатель класса не может выйти из него. Передайте права другому участнику или удалите класс.' });
         }
         
-        // 5. Удаляем пользователя из класса
         const deleteResult = await pool.query(
             `DELETE FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
@@ -942,10 +868,8 @@ const leave = async (req, res) => {
             return res.status(500).json({ message: 'Не удалось выполнить выход из класса' });
         }
         
-        // Фиксируем транзакцию
         await pool.query('COMMIT');
         
-        // Отправляем сообщение об успехе
         res.json({ 
             message: 'Вы успешно вышли из класса' 
         });
@@ -953,8 +877,7 @@ const leave = async (req, res) => {
     } catch (err) {
         await pool.query('ROLLBACK');
         
-        // Обработка специфических ошибок PostgreSQL
-        if (err.code === '23503') { // Foreign key violation
+        if (err.code === '23503') {
             return res.status(400).json({ message: 'Ошибка целостности данных' });
         }
         
@@ -976,7 +899,6 @@ const editRole = async (req, res) => {
     try {
         await pool.query('BEGIN');
         
-        // 1. Получаем user_id по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -990,7 +912,6 @@ const editRole = async (req, res) => {
         
         const creatorUserId = sessionResult.rows[0].user_id;
         
-        // 2. Получаем id класса по ссылке
         const classResult = await pool.query(
             `SELECT id FROM classes WHERE link = $1`,
             [link]
@@ -1003,7 +924,6 @@ const editRole = async (req, res) => {
         
         const classId = classResult.rows[0].id;
         
-        // 3. Проверяем, что текущий пользователь является создателем класса
         const creatorCheck = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2 AND role = 'creator'`,
@@ -1015,7 +935,6 @@ const editRole = async (req, res) => {
             return res.status(403).json({ message: 'Только создатель класса может изменять роли участников' });
         }
         
-        // 4. Получаем id пользователя, которому меняем роль, по username
         const targetUserResult = await pool.query(
             `SELECT id FROM users WHERE username = $1`,
             [username]
@@ -1028,13 +947,11 @@ const editRole = async (req, res) => {
         
         const targetUserId = targetUserResult.rows[0].id;
         
-        // 5. Проверяем, что не пытаемся изменить роль самому себе
         if (targetUserId === creatorUserId) {
             await pool.query('ROLLBACK');
             return res.status(400).json({ message: 'Нельзя изменить роль самому себе' });
         }
         
-        // 6. Проверяем, является ли целевой пользователь участником класса
         const membershipCheck = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
@@ -1046,7 +963,6 @@ const editRole = async (req, res) => {
             return res.status(404).json({ message: 'Указанный пользователь не является участником этого класса' });
         }
         
-        // 7. Проверяем, что целевой пользователь не является создателем
         if (membershipCheck.rows[0].role === 'creator') {
             await pool.query('ROLLBACK');
             return res.status(400).json({ message: 'Нельзя изменить роль создателя класса' });
@@ -1054,7 +970,6 @@ const editRole = async (req, res) => {
 
         const role = (membershipCheck.rows[0].role==='student')?'teacher':'student';
         
-        // 8. Обновляем роль участника
         await pool.query(
             `UPDATE class_members 
              SET role = $1 
@@ -1062,10 +977,8 @@ const editRole = async (req, res) => {
             [role, classId, targetUserId]
         );
         
-        // Фиксируем транзакцию
         await pool.query('COMMIT');
         
-        // Отправляем сообщение об успехе
         res.json({ 
             role: role 
         });
@@ -1073,14 +986,13 @@ const editRole = async (req, res) => {
     } catch (err) {
         await pool.query('ROLLBACK');
         
-        // Обработка специфических ошибок PostgreSQL
-        if (err.code === '23505') { // Unique violation
+        if (err.code === '23505') {
             return res.status(400).json({ message: 'Конфликт данных' });
         }
-        if (err.code === '23503') { // Foreign key violation
+        if (err.code === '23503') {
             return res.status(404).json({ message: 'Связанная запись не найдена' });
         }
-        if (err.code === '23514') { // Check violation
+        if (err.code === '23514') {
             return res.status(400).json({ message: 'Некорректное значение роли' });
         }
         

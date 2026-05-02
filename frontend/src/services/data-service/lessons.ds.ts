@@ -27,4 +27,13 @@ export class LessonsDataService {
   remove(session_id: string, lesson_id: string): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/lessons/remove`, { session_id, lesson_id });
   }
+  getStudentLesson(session_id: string, lesson_id: string, username: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/lessons/student`, { session_id, lesson_id, username });
+  }
+  editStudentLesson(session_id: string, lesson_id: string, username: string, homework: string, comment: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/lessons/edit-student`, { session_id, lesson_id, username, homework, comment });
+  }
+  getStudents(session_id: string, link: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/lessons/students`, { session_id, link });
+  }
 }

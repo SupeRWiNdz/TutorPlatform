@@ -56,7 +56,6 @@ const changePassword = async (req, res) => {
     const ip_address = req.ip;
     const user_agent = req.headers['user-agent'];
 
-    // Валидация входных данных
     if (!session_id || !old_password || !new_password) {
         return res.status(400).json({
             message: 'Не указаны session_id, старый или новый пароль'
@@ -74,7 +73,6 @@ const changePassword = async (req, res) => {
     try {
         await client.query('BEGIN');
 
-        // 1. Проверяем, существует ли активная сессия и получаем данные пользователя
         const sessionCheck = await client.query(
             `SELECT u.id, u.username, u.password_hash
              FROM users u
@@ -90,7 +88,6 @@ const changePassword = async (req, res) => {
 
         const user = sessionCheck.rows[0];
 
-        // 2. Проверяем старый пароль
         const passwordCheck = await client.query(
             'SELECT verify_double_hash_password($1, $2) AS is_valid',
             [user.username, old_password]
@@ -101,7 +98,6 @@ const changePassword = async (req, res) => {
             return res.status(401).json({ message: 'Неверный старый пароль' });
         }
 
-        // 3. Обновляем пароль пользователя (используем функцию double_hash_password)
         await client.query(
             `UPDATE users 
              SET password_hash = double_hash_password($1),
@@ -110,7 +106,6 @@ const changePassword = async (req, res) => {
             [new_password, user.id]
         );
 
-        // 4. Делаем все сессии пользователя неактивными
         await client.query(
             `UPDATE user_sessions 
              SET is_active = false 
@@ -118,7 +113,6 @@ const changePassword = async (req, res) => {
             [user.id]
         );
 
-        // 5. Создаём новую сессию
         const newSessionResult = await client.query(
             `INSERT INTO user_sessions (user_id, ip_address, user_agent)
              VALUES ($1, $2, $3)
@@ -130,7 +124,6 @@ const changePassword = async (req, res) => {
 
         await client.query('COMMIT');
 
-        // 6. Возвращаем ID новой сессии
         res.json({
             message: 'Пароль успешно изменён',
             session_id: new_session_id
@@ -191,17 +184,14 @@ const editUser = async (req, res) => {
         return res.status(400).json({ message: 'Не выполнен вход' });
     }
 
-    // Проверяем, что хотя бы одно поле для изменения передано
     if (!new_email && !new_username && !new_full_name && !new_phone && !new_birth_date) {
         return res.status(400).json({ message: 'Не указаны данные для изменения' });
     }
 
     const client = await pool.connect();
     try {
-        // Начинаем транзакцию
         await client.query('BEGIN');
 
-        // 1. Получаем user_id по session_id
         const sessionResult = await client.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -215,7 +205,6 @@ const editUser = async (req, res) => {
 
         const userId = sessionResult.rows[0].user_id;
 
-        // 2. Получаем текущие данные пользователя
         const userResult = await client.query(
             `SELECT id, email, username, full_name, phone, birth_date 
              FROM users WHERE id = $1`,
@@ -229,24 +218,18 @@ const editUser = async (req, res) => {
 
         const currentUser = userResult.rows[0];
 
-        // 3. Валидация полей
-
-        // Проверка email, если он изменяется
         if (new_email && new_email !== currentUser.email) {
-            // Проверка формата email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(new_email)) {
                 await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Некорректный формат email' });
             }
 
-            // Проверка длины email
             if (new_email.length > 255) {
                 await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Email не может превышать 255 символов' });
             }
 
-            // Проверка уникальности email
             const emailCheckResult = await client.query(
                 `SELECT id FROM users WHERE email = $1 AND id != $2`,
                 [new_email, userId]
@@ -258,22 +241,18 @@ const editUser = async (req, res) => {
             }
         }
 
-        // Проверка username, если он изменяется
         if (new_username && new_username !== currentUser.username) {
-            // Проверка длины username
             if (new_username.length < 3 || new_username.length > 50) {
                 await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Имя пользователя должно быть от 3 до 50 символов' });
             }
 
-            // Проверка допустимых символов (буквы, цифры, подчеркивание)
             const usernameRegex = /^[a-zA-Z0-9_]+$/;
             if (!usernameRegex.test(new_username)) {
                 await client.query('ROLLBACK');
                 return res.status(400).json({ message: 'Имя пользователя может содержать только буквы, цифры и подчеркивание' });
             }
 
-            // Проверка уникальности username
             const usernameCheckResult = await client.query(
                 `SELECT id FROM users WHERE username = $1 AND id != $2`,
                 [new_username, userId]
@@ -285,7 +264,6 @@ const editUser = async (req, res) => {
             }
         }
 
-        // Проверка full_name, если он изменяется
         if (new_full_name !== undefined) {
             if (new_full_name !== null && new_full_name.length > 100) {
                 await client.query('ROLLBACK');
@@ -293,10 +271,8 @@ const editUser = async (req, res) => {
             }
         }
 
-        // Проверка phone, если он изменяется
         if (new_phone !== undefined) {
             if (new_phone !== null) {
-                // Удаляем все нецифровые символы для проверки
                 const digitsOnly = new_phone.replace(/\D/g, '');
                 if (digitsOnly.length < 10 || digitsOnly.length > 15) {
                     await client.query('ROLLBACK');
@@ -309,7 +285,6 @@ const editUser = async (req, res) => {
             }
         }
 
-        // Проверка birth_date, если он изменяется
         if (new_birth_date !== undefined) {
             if (new_birth_date !== null) {
                 const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
@@ -342,13 +317,11 @@ const editUser = async (req, res) => {
             }
         }
 
-        // 4. Формируем запрос на обновление и объект с изменениями
         const updateFields = [];
         const updateValues = [];
         const changedFields = {};
         let paramCounter = 1;
 
-        // Отслеживаем изменения
         if (new_email && new_email !== currentUser.email) {
             updateFields.push(`email = $${paramCounter}`);
             updateValues.push(new_email);
@@ -393,19 +366,15 @@ const editUser = async (req, res) => {
             }
         }
 
-        // Добавляем updated_at
         updateFields.push(`updated_at = NOW()`);
 
-        // Проверяем, есть ли что обновлять
-        if (updateFields.length === 1) { // Только updated_at
+        if (updateFields.length === 1) {
             await client.query('ROLLBACK');
             return res.status(400).json({ message: 'Нет изменений для сохранения' });
         }
 
-        // Добавляем id пользователя в конец параметров
         updateValues.push(userId);
 
-        // 5. Выполняем обновление
         const updateQuery = `
             UPDATE users 
             SET ${updateFields.join(', ')}
@@ -415,10 +384,8 @@ const editUser = async (req, res) => {
 
         const updateResult = await client.query(updateQuery, updateValues);
 
-        // Фиксируем транзакцию
         await client.query('COMMIT');
 
-        // Формируем сообщение об успехе с измененными полями
         const changedFieldsList = Object.keys(changedFields);
         const changedFieldsText = changedFieldsList
             .map(field => {
@@ -433,7 +400,6 @@ const editUser = async (req, res) => {
             })
             .join(', ');
 
-        // Возвращаем измененные поля и их значения
         res.json({
             success: true,
             message: `Профиль успешно обновлен. Изменено: ${changedFieldsText}.`,
@@ -453,8 +419,7 @@ const editUser = async (req, res) => {
     } catch (err) {
         await client.query('ROLLBACK');
 
-        // Обработка специфических ошибок базы данных
-        if (err.code === '23505') { // Unique violation
+        if (err.code === '23505') {
             const detail = err.detail || '';
             if (detail.includes('email')) {
                 return res.status(400).json({ message: 'Этот email уже используется другим пользователем' });

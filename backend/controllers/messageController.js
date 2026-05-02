@@ -89,10 +89,8 @@ const sendMessage = async (req, res) => {
         
         const receiver_id = receiverResult.rows[0].id;
 
-        // Начинаем транзакцию
         await client.query('BEGIN');
 
-        // Проверяем, существует ли чат
         const chatExists = await client.query(
             `SELECT 1 FROM chats 
              WHERE (user1_id = $1 AND user2_id = $2) 
@@ -101,28 +99,23 @@ const sendMessage = async (req, res) => {
         );
 
         if (chatExists.rows.length === 0) {
-            // Создаём чат (только одну запись, порядок не важен)
             await client.query(
                 `INSERT INTO chats (user1_id, user2_id) VALUES ($1, $2)`,
                 [sender_id, receiver_id]
             );
         }
 
-        // Вставляем сообщение
         await client.query(
             `INSERT INTO messages (sender_uuid, receiver_uuid, text)
              VALUES ($1, $2, $3)`,
             [sender_id, receiver_id, text]
         );
 
-        // Обновляем время последнего входа отправителя (опционально)
         await client.query(
             'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
             [sender_id]
         );
 
-        // Помечаем сообщения как прочитанные (хотя только что отправленное не прочитано,
-        // но может быть нужно пометить старые входящие – оставим как в оригинале)
         await markMessagesAsRead(sender_id, receiver_id, client);
 
         await client.query('COMMIT');
@@ -181,7 +174,6 @@ const getMessages = async (req, res) => {
             `;
             queryParams = [sender_uuid, receiver_uuid, before_number, message_count];
         } else {
-            // Запрос последних сообщений – нужно пометить их как прочитанные атомарно
             await client.query('BEGIN');
             
             query = `
@@ -215,7 +207,6 @@ const getMessages = async (req, res) => {
         }
         
         if (!before_number) {
-            // Помечаем все полученные сообщения как прочитанные
             await markMessagesAsRead(sender_uuid, receiver_uuid, client);
             await client.query('COMMIT');
         }

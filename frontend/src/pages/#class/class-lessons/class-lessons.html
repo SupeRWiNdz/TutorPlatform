@@ -52,7 +52,8 @@
                         @if (lesson.time && lesson.end_time) {
                         {{ lesson.time }}-{{lesson.end_time}}
                         }
-                        @if (lesson.homework) { (Д/з) }
+                        @if (lesson.homework || lesson.personal_homework ) { (Д/з) }
+                        @if (lesson.comment) { +комм. учителя }
                     </div>
                 </div>
                 } @empty {
@@ -123,7 +124,8 @@
             </p>
 
             <button (click)="submitLessonForm()" [disabled]="!lessonForm.valid" mat-raised-button>Подтвердить</button>
-            <button (click)="noMode()" mat-raised-button>Отмена</button>
+            <button (click)="mode=='edit'&&selectedLesson.id?viewMode(selectedLesson.id):noMode()"
+                mat-raised-button>Отмена</button>
         </form>
     </div>
     } @else if (mode=='view') {
@@ -136,6 +138,46 @@
         </p>
         @if (lessonForm.value.homework)
         {<p>Домашнее задание: {{ lessonForm.value.homework }}</p>}
+        }
+        @if (canEdit) {
+        <div class="student-lesson">
+            <form [formGroup]="studentChooseForm">
+                <mat-form-field appearance="outline">
+                    <mat-label>Выбор ученика</mat-label>
+                    <mat-select formControlName="username">
+                        @if (lessonsList) {
+                        @for (item of getStudents(lessonsList); track item.username) {
+                        <mat-option value="{{item.username}}">{{item.full_name}}</mat-option>
+                        }
+                        } @else {
+                        <mat-option>Нет учеников</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            </form>
+            @if (studentChooseForm.value.username) {
+            <form [formGroup]="studentLessonForm">
+                <mat-form-field appearance="outline">
+                    <mat-label>Домашнее задание</mat-label>
+                    <textarea matInput formControlName="homework"></textarea>
+                    <mat-error>Максимальная длина - 500 символов</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Комментарий</mat-label>
+                    <textarea matInput formControlName="comment"></textarea>
+                    <mat-error>Максимальная длина - 500 символов</mat-error>
+                </mat-form-field>
+                <button (click)="saveStudentLesson()" mat-raised-button>Сохранить</button>
+            </form>
+            }
+        </div>
+        } @else {
+        @if (selectedLesson?.personal_homework) {
+        <p>Персональное Д/з: {{ selectedLesson.personal_homework }}</p>
+        }
+        @if (selectedLesson?.comment) {
+        <p>Комментарий: {{ selectedLesson.comment }}</p>
+        }
         }
     </div>
     }

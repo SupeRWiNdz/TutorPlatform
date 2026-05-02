@@ -32,12 +32,12 @@ export class WeekLessons implements OnInit {
   private lessons$: Observable<any | null>;
   public lessonsList: any = null;
   public lessonForm: FormGroup;
-  public selectedLessonID: string | null = null;
-  public selectedLessonClassName: string | null = null;
+  public selectedLesson: any | null = null;
   private _mode: 'edit' | 'view' | null = null;
 
   public get mode() { return this._mode }
   public editMode(): void {
+    if (!this.canEdit) return
     this._mode = 'edit';
   }
   public viewMode(lesson_id: string): void {
@@ -82,14 +82,14 @@ export class WeekLessons implements OnInit {
       }
     }
     if (foundLesson) {
+      this.selectedLesson = foundLesson; 
       this.lessonForm.patchValue({
         date: lessonDate,
         time: foundLesson.time,
         duration: foundLesson.duration,
         homework: foundLesson.homework
       });
-      this.selectedLessonID = lesson_id;
-      this.selectedLessonClassName = foundLesson.class_name;
+      this.selectedLesson.id = lesson_id;
       return true;
     }
     return false;
@@ -110,11 +110,11 @@ export class WeekLessons implements OnInit {
   }
   public get isCurrentWeek(): boolean { return this.lessonsService.isCurrentWeek; }
   public get canEdit(): boolean {
-    if (!this.lessonsList?.lessons || !this.selectedLessonID) return false;
+    if (!this.lessonsList?.lessons || !this.selectedLesson.id) return false;
     for (const dayKey of Object.keys(this.lessonsList.lessons)) {
       const day = this.lessonsList.lessons[dayKey];
       if (day.lessons && Array.isArray(day.lessons)) {
-        const lesson = day.lessons.find((l: any) => l.id === this.selectedLessonID);
+        const lesson = day.lessons.find((l: any) => l.id === this.selectedLesson.id);
         if (lesson) {
           if (lesson.role == 'creator' || lesson.role == 'teacher')
             return true;
@@ -125,7 +125,7 @@ export class WeekLessons implements OnInit {
   }
   public submitLessonForm(): void {
     if (this._mode == null || !this.lessonForm.valid) return;
-    this.lessonsService.submitForm(this.lessonForm, null, this.selectedLessonID, this._mode)
+    this.lessonsService.submitForm(this.lessonForm, null, this.selectedLesson.id, this._mode)
       .subscribe({
         next: (response) => {
           if (response.message)
@@ -137,9 +137,9 @@ export class WeekLessons implements OnInit {
   }
 
   public removeLesson(): void {
-    if (!this.selectedLessonID) return;
+    if (!this.selectedLesson.id || !this.canEdit) return;
     this.noMode();
-    this.lessonsService.remove(this.selectedLessonID)
+    this.lessonsService.remove(this.selectedLesson.id)
       .subscribe({
         next: (response) => {
           if (response.message)

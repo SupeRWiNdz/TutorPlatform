@@ -11,6 +11,7 @@ export class LessonsService {
 
   private lessonsSubject: BehaviorSubject<any[] | null>;
   public lessons$: Observable<any[] | null>;
+
   private weekNumber: number = 0;
   public get isCurrentWeek(): boolean {
     return this.weekNumber == 0;
@@ -20,25 +21,27 @@ export class LessonsService {
 
   constructor(
     private dataService: DataService,
-    private auth: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    private auth: AuthService
   ) {
     this.lessonsSubject = new BehaviorSubject<any | null>(null);
     this.lessons$ = this.lessonsSubject.asObservable();
   }
 
-  getDaysArray(weekData: any): Array<{ key: string, label: string, date: string, is_today: boolean, lessons: any[] }> {
-    if (!weekData || !weekData.lessons) return [];
+  getDaysArray(lessons: any): Array<{ key: string, label: string, date: string, is_today: boolean, lessons: any[] }> {
+    if (!lessons || !lessons.lessons) return [];
 
     return this.daysOrder
-      .filter(key => weekData.lessons[key])
+      .filter(key => lessons.lessons[key])
       .map(key => ({
         key: key,
-        label: weekData.lessons[key].label,
-        is_today: weekData.lessons[key].is_today,
-        date: weekData.lessons[key].date,
-        lessons: weekData.lessons[key].lessons || []
+        label: lessons.lessons[key].label,
+        is_today: lessons.lessons[key].is_today,
+        date: lessons.lessons[key].date,
+        lessons: lessons.lessons[key].lessons || []
       }));
+  }
+  getStudents(lessons: any): Array<{ username: string, full_name: string }> {
+    return lessons?.students || [];
   }
 
 
@@ -114,4 +117,14 @@ export class LessonsService {
   private pad(num: number): string {
     return num < 10 ? '0' + num : num.toString();
   }
+  getStudentLesson(lesson_id: string, username: string): Observable<any> {
+  const sessionId = this.auth.tokenValue;
+  if (!sessionId) return of(null);
+  return this.dataService.lessonsDS.getStudentLesson(sessionId, lesson_id, username);
+}
+editStudentLesson(lesson_id: string, username: string, homework: string, comment: string): Observable<any> {
+  const sessionId = this.auth.tokenValue;
+  if (!sessionId) return of(null);
+  return this.dataService.lessonsDS.editStudentLesson(sessionId, lesson_id, username, homework, comment);
+}
 }

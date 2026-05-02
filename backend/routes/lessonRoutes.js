@@ -8,5 +8,7 @@ router.post('/lessons/get-personal', lessonController.getPersonal);
 router.post('/lessons/get-near', lessonController.getNearest);
 router.post('/lessons/remove', lessonController.remove);
 router.post('/lessons/edit', lessonController.edit);
+router.post('/lessons/student', lessonController.getStudentLesson);
+router.post('/lessons/edit-student', lessonController.editStudentLesson);
 
 module.exports = router;

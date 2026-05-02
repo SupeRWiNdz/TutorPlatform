@@ -26,7 +26,7 @@ export class NavButtons {
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
     this.isAuth$ = this.auth.token$.pipe(
-      map(token => !!token) // преобразуем token в boolean
+      map(token => !!token)
     );
 
     this.router.events.pipe(

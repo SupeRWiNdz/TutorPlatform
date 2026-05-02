@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, Inject, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,16 +12,18 @@ import { TruncatePipe } from "@pipes/truncate.pipe";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LessonsService } from '@services/lessons.service';
 import { DateToMonthNamePipe } from '@pipes/date-to-month-name.pipe';
+import { MatSelectModule } from "@angular/material/select";
 
 @Component({
   selector: 'app-class-lessons',
   imports: [CommonModule, RouterModule, ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, TruncatePipe, DateToMonthNamePipe],
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatMenuModule, TruncatePipe, DateToMonthNamePipe, MatSelectModule],
   templateUrl: './class-lessons.html',
   styleUrl: './class-lessons.scss',
 })
 
-export class ClassLessons implements OnInit {
+export class ClassLessons implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   private _snackBar = inject(MatSnackBar);
   openSnackBar(message: string) {
     this._snackBar.open(message, 'Закрыть', {
@@ -35,7 +37,9 @@ export class ClassLessons implements OnInit {
   private lessons$: Observable<any | null>;
   public lessonsList: any = null;
   public lessonForm: FormGroup;
-  public selectedLessonID: string | null = null;
+  public studentChooseForm: FormGroup;
+  public studentLessonForm: FormGroup;
+  public selectedLesson: any | null = null;
   private _mode: 'edit' | 'create' | 'view' | null = null;
   public get mode() { return this._mode }
   public createMode(date?: string): void {
@@ -45,11 +49,15 @@ export class ClassLessons implements OnInit {
     this._mode = 'create';
   }
   public editMode(): void {
+    if (!this.canEdit) return;
     this._mode = 'edit';
   }
   public viewMode(lesson_id: string): void {
-    if (this.lessonToForm(lesson_id))
+    if (this.lessonToForm(lesson_id)) {
       this._mode = 'view';
+      this.studentChooseForm.reset();
+      this.studentLessonForm.reset();
+    }
   }
   public noMode(): void {
     this.lessonForm.reset();
@@ -70,6 +78,22 @@ export class ClassLessons implements OnInit {
       duration: ['', [Validators.required, Validators.min(1), Validators.max(480)]],
       homework: ['', [Validators.maxLength(500)]]
     });
+    this.studentChooseForm = this.fb.group({
+      username: ['', [Validators.required]]
+    });
+    this.studentChooseForm.get('username')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(username => {
+        if (username && this.selectedLesson.id) {
+          this.loadStudentLessonData(username);
+        } else {
+          this.studentLessonForm.patchValue({ homework: '', comment: '' });
+        }
+      });
+    this.studentLessonForm = this.fb.group({
+      homework: ['', [Validators.maxLength(500)]],
+      comment: ['', [Validators.maxLength(500)]],
+    });
   }
 
   ngOnInit(): void {
@@ -80,6 +104,11 @@ export class ClassLessons implements OnInit {
     if (isPlatformBrowser(this.platformId) && history?.state?.lesson_id) {
       this.viewMode(history.state.lesson_id);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private lessonToForm(lesson_id: string): boolean {
@@ -98,20 +127,24 @@ export class ClassLessons implements OnInit {
       }
     }
     if (foundLesson) {
+      this.selectedLesson = foundLesson; 
       this.lessonForm.patchValue({
         date: lessonDate,
         time: foundLesson.time,
         duration: foundLesson.duration,
         homework: foundLesson.homework
       });
-      this.selectedLessonID = lesson_id;
+      this.selectedLesson.id = lesson_id;
       return true;
     }
     return false;
   }
 
-  getDaysArray(weekData: any): Array<{ key: string, label: string, date: string, is_today: boolean, lessons: any[] }> {
-    return this.lessonsService.getDaysArray(weekData);
+  getDaysArray(lessons: any): Array<{ key: string, label: string, date: string, is_today: boolean, lessons: any[] }> {
+    return this.lessonsService.getDaysArray(lessons);
+  }
+  getStudents(lessons: any): Array<{ username: string, full_name: string }> {
+    return this.lessonsService.getStudents(lessons);
   }
   public showTitle(): void {
     if (this.isTitleActive == 50)
@@ -138,7 +171,7 @@ export class ClassLessons implements OnInit {
   }
   public submitLessonForm(): void {
     if (this._mode == null || !this.lessonForm.valid) return;
-    this.lessonsService.submitForm(this.lessonForm, this.class.link, this.selectedLessonID, this._mode)
+    this.lessonsService.submitForm(this.lessonForm, this.class.link, this.selectedLesson.id, this._mode)
       .subscribe({
         next: (response) => {
           if (response.message)
@@ -150,9 +183,9 @@ export class ClassLessons implements OnInit {
   }
 
   public removeLesson(): void {
-    if (!this.selectedLessonID) return;
+    if (!this.selectedLesson.id || !this.canEdit) return;
     this.noMode();
-    this.lessonsService.remove(this.selectedLessonID)
+    this.lessonsService.remove(this.selectedLesson.id)
       .subscribe({
         next: (response) => {
           if (response.message)
@@ -168,5 +201,36 @@ export class ClassLessons implements OnInit {
   }
   public getEndTime(startTime: string, durationMinutes: number): string {
     return this.lessonsService.getEndTime(startTime, durationMinutes);
+  }
+
+  private loadStudentLessonData(username: string): void {
+    if (!this.selectedLesson.id) return;
+
+    this.lessonsService.getStudentLesson(this.selectedLesson.id, username)
+      .subscribe({
+        next: (response) => {
+          const homework = response?.homework || '';
+          const comment = response?.comment || '';
+          this.studentLessonForm.patchValue({ homework, comment });
+        },
+        error: (err) => {
+          console.error('Ошибка загрузки данных ученика', err);
+          this.openSnackBar('Не удалось загрузить данные ученика');
+          this.studentLessonForm.patchValue({ homework: '', comment: '' });
+        }
+      });
+  }
+  saveStudentLesson(): void {
+    if (!this.selectedLesson.id || !this.studentChooseForm.value.username) return;
+    const { homework, comment } = this.studentLessonForm.value;
+    this.lessonsService.editStudentLesson(
+      this.selectedLesson.id,
+      this.studentChooseForm.value.username,
+      homework,
+      comment
+    ).subscribe({
+      next: (res) => this.openSnackBar('Сохранено'),
+      error: () => this.openSnackBar('Ошибка сохранения')
+    });
   }
 }

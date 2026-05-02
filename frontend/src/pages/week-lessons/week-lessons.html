@@ -40,7 +40,8 @@
                         @if (lesson.time && lesson.end_time) {
                         {{ lesson.time }}-{{lesson.end_time}}
                         }
-                        @if (lesson.homework) { (Д/з) }
+                        @if (lesson.homework || lesson.personal_homework ) { (Д/з) }
+                        @if (lesson.comment) { +комм. учителя }
                     </div>
                 </div>
                 } @empty {
@@ -111,19 +112,27 @@
             </p>
 
             <button (click)="submitLessonForm()" [disabled]="!lessonForm.valid" mat-raised-button>Подтвердить</button>
-            <button (click)="noMode()" mat-raised-button>Отмена</button>
+            <button (click)="selectedLesson.id?viewMode(selectedLesson.id):noMode()" mat-raised-button>Отмена</button>
         </form>
     </div>
     } @else if (mode=='view') {
     <div class="inner-block">
         @if (lessonForm.value) {
-        <p>{{ selectedLessonClassName }}</p>
+        <p>{{ selectedLesson.class_name }}</p>
         <p>
             {{ lessonForm.value.date }}
             {{ lessonForm.value.time }}-{{ getEndTime(lessonForm.value.time, lessonForm.value.duration) }}
         </p>
         @if (lessonForm.value.homework)
         {<p>Домашнее задание: {{ lessonForm.value.homework }}</p>}
+        }
+        @if (!canEdit) {
+        @if (selectedLesson?.personal_homework) {
+        <p>Персональное Д/з: {{ selectedLesson.personal_homework }}</p>
+        }
+        @if (selectedLesson?.comment) {
+        <p>Комментарий: {{ selectedLesson.comment }}</p>
+        }
         }
     </div>
     }

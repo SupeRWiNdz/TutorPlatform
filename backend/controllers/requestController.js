@@ -408,7 +408,6 @@ const decline = async (req, res) => {
 const getUsersToInvite = async (req, res) => {
     const { session_id, link } = req.body;
 
-    // Проверка обязательных полей
     if (!session_id) {
         return res.status(400).json({ message: 'Не выполнен вход' });
     }
@@ -417,7 +416,6 @@ const getUsersToInvite = async (req, res) => {
     }
 
     try {
-        // 1. Получаем user_id по session_id
         const sessionResult = await pool.query(
             `SELECT user_id FROM user_sessions 
              WHERE session_id = $1 AND is_active = true`,
@@ -428,7 +426,6 @@ const getUsersToInvite = async (req, res) => {
         }
         const creatorId = sessionResult.rows[0].user_id;
 
-        // 2. Получаем id класса по ссылке
         const classResult = await pool.query(
             `SELECT id FROM classes WHERE link = $1`,
             [link]
@@ -438,7 +435,6 @@ const getUsersToInvite = async (req, res) => {
         }
         const classId = classResult.rows[0].id;
 
-        // 3. Проверяем, что пользователь является создателем класса
         const creatorCheck = await pool.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2 AND role = 'creator'`,
@@ -448,7 +444,6 @@ const getUsersToInvite = async (req, res) => {
             return res.status(403).json({ message: 'Только создатель класса может получать список пользователей для приглашения' });
         }
 
-        // 4. Запрос пользователей, не состоящих в классе, но имеющих общий чат с создателем
         const usersResult = await pool.query(
             `SELECT 
                 u.username,
@@ -470,7 +465,6 @@ const getUsersToInvite = async (req, res) => {
             [creatorId, classId]
         );
 
-        // Возвращаем список пользователей
         res.json({ users: usersResult.rows });
 
     } catch (err) {

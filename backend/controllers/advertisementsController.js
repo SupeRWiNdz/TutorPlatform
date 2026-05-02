@@ -420,7 +420,6 @@ const getByUsername = async (req, res) => {
             return res.status(400).json({ message: 'Не указан username пользователя' });
         }
 
-        // Находим пользователя по username
         const userResult = await pool.query(
             'SELECT id FROM users WHERE username = $1',
             [username.trim()]
@@ -430,7 +429,6 @@ const getByUsername = async (req, res) => {
         }
         const userId = userResult.rows[0].id;
 
-        // Получаем активные объявления пользователя
         const result = await pool.query(
             `SELECT a.id, a.name, a.description, a.price, a.created_at, c.name AS class_name
              FROM advertisements a
