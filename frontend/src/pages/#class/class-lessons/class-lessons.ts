@@ -171,7 +171,8 @@ export class ClassLessons implements OnInit, OnDestroy {
   }
   public submitLessonForm(): void {
     if (this._mode == null || !this.lessonForm.valid) return;
-    this.lessonsService.submitForm(this.lessonForm, this.class.link, this.selectedLesson.id, this._mode)
+    const lessonID: string | null = (this.selectedLesson)?this.selectedLesson.id:null;
+    this.lessonsService.submitForm(this.lessonForm, this.class.link, lessonID, this._mode)
       .subscribe({
         next: (response) => {
           if (response.message)
@@ -214,7 +215,6 @@ export class ClassLessons implements OnInit, OnDestroy {
           this.studentLessonForm.patchValue({ homework, comment });
         },
         error: (err) => {
-          console.error('Ошибка загрузки данных ученика', err);
           this.openSnackBar('Не удалось загрузить данные ученика');
           this.studentLessonForm.patchValue({ homework: '', comment: '' });
         }
