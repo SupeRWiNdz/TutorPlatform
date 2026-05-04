@@ -26,7 +26,6 @@ const getUserData = async (req, res) => {
             u.birth_date,
             u.created_at,
             u.updated_at,
-            u.avatar_url,
             u.last_login,
             u.is_student,
             u.is_teacher

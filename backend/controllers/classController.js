@@ -155,7 +155,7 @@ const deleteClass = async (req, res) => {
         }
         
         await pool.query(
-            `DELETE FROM messages WHERE receiver_uuid = $1`,
+            `DELETE FROM messages WHERE receiver_id = $1`,
             [classId]
         );
         
@@ -410,7 +410,6 @@ const myClasses = async (req, res) => {
                     `SELECT 
                         u.username,
                         u.full_name,
-                        u.avatar_url,
                         u.is_student,
                         u.is_teacher,
                         cm.role as member_role,
@@ -435,10 +434,10 @@ const myClasses = async (req, res) => {
                         u.full_name,
                         m.text,
                         m.sent_at,
-                        CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                        CASE WHEN m.sender_id = $1 THEN 'outgoing' ELSE 'incoming' END as type
                      FROM messages m
-                     JOIN users u ON m.sender_uuid = u.id
-                     WHERE m.receiver_uuid = $2
+                     JOIN users u ON m.sender_id = u.id
+                     WHERE m.receiver_id = $2
                      ORDER BY m.sent_at DESC
                      LIMIT 8`,
                     [userId, classId]
@@ -457,7 +456,6 @@ const myClasses = async (req, res) => {
                     members: membersResult.rows.map(member => ({
                         username: member.username,
                         full_name: member.full_name,
-                        avatar_url: member.avatar_url,
                         is_student: member.is_student,
                         is_teacher: member.is_teacher,
                         member_role: member.member_role,
@@ -538,7 +536,6 @@ const myCreatedClasses = async (req, res) => {
                     `SELECT 
                         u.username,
                         u.full_name,
-                        u.avatar_url,
                         u.is_student,
                         u.is_teacher,
                         cm.role as member_role,
@@ -568,7 +565,6 @@ const myCreatedClasses = async (req, res) => {
                     members: membersResult.rows.map(member => ({
                         username: member.username,
                         full_name: member.full_name,
-                        avatar_url: member.avatar_url,
                         is_student: member.is_student,
                         is_teacher: member.is_teacher,
                         member_role: member.member_role,
@@ -651,7 +647,6 @@ const getClass = async (req, res) => {
             `SELECT 
                 u.username,
                 u.full_name,
-                u.avatar_url,
                 u.is_student,
                 u.is_teacher,
                 cm.role as member_role,
@@ -674,7 +669,6 @@ const getClass = async (req, res) => {
             members: membersResult.rows.map(member => ({
                 username: member.username,
                 full_name: member.full_name,
-                avatar_url: member.avatar_url,
                 is_student: member.is_student,
                 is_teacher: member.is_teacher,
                 member_role: member.member_role,

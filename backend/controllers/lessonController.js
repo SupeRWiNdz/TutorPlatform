@@ -70,7 +70,7 @@ const create = async (req, res) => {
         const durationInterval = `${durationMinutes} minutes`;
 
         await pool.query(
-            `INSERT INTO lessons (teacher_id, homework, date_and_time, duration)
+            `INSERT INTO lessons (class_id, homework, date_and_time, duration)
              VALUES ($1, $2, $3, $4::interval)`,
             [classCheck.rows[0].id, homework, dateTimeStr, durationInterval]
         );
@@ -117,7 +117,7 @@ const get = async (req, res) => {
             SELECT id, homework, date_and_time,
                    (EXTRACT(EPOCH FROM duration) / 60)::int AS duration_minutes
             FROM lessons
-            WHERE teacher_id = $1
+            WHERE class_id = $1
             ORDER BY date_and_time
         `;
         let lessonsParams = [classId];
@@ -130,7 +130,7 @@ const get = async (req, res) => {
                        sl.homework AS personal_homework, sl.comment
                 FROM lessons l
                 LEFT JOIN student_lessons sl ON l.id = sl.lesson_id AND sl.student_id = $2
-                WHERE l.teacher_id = $1
+                WHERE l.class_id = $1
                 ORDER BY l.date_and_time
             `, [classId, userId]);
             lessonsResult = lessonsWithStudent;
@@ -322,7 +322,7 @@ const getPersonal = async (req, res) => {
                     sl.homework AS personal_homework,
                     sl.comment
              FROM lessons l
-             JOIN classes c ON l.teacher_id = c.id
+             JOIN classes c ON l.class_id = c.id
              JOIN class_members cm ON cm.class_id = c.id AND cm.user_id = $1
              LEFT JOIN student_lessons sl ON l.id = sl.lesson_id AND sl.student_id = $1
              WHERE cm.user_id = $1
@@ -391,13 +391,13 @@ const edit = async (req, res) => {
         const userId = sessionResult.rows[0].user_id;
 
         const lessonResult = await pool.query(
-            'SELECT teacher_id FROM lessons WHERE id = $1',
+            'SELECT class_id FROM lessons WHERE id = $1',
             [lesson_id]
         );
         if (lessonResult.rows.length === 0) {
             return res.status(404).json({ message: 'Занятие не найдено' });
         }
-        const classId = lessonResult.rows[0].teacher_id;
+        const classId = lessonResult.rows[0].class_id;
 
         const memberCheck = await pool.query(
             `SELECT role FROM class_members 
@@ -500,13 +500,13 @@ const remove = async (req, res) => {
         const userId = sessionResult.rows[0].user_id;
 
         const lessonResult = await pool.query(
-            'SELECT teacher_id FROM lessons WHERE id = $1',
+            'SELECT class_id FROM lessons WHERE id = $1',
             [lesson_id]
         );
         if (lessonResult.rows.length === 0) {
             return res.status(404).json({ message: 'Занятие не найдено' });
         }
-        const classId = lessonResult.rows[0].teacher_id;
+        const classId = lessonResult.rows[0].class_id;
 
         const memberCheck = await pool.query(
             `SELECT role FROM class_members 
@@ -557,7 +557,7 @@ const getNearest = async (req, res) => {
                 c.link AS class_link,
                 cm.role
              FROM lessons l
-             JOIN classes c ON l.teacher_id = c.id
+             JOIN classes c ON l.class_id = c.id
              JOIN class_members cm ON cm.class_id = c.id AND cm.user_id = $1
              WHERE cm.user_id = $1
                AND l.date_and_time > $2
@@ -631,9 +631,9 @@ const getStudentLesson = async (req, res) => {
         const userId = sessionResult.rows[0].user_id;
 
         const lessonResult = await pool.query(
-            `SELECT l.teacher_id AS class_id, c.id AS class_id_confirm
+            `SELECT l.class_id AS class_id, c.id AS class_id_confirm
              FROM lessons l
-             JOIN classes c ON l.teacher_id = c.id
+             JOIN classes c ON l.class_id = c.id
              WHERE l.id = $1`,
             [lesson_id]
         );
@@ -728,7 +728,7 @@ const editStudentLesson = async (req, res) => {
         const userId = sessionResult.rows[0].user_id;
 
         const lessonResult = await pool.query(
-            `SELECT teacher_id AS class_id FROM lessons WHERE id = $1`,
+            `SELECT class_id FROM lessons WHERE id = $1`,
             [lesson_id]
         );
         if (lessonResult.rows.length === 0) {

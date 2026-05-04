@@ -17,7 +17,6 @@ const login = async (req, res) => {
                 birth_date,
                 created_at,
                 updated_at,
-                avatar_url,
                 last_login,
                 salt
             FROM users 

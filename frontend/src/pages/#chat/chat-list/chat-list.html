@@ -3,8 +3,8 @@
   <div class="chat" (click)="navigateToChat(chat.username)"
     [ngStyle]="{ 'font-weight': (!chat.last_message_is_read && chat.last_message_type == 'incoming') ? '900' : 'normal' }">
     <div class="name">
-      {{ chat.full_name | truncate:46 }} @if (!chat.last_message_is_read && chat.last_message_type=='outgoing')
-      {●}
+      {{ chat.full_name | truncate:46 }}
+      @if (!chat.last_message_is_read && chat.last_message_type=='outgoing') {●}
     </div>
     <div class="last_message">
       @if (chat.last_message_type=='outgoing') {Вы: }

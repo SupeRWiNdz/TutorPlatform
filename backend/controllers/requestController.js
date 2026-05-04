@@ -167,7 +167,6 @@ const check = async (req, res) => {
             `SELECT 
                 u.username,
                 u.full_name,
-                u.avatar_url,
                 u.is_student,
                 u.is_teacher,
                 cm.role as member_role,
@@ -188,7 +187,6 @@ const check = async (req, res) => {
             members: membersResult.rows.map(member => ({
                 username: member.username,
                 full_name: member.full_name,
-                avatar_url: member.avatar_url,
                 is_student: member.is_student,
                 is_teacher: member.is_teacher,
                 member_role: member.member_role,

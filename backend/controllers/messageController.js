@@ -24,15 +24,15 @@ const getChats = async (req, res) => {
                 m.sent_at as last_message_time,
                 m.is_read as last_message_is_read,
                 CASE 
-                    WHEN m.sender_uuid = $1 THEN 'outgoing' 
+                    WHEN m.sender_id = $1 THEN 'outgoing' 
                     ELSE 'incoming' 
                 END as last_message_type
             FROM users u
             LEFT JOIN LATERAL (
-                SELECT text, sent_at, is_read, sender_uuid
+                SELECT text, sent_at, is_read, sender_id
                 FROM messages 
-                WHERE (sender_uuid = $1 AND receiver_uuid = u.id)
-                   OR (sender_uuid = u.id AND receiver_uuid = $1)
+                WHERE (sender_id = $1 AND receiver_id = u.id)
+                   OR (sender_id = u.id AND receiver_id = $1)
                 ORDER BY sent_at DESC
                 LIMIT 1
             ) m ON true
@@ -106,7 +106,7 @@ const sendMessage = async (req, res) => {
         }
 
         await client.query(
-            `INSERT INTO messages (sender_uuid, receiver_uuid, text)
+            `INSERT INTO messages (sender_id, receiver_id, text)
              VALUES ($1, $2, $3)`,
             [sender_id, receiver_id, text]
         );
@@ -145,7 +145,7 @@ const getMessages = async (req, res) => {
             return res.status(401).json({ error: 'Сеанс не найден' });
         }
         
-        const sender_uuid = sessionResult.rows[0].user_id;
+        const sender_id = sessionResult.rows[0].user_id;
         
         const receiverResult = await client.query(
             'SELECT id FROM users WHERE username = $1',
@@ -156,7 +156,7 @@ const getMessages = async (req, res) => {
             return res.status(404).json({ error: 'Пользователь не найден' });
         }
         
-        const receiver_uuid = receiverResult.rows[0].id;
+        const receiver_id = receiverResult.rows[0].id;
         
         let query;
         let queryParams;
@@ -164,28 +164,28 @@ const getMessages = async (req, res) => {
         if (before_number) {
             query = `
                 SELECT text, sent_at, message_number, is_read,
-                       CASE WHEN sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                       CASE WHEN sender_id = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages 
-                WHERE ((sender_uuid = $1 AND receiver_uuid = $2) 
-                    OR (sender_uuid = $2 AND receiver_uuid = $1))
+                WHERE ((sender_id = $1 AND receiver_id = $2) 
+                    OR (sender_id = $2 AND receiver_id = $1))
                     AND message_number < $3
                 ORDER BY message_number DESC
                 LIMIT $4
             `;
-            queryParams = [sender_uuid, receiver_uuid, before_number, message_count];
+            queryParams = [sender_id, receiver_id, before_number, message_count];
         } else {
             await client.query('BEGIN');
             
             query = `
                 SELECT text, sent_at, message_number, is_read,
-                       CASE WHEN sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                       CASE WHEN sender_id = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages 
-                WHERE (sender_uuid = $1 AND receiver_uuid = $2) 
-                    OR (sender_uuid = $2 AND receiver_uuid = $1)
+                WHERE (sender_id = $1 AND receiver_id = $2) 
+                    OR (sender_id = $2 AND receiver_id = $1)
                 ORDER BY message_number DESC
                 LIMIT $3
             `;
-            queryParams = [sender_uuid, receiver_uuid, message_count];
+            queryParams = [sender_id, receiver_id, message_count];
         }
         
         const result = await client.query(query, queryParams);
@@ -197,17 +197,17 @@ const getMessages = async (req, res) => {
             const checkMoreQuery = `
                 SELECT EXISTS(
                     SELECT 1 FROM messages 
-                    WHERE ((sender_uuid = $1 AND receiver_uuid = $2) 
-                        OR (sender_uuid = $2 AND receiver_uuid = $1))
+                    WHERE ((sender_id = $1 AND receiver_id = $2) 
+                        OR (sender_id = $2 AND receiver_id = $1))
                         AND message_number < $3
                 ) as has_more
             `;
-            const checkResult = await client.query(checkMoreQuery, [sender_uuid, receiver_uuid, oldestMessageNumber]);
+            const checkResult = await client.query(checkMoreQuery, [sender_id, receiver_id, oldestMessageNumber]);
             hasMore = checkResult.rows[0].has_more;
         }
         
         if (!before_number) {
-            await markMessagesAsRead(sender_uuid, receiver_uuid, client);
+            await markMessagesAsRead(sender_id, receiver_id, client);
             await client.query('COMMIT');
         }
         
@@ -241,7 +241,7 @@ const getNewMessages = async (req, res) => {
             return res.status(401).json({ error: 'Сеанс не найден' });
         }
         
-        const sender_uuid = sessionResult.rows[0].user_id;
+        const sender_id = sessionResult.rows[0].user_id;
         
         const receiverResult = await client.query(
             'SELECT id FROM users WHERE username = $1',
@@ -252,31 +252,31 @@ const getNewMessages = async (req, res) => {
             return res.status(404).json({ error: 'Пользователь не найден' });
         }
         
-        const receiver_uuid = receiverResult.rows[0].id;
+        const receiver_id = receiverResult.rows[0].id;
         
         await client.query('BEGIN');
         
         const result = await client.query(`
             SELECT text, sent_at, message_number, is_read,
-                   CASE WHEN sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                   CASE WHEN sender_id = $1 THEN 'outgoing' ELSE 'incoming' END as type
             FROM messages 
-            WHERE ((sender_uuid = $1 AND receiver_uuid = $2) 
-                OR (sender_uuid = $2 AND receiver_uuid = $1))
+            WHERE ((sender_id = $1 AND receiver_id = $2) 
+                OR (sender_id = $2 AND receiver_id = $1))
                 AND message_number > $3
             ORDER BY message_number ASC
-        `, [sender_uuid, receiver_uuid, after_number]);
+        `, [sender_id, receiver_id, after_number]);
         
         if (result.rows.length > 0) {
-            await markMessagesAsRead(sender_uuid, receiver_uuid, client);
+            await markMessagesAsRead(sender_id, receiver_id, client);
         }
         
         const lastOutgoingResult = await client.query(`
             SELECT is_read
             FROM messages
-            WHERE sender_uuid = $1 AND receiver_uuid = $2
+            WHERE sender_id = $1 AND receiver_id = $2
             ORDER BY message_number DESC
             LIMIT 1
-        `, [sender_uuid, receiver_uuid]);
+        `, [sender_id, receiver_id]);
         
         let isLastOutgoingMessageRead = false;
         if (lastOutgoingResult.rows.length > 0) {
@@ -301,13 +301,13 @@ const getNewMessages = async (req, res) => {
     }
 };
 
-async function markMessagesAsRead(sender_uuid, receiver_uuid, client = null) {
+async function markMessagesAsRead(sender_id, receiver_id, client = null) {
     const query = `
         UPDATE messages 
         SET is_read = true 
-        WHERE receiver_uuid = $1 AND sender_uuid = $2
+        WHERE receiver_id = $1 AND sender_id = $2
     `;
-    const params = [sender_uuid, receiver_uuid];
+    const params = [sender_id, receiver_id];
     
     if (client) {
         await client.query(query, params);

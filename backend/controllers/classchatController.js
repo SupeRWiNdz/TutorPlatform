@@ -1,7 +1,7 @@
 const pool = require('../config/database');
 
 async function markClassMessagesAsRead(class_id, sender_id, client = null) {
-    const query = `UPDATE messages SET is_read = true WHERE receiver_uuid = $1 and sender_uuid != $2`;
+    const query = `UPDATE messages SET is_read = true WHERE receiver_id = $1 and sender_id != $2`;
     const params = [class_id, sender_id];
     if (client) {
         await client.query(query, params);
@@ -62,7 +62,7 @@ const sendMessage = async (req, res) => {
             );
 
             await client.query(
-                `INSERT INTO messages (sender_uuid, receiver_uuid, text)
+                `INSERT INTO messages (sender_id, receiver_id, text)
                  VALUES ($1, $2, $3)`,
                 [sender_id, receiver_id, text]
             );
@@ -98,7 +98,7 @@ const getMessages = async (req, res) => {
             return res.status(401).json({ message: 'Сеанс не найден' });
         }
 
-        const sender_uuid = sessionResult.rows[0].user_id;
+        const sender_id = sessionResult.rows[0].user_id;
 
         const receiverResult = await client.query(
             'SELECT id FROM classes WHERE link = $1',
@@ -109,12 +109,12 @@ const getMessages = async (req, res) => {
             return res.status(404).json({ message: 'Класс не найден' });
         }
 
-        const receiver_uuid = receiverResult.rows[0].id;
+        const receiver_id = receiverResult.rows[0].id;
 
         const membershipResult = await client.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
-            [receiver_uuid, sender_uuid]
+            [receiver_id, sender_id]
         );
 
         if (membershipResult.rowCount === 0) {
@@ -132,15 +132,15 @@ const getMessages = async (req, res) => {
                     m.message_number,
                     m.is_read,
                     u.username as sender_username,
-                    CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                    CASE WHEN m.sender_id = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages m
-                JOIN users u ON m.sender_uuid = u.id
-                WHERE m.receiver_uuid = $2
+                JOIN users u ON m.sender_id = u.id
+                WHERE m.receiver_id = $2
                     AND m.message_number < $3
                 ORDER BY m.message_number DESC
                 LIMIT $4
             `;
-            queryParams = [sender_uuid, receiver_uuid, before_number, message_count];
+            queryParams = [sender_id, receiver_id, before_number, message_count];
 
             const result = await client.query(query, queryParams);
             const messages = result.rows.reverse();
@@ -151,11 +151,11 @@ const getMessages = async (req, res) => {
                 const checkMoreQuery = `
                     SELECT EXISTS(
                         SELECT 1 FROM messages 
-                        WHERE receiver_uuid = $1
+                        WHERE receiver_id = $1
                             AND message_number < $2
                     ) as has_more
                 `;
-                const checkResult = await client.query(checkMoreQuery, [receiver_uuid, oldestMessageNumber]);
+                const checkResult = await client.query(checkMoreQuery, [receiver_id, oldestMessageNumber]);
                 hasMore = checkResult.rows[0].has_more;
             }
 
@@ -175,14 +175,14 @@ const getMessages = async (req, res) => {
                     m.message_number,
                     m.is_read,
                     u.username as sender_username,
-                    CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                    CASE WHEN m.sender_id = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages m
-                JOIN users u ON m.sender_uuid = u.id
-                WHERE m.receiver_uuid = $2
+                JOIN users u ON m.sender_id = u.id
+                WHERE m.receiver_id = $2
                 ORDER BY m.message_number DESC
                 LIMIT $3
             `;
-            queryParams = [sender_uuid, receiver_uuid, message_count];
+            queryParams = [sender_id, receiver_id, message_count];
 
             const result = await client.query(query, queryParams);
             const messages = result.rows.reverse();
@@ -193,15 +193,15 @@ const getMessages = async (req, res) => {
                 const checkMoreQuery = `
                     SELECT EXISTS(
                         SELECT 1 FROM messages 
-                        WHERE receiver_uuid = $1
+                        WHERE receiver_id = $1
                             AND message_number < $2
                     ) as has_more
                 `;
-                const checkResult = await client.query(checkMoreQuery, [receiver_uuid, oldestMessageNumber]);
+                const checkResult = await client.query(checkMoreQuery, [receiver_id, oldestMessageNumber]);
                 hasMore = checkResult.rows[0].has_more;
             }
 
-            await markClassMessagesAsRead(receiver_uuid, sender_uuid, client);
+            await markClassMessagesAsRead(receiver_id, sender_id, client);
 
             await client.query('COMMIT');
 
@@ -235,7 +235,7 @@ const getNewMessages = async (req, res) => {
             return res.status(401).json({ message: 'Сеанс не найден' });
         }
 
-        const sender_uuid = sessionResult.rows[0].user_id;
+        const sender_id = sessionResult.rows[0].user_id;
 
         const receiverResult = await client.query(
             'SELECT id FROM classes WHERE link = $1',
@@ -246,12 +246,12 @@ const getNewMessages = async (req, res) => {
             return res.status(404).json({ message: 'Класс не найден' });
         }
 
-        const receiver_uuid = receiverResult.rows[0].id;
+        const receiver_id = receiverResult.rows[0].id;
 
         const membershipResult = await client.query(
             `SELECT role FROM class_members 
              WHERE class_id = $1 AND user_id = $2`,
-            [receiver_uuid, sender_uuid]
+            [receiver_id, sender_id]
         );
 
         if (membershipResult.rowCount === 0) {
@@ -271,14 +271,14 @@ const getNewMessages = async (req, res) => {
                     m.message_number,
                     m.is_read,
                     u.username as sender_username,
-                    CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                    CASE WHEN m.sender_id = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages m
-                JOIN users u ON m.sender_uuid = u.id
-                WHERE m.receiver_uuid = $2
+                JOIN users u ON m.sender_id = u.id
+                WHERE m.receiver_id = $2
                 ORDER BY m.message_number DESC
                 LIMIT 50
             `;
-            queryParams = [sender_uuid, receiver_uuid];
+            queryParams = [sender_id, receiver_id];
         } else {
             query = `
                 SELECT 
@@ -287,14 +287,14 @@ const getNewMessages = async (req, res) => {
                     m.message_number,
                     m.is_read,
                     u.username as sender_username,
-                    CASE WHEN m.sender_uuid = $1 THEN 'outgoing' ELSE 'incoming' END as type
+                    CASE WHEN m.sender_id = $1 THEN 'outgoing' ELSE 'incoming' END as type
                 FROM messages m
-                JOIN users u ON m.sender_uuid = u.id
-                WHERE m.receiver_uuid = $2
+                JOIN users u ON m.sender_id = u.id
+                WHERE m.receiver_id = $2
                     AND m.message_number > $3
                 ORDER BY m.message_number ASC
             `;
-            queryParams = [sender_uuid, receiver_uuid, after_number];
+            queryParams = [sender_id, receiver_id, after_number];
         }
 
         const result = await client.query(query, queryParams);
@@ -305,16 +305,16 @@ const getNewMessages = async (req, res) => {
         }
 
         if (messages.length > 0) {
-            await markClassMessagesAsRead(receiver_uuid, sender_uuid, client);
+            await markClassMessagesAsRead(receiver_id, sender_id, client);
         }
 
         const lastOutgoingResult = await client.query(`
             SELECT is_read
             FROM messages
-            WHERE sender_uuid = $1 AND receiver_uuid = $2
+            WHERE sender_id = $1 AND receiver_id = $2
             ORDER BY message_number DESC
             LIMIT 1
-        `, [sender_uuid, receiver_uuid]);
+        `, [sender_id, receiver_id]);
 
         let isLastOutgoingMessageRead = false;
         if (lastOutgoingResult.rows.length > 0) {
