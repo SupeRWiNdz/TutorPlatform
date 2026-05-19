@@ -11,11 +11,13 @@
     max-height: 92px;
 
     &:hover {
-        background-color: var(--mat-sys-surface-container-high);
+        background-color: var(--mat-sys-primary-container);
     }
 
     .name {
         font: var(--mat-sys-body-medium);
+
+        color: var(--mat-sys-primary);
         display: flex;
         align-items: center;
         gap: 10px;

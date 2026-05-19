@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, PLATFORM_ID, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { catchError, of } from 'rxjs';
 import { Router, RouterModule } from '@angular/router';
@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '@services/auth.service';
 import { DataService } from '@services/data.service';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-register',
@@ -21,8 +22,15 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 })
 export class RegisterComponent {
   form: FormGroup;
-  isLoading: boolean = false;
   isBrowser: boolean;
+  private _snackBar = inject(MatSnackBar);
+  openSnackBar(message: string) {
+    this._snackBar.open(message, 'Закрыть', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -49,8 +57,6 @@ export class RegisterComponent {
       return;
     }
 
-    this.isLoading = true;
-
     const formData = {
       account_type: this.form.value.account_type,
       email: this.form.value.email,
@@ -66,12 +72,11 @@ export class RegisterComponent {
 
     this.dataService.userDS.register(formData).pipe(
       catchError(error => {
-        this.isLoading = false;
+        this.openSnackBar(error.error?.message || 'Ошибка при регистрации');
         return of(null);
       })
     ).subscribe({
       next: (response: any) => {
-        this.isLoading = false;
         if (response && response.session_id) {
           this.authService.setTokenToStorage(response.session_id);
           this.authService.getUserBySessionId(response.session_id).subscribe(() => {

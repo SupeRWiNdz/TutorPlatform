@@ -39,7 +39,8 @@
         @if (lessonsList) {
         @for (day of getDaysArray(lessonsList); track day.key) {
         <div class="single-day">
-            <div class="day-info" [ngStyle]="{ 'font-weight': (day.is_today) ? '900' : 'normal' }">
+            <div class="day-info" [ngStyle]="{ 'font-weight': (day.is_today) ? '900' : 'normal',
+             'color': (day.is_today)? 'var(--mat-sys-primary)' : 'inherit' }">
                 {{ day.label }} {{ day.date | dateToMonthName }}
                 @if (canEdit) {<button (click)="createMode(day.date)"
                     mat-icon-button><mat-icon>add_box</mat-icon></button>}
@@ -56,9 +57,7 @@
                         @if (lesson.comment) { +комм. учителя }
                     </div>
                 </div>
-                } @empty {
-                -
-                }
+                } @empty {}
             </div>
         </div>
         }
@@ -131,7 +130,7 @@
     } @else if (mode=='view') {
     <div class="inner-block">
         @if (lessonForm.value) {
-        <p>{{ class.name }}</p>
+        <p class="colored-name">{{ class.name }}</p>
         <p>
             {{ lessonForm.value.date }}
             {{ lessonForm.value.time }}-{{ getEndTime(lessonForm.value.time, lessonForm.value.duration) }}

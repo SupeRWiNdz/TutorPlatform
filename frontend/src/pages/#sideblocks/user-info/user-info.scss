@@ -1,15 +1,20 @@
 .name {
+    color: var(--mat-sys-primary);
+    font-weight: 500;
     font-size: 1rem;
     margin: -5px 0 -10px;
     white-space: nowrap;
 }
 
 .username {
+    color: var(--mat-sys-primary);
     margin-bottom: -5px;
     font-size: 0.7rem;
     opacity: 0.45;
     white-space: nowrap;
+    font-weight: 400;
 }
+
 .user-info {
-  padding: 10px;
+    padding: 10px;
 }

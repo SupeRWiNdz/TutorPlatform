@@ -31,7 +31,7 @@
     @if (mode==null) {
     <div class="inner-block">
         <p class="description">{{class.description}}</p>
-        <p>Дата создания: {{class.created_at | date:'dd.MM.yyyy'}}
+        <p class="bottom-info">Дата создания: {{class.created_at | date:'dd.MM.yyyy'}}
             | Ваша роль: {{class.user_role | roleName}}<mat-icon>{{class.user_role | roleIcon}}</mat-icon></p>
     </div>
     } @else if (mode=='edit') {

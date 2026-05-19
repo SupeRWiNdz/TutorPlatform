@@ -22,8 +22,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class LoginComponent {
   form: FormGroup;
-  private _snackBar = inject(MatSnackBar);
   isBrowser: boolean;
+  private _snackBar = inject(MatSnackBar);
   openSnackBar(message: string) {
     this._snackBar.open(message, 'Закрыть', {
       duration: 3000,

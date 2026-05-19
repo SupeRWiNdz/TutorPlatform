@@ -27,8 +27,8 @@ body {
 button[mat-raised-button] {
   height: 44px;
   border-radius: 15px;
-  background-color: var(--mat-sys-surface-container-high);
-  color: var(--mat-sys-primary);
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-surface-container-high);
 }
 
 .inner-block {
@@ -56,10 +56,15 @@ button[mat-raised-button] {
 
   .title {
     font: var(--mat-sys-headline-small);
+    color: var(--mat-sys-primary);
+    font-weight: 500;
     display: inline-block;
     padding: 16px 0 8px 0;
     border-bottom: 1px solid var(--mat-sys-outline-variant);
     margin-bottom: 8px;
+    button {
+      color: var(--mat-sys-primary);
+    }
   }
 }
 
@@ -207,8 +212,8 @@ button[mat-raised-button] {
   }
 
   .outgoing .message-bubble {
-    background-color: var(--mat-sys-primary);
-    color: var(--mat-sys-on-primary);
+    background-color: var(--mat-sys-primary-container);
+    color: var(--mat-sys-body-medium);
     border-bottom-right-radius: 2px;
 
   }
@@ -253,6 +258,7 @@ button[mat-raised-button] {
       font-size: 14px;
       width: 14px;
       height: 14px;
+      color: var(--mat-sys-primary);
     }
   }
 
@@ -318,6 +324,10 @@ button[mat-raised-button] {
     align-items: center;
     gap: 8px;
     justify-content: center;
+
+    mat-icon {
+      color: var(--mat-sys-primary);
+    }
   }
 
   .lessons {
@@ -326,12 +336,13 @@ button[mat-raised-button] {
     overflow-y: auto;
     font-size: 0.85rem;
     border-radius: 5px;
+    border: 2px solid color-mix(in srgb, var(--mat-sys-primary-container) 100%, transparent);
     flex: 7;
     box-sizing: border-box;
   }
 
   .lessons-today {
-    border: 3px solid color-mix(in srgb, var(--mat-sys-outline-variant) 100%, transparent);
+    background-color: var(--mat-sys-primary-container);
     font-size: 0.85rem;
     border-radius: 5px;
     flex: 7;
@@ -347,6 +358,11 @@ button[mat-raised-button] {
   border-radius: 4px;
   padding: 3px 6px;
   margin: 0 6px 6px 6px;
+  background-color: var(--mat-sys-surface-container-lowest);
+
+  &:hover {
+    background-color: var(--mat-sys-primary-container);
+  }
 }
 
 .week-navigation {
@@ -372,11 +388,13 @@ button[mat-raised-button] {
   height: 165px;
 
   &:hover {
-    background-color: var(--mat-sys-surface-container-high);
+    background-color: var(--mat-sys-primary-container);
   }
 
   .name {
     font: var(--mat-sys-body-medium);
+    color: var(--mat-sys-primary);
+    font-weight: 500;
     text-align: center;
   }
 
@@ -391,5 +409,12 @@ a,
 a:visited,
 a:hover,
 a:active {
-  color: #5861ac;
+  color: var(--mat-sys-on-primary-container);
+}
+
+.colored-name {
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-primary);
+  font-weight: 500;
+  text-align: center;
 }

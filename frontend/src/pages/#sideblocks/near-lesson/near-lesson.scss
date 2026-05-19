@@ -13,4 +13,9 @@
   width: 100%;
   box-sizing: border-box;
   background-color: var(--mat-sys-surface-container-lowest);
+
+  .class-name {
+    color: var(--mat-sys-primary);
+    font-weight: 500;
+  }
 }

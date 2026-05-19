@@ -5,5 +5,11 @@
 }
 
 .user-info {
-    @include flex-center;
+  @include flex-center;
+}
+
+.bottom-info {
+
+  color: var(--mat-sys-primary);
+  font-weight: 400;
 }
