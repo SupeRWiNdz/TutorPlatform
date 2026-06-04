@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
-import { environment } from '../../../../environment';
+import { environment } from '../../../environment';
 import { AdvancedFormatMessagePipe } from '@pipes/advanced-message.pipe';
 import { RoleIconPipe } from '@pipes/role-icon.pipe';
 import { AuthService } from '@services/auth.service';
