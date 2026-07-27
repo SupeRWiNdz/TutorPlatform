@@ -1,6 +1,5 @@
 
 import { Routes } from '@angular/router';
-
 import { AuthGuard } from '@guards/auth.guard';
 import { OwnProfileRedirectGuard } from '@guards/own-profile-redirect.guard';
 import { UserResolver } from '@resolvers/user.resolver';

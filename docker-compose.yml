@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: tutor-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123123
+      POSTGRES_DB: tutor_platform
+      PGDATA: /var/lib/postgresql/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - tutor-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: tutor-backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: 123123
+      DB_NAME: tutor_platform
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tutor-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    # Для разработки можно переопределить команду:
+    # command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tutor-frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+    networks:
+      - tutor-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_OPTIONS=--openssl-legacy-provider
+
+volumes:
+  postgres_data:
+
+networks:
+  tutor-network:
+    driver: bridge
