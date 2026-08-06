@@ -1,8 +1,15 @@
+# Документация
+
+1. [Техническая документация и описание программной реализации](https://disk.yandex.ru/i/zpMR6A3mgxJBRQ)
+2. [Определения и условные обозначения](https://disk.yandex.ru/i/lPu2HHiDLrPcOg)
+3. [Описание процесса работы разработанной платформы](https://disk.yandex.ru/i/UXMJqwqzT-uF4w)
+
 # Инструкция по развёртыванию
 
 ## Требования
-1. [Docker](https://www.docker.com/get-started)
-2. [Docker Compose](https://docs.docker.com/compose/install/) (входит в состав Docker Desktop для Windows/Mac)
+1. [Git](https://git-scm.com/install/)
+2. [Docker](https://www.docker.com/get-started)
+3. [Docker Compose](https://docs.docker.com/compose/install/) (входит в состав Docker Desktop для Windows/Mac)
 
 ## Установка и запуск
 1. Клонируйте репозиторий и перейдите в папку проекта:
